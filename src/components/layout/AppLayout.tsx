@@ -26,6 +26,7 @@ import {
   DollarSign,
   Package,
   FileText,
+  UserCheck,
   Settings,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
@@ -60,6 +61,12 @@ const menuItems = [
     title: "Other Services",
     href: "/custom-fees/other-services",
     icon: Package,
+    roles: [Role.OWNER, Role.CASHIER],
+  },
+  {
+    title: "Trainer Fees",
+    href: "/custom-fees/trainer-fees",
+    icon: UserCheck,
     roles: [Role.OWNER, Role.CASHIER],
   },
   {

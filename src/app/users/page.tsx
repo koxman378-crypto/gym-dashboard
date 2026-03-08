@@ -80,7 +80,6 @@ export default function UsersPage() {
     phone: string;
     age: number | undefined;
     assignedTrainer: string;
-    trainerFee: number | undefined;
     bodyMeasurements?: {
       height?: number;
       weight?: number;
@@ -96,7 +95,6 @@ export default function UsersPage() {
     phone: "",
     age: undefined,
     assignedTrainer: "none",
-    trainerFee: undefined,
     bodyMeasurements: undefined,
   });
 
@@ -214,7 +212,6 @@ export default function UsersPage() {
     age: undefined,
     role: Role.CUSTOMER,
     assignedTrainer: undefined,
-    trainerFee: undefined,
     bodyMeasurements: undefined,
   });
 
@@ -246,7 +243,6 @@ export default function UsersPage() {
         age: undefined,
         role: Role.CUSTOMER,
         assignedTrainer: undefined,
-        trainerFee: undefined,
         bodyMeasurements: undefined,
       });
     } catch (error) {
@@ -322,7 +318,6 @@ export default function UsersPage() {
       phone: user.phone || "",
       age: user.age ?? undefined,
       assignedTrainer: getAssignedTrainerId(user.assignedTrainer),
-      trainerFee: user.trainerFee ?? undefined,
       bodyMeasurements: user.bodyMeasurements
         ? {
             height: user.bodyMeasurements.height ?? undefined,
@@ -357,14 +352,6 @@ export default function UsersPage() {
       }
       if (editFormData.age !== selectedUser.age) {
         updateData.age = editFormData.age;
-      }
-
-      // Handle trainer fee (only for trainers)
-      if (
-        selectedUser.role === Role.TRAINER &&
-        editFormData.trainerFee !== selectedUser.trainerFee
-      ) {
-        updateData.trainerFee = editFormData.trainerFee;
       }
 
       // Handle assigned trainer
@@ -616,32 +603,6 @@ export default function UsersPage() {
                         </div>
                       )}
 
-                      {/* Trainer Fee (only for trainers) */}
-                      {formData.role === Role.TRAINER && (
-                        <div className="space-y-2">
-                          <Label htmlFor="trainerFee">
-                            Monthly Trainer Fee (MMK)
-                          </Label>
-                          <Input
-                            id="trainerFee"
-                            type="number"
-                            placeholder="50000"
-                            value={formData.trainerFee || ""}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                trainerFee: e.target.value
-                                  ? Number(e.target.value)
-                                  : undefined,
-                              })
-                            }
-                          />
-                          <p className="text-xs text-slate-600 dark:text-slate-400">
-                            Set the monthly fee for this trainer's services
-                          </p>
-                        </div>
-                      )}
-
                       {/* Body Measurements Section (Optional) */}
                       <div className="space-y-3 border-t pt-4">
                         <h4 className="text-sm font-medium">
@@ -889,32 +850,6 @@ export default function UsersPage() {
                     className="capitalize"
                   />
                 </div>
-
-                {/* Trainer Fee (editable for trainers only) */}
-                {selectedUser.role === Role.TRAINER && (
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-trainerFee">
-                      Monthly Trainer Fee (MMK)
-                    </Label>
-                    <Input
-                      id="edit-trainerFee"
-                      type="number"
-                      placeholder="50000"
-                      value={editFormData.trainerFee || ""}
-                      onChange={(e) =>
-                        setEditFormData({
-                          ...editFormData,
-                          trainerFee: e.target.value
-                            ? Number(e.target.value)
-                            : undefined,
-                        })
-                      }
-                    />
-                    <p className="text-xs text-slate-600 dark:text-slate-400">
-                      Update the monthly fee for this trainer's services
-                    </p>
-                  </div>
-                )}
 
                 {/* Read-only: Status */}
                 <div className="space-y-2">

@@ -119,15 +119,46 @@ export interface OtherServiceGroupSnapshot {
   selectedServices: OtherServiceRowSnapshot[];
 }
 
+// ===== TRAINER FEE SYSTEM =====
+export interface TrainerFeeItem {
+  _id: string;
+  duration: number;
+  durationUnit: DurationUnit;
+  amount: number;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  isActive: boolean;
+}
+
+export interface CreateTrainerFeeItemDto {
+  duration: number;
+  durationUnit: DurationUnit;
+  amount: number;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  isActive?: boolean;
+}
+
+export interface UpdateTrainerFeesDto {
+  trainerFees: CreateTrainerFeeItemDto[];
+}
+
 export interface TrainerSnapshot {
   trainerId: string;
   trainerName: string;
-  trainerFee: number;
+  feeRowId: string;
+  duration: number;
+  durationUnit: DurationUnit;
+  amount: number;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  finalPrice: number;
 }
 
 // ===== SUBSCRIPTION STRUCTURE (Custom Fees System) =====
 export interface Subscription {
   _id: string;
+  trainerFeeRowId?: string;
   customer: any; // User object or ObjectId
   gymPriceGroup: GymPriceGroupSnapshot | null;
   otherServiceGroups: OtherServiceGroupSnapshot[];
@@ -158,6 +189,7 @@ export interface CreateSubscriptionDto {
     serviceRowIds: string[];
   }>;
   trainerId?: string;
+  trainerFeeRowId?: string;
   startDate: string | Date;
   endDate: string | Date;
   paymentStatus?: "paid" | "pending" | "partial";

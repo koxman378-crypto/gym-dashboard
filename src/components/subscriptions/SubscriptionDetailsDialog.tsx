@@ -290,10 +290,36 @@ export const SubscriptionDetailsDialog = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Trainer Fee:
+                    Duration:
                   </span>
                   <span className="font-medium">
-                    {subscription.trainer.trainerFee.toLocaleString()} MMK
+                    {subscription.trainer.duration} {subscription.trainer.durationUnit}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Base Amount:
+                  </span>
+                  <span className="font-medium">
+                    {subscription.trainer.amount.toLocaleString()} MMK
+                  </span>
+                </div>
+                {subscription.trainer.promotionType && subscription.trainer.promotionValue && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Promotion:
+                    </span>
+                    <span className="font-medium text-green-600">
+                      {subscription.trainer.promotionType === "percentage"
+                        ? `${subscription.trainer.promotionValue}% off`
+                        : `${Number(subscription.trainer.promotionValue).toLocaleString()} MMK off`}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold">
+                  <span className="text-sm">Trainer Fee:</span>
+                  <span className="text-emerald-600">
+                    {subscription.trainer.finalPrice.toLocaleString()} MMK
                   </span>
                 </div>
               </div>

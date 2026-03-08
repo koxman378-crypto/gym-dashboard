@@ -11,6 +11,14 @@ import type {
 // Transform backend user to frontend user
 // Backend always returns _id as string (not ObjectId)
 const transformUser = (user: any): User => {
+  console.log("🔍 [transformUser] Raw user from backend:", {
+    _id: user._id,
+    name: user.name,
+    role: user.role,
+    trainerFeesCount: user?.trainerFees?.length || 0,
+    rawTrainerFees: user?.trainerFees,
+  });
+
   const assignedTrainer =
     user?.assignedTrainer && typeof user.assignedTrainer === "object"
       ? {
@@ -19,11 +27,32 @@ const transformUser = (user: any): User => {
         }
       : user?.assignedTrainer;
 
-  return {
+  // Transform trainerFees if present
+  const trainerFees = user?.trainerFees?.map((fee: any) => ({
+    _id: fee._id,
+    duration: fee.duration,
+    durationUnit: fee.durationUnit,
+    amount: fee.amount,
+    promotionType: fee.promotionType ?? null,
+    promotionValue: fee.promotionValue ?? null,
+    isActive: fee.isActive,
+  }));
+
+  const transformedUser = {
     ...user,
     _id: user._id, // Already string from backend
     assignedTrainer,
+    trainerFees: trainerFees || undefined,
   };
+
+  console.log("✅ [transformUser] Final transformed user:", {
+    _id: transformedUser._id,
+    name: transformedUser.name,
+    trainerFeesCount: transformedUser.trainerFees?.length || 0,
+    trainerFees: transformedUser.trainerFees,
+  });
+
+  return transformedUser;
 };
 
 const transformUserArray = (users: any[]): User[] => users.map(transformUser);
@@ -74,7 +103,10 @@ export const usersApi = api.injectEndpoints({
     getAllTrainers: builder.query<User[], void>({
       query: () => "/users/trainers",
       providesTags: ["Trainer"],
-      transformResponse: (response: any[]) => transformUserArray(response),
+      transformResponse: (response: any[]) => {
+        const transformed = transformUserArray(response);
+        return transformed;
+      },
     }),
 
     // ============ SPECIFIC USER OPERATIONS ============
@@ -169,7 +201,13 @@ export const usersApi = api.injectEndpoints({
 
     updateMyProfile: builder.mutation<
       User,
-      { name?: string; nickname?: string; phone?: string; address?: string; avatar?: string }
+      {
+        name?: string;
+        nickname?: string;
+        phone?: string;
+        address?: string;
+        avatar?: string;
+      }
     >({
       query: (data) => ({
         url: "/users/me/profile",
@@ -189,6 +227,130 @@ export const usersApi = api.injectEndpoints({
         method: "POST",
         body,
       }),
+    }),
+
+    // ============ TRAINER FEES ============
+    addTrainerFeeItem: builder.mutation<
+      User,
+      {
+        trainerId: string;
+        feeData: {
+          duration: number;
+          durationUnit: string;
+          amount: number;
+          promotionType?: string | null;
+          promotionValue?: number | null;
+          isActive?: boolean;
+        };
+      }
+    >({
+      query: ({ trainerId, feeData }) => ({
+        url: `/users/${trainerId}/trainer-fees`,
+        method: "POST",
+        body: feeData,
+      }),
+      invalidatesTags: (_result, _error, { trainerId }) => [
+        { type: "User", id: trainerId },
+        "Trainer",
+        "Staff",
+      ],
+      transformResponse: (response: any) => transformUser(response),
+    }),
+
+    updateTrainerFeeItem: builder.mutation<
+      User,
+      {
+        trainerId: string;
+        feeId: string;
+        feeData: {
+          duration: number;
+          durationUnit: string;
+          amount: number;
+          promotionType?: string | null;
+          promotionValue?: number | null;
+          isActive?: boolean;
+        };
+      }
+    >({
+      query: ({ trainerId, feeId, feeData }) => ({
+        url: `/users/${trainerId}/trainer-fees/${feeId}`,
+        method: "PUT",
+        body: feeData,
+      }),
+      invalidatesTags: (_result, _error, { trainerId }) => [
+        { type: "User", id: trainerId },
+        "Trainer",
+        "Staff",
+      ],
+      transformResponse: (response: any) => transformUser(response),
+    }),
+
+    deleteTrainerFeeItem: builder.mutation<
+      User,
+      { trainerId: string; feeId: string }
+    >({
+      query: ({ trainerId, feeId }) => ({
+        url: `/users/${trainerId}/trainer-fees/${feeId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, { trainerId }) => [
+        { type: "User", id: trainerId },
+        "Trainer",
+        "Staff",
+      ],
+      transformResponse: (response: any) => transformUser(response),
+    }),
+
+    toggleTrainerFeeItem: builder.mutation<
+      User,
+      { trainerId: string; feeId: string }
+    >({
+      query: ({ trainerId, feeId }) => ({
+        url: `/users/${trainerId}/trainer-fees/${feeId}/toggle`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (_result, _error, { trainerId }) => [
+        { type: "User", id: trainerId },
+        "Trainer",
+        "Staff",
+      ],
+      transformResponse: (response: any) => transformUser(response),
+    }),
+
+    // Bulk replace (kept for backward compatibility)
+    updateTrainerFees: builder.mutation<
+      User,
+      {
+        trainerId: string;
+        trainerFees: Array<{
+          duration: number;
+          durationUnit: string;
+          amount: number;
+          promotionType?: string | null;
+          promotionValue?: number | null;
+          isActive?: boolean;
+        }>;
+      }
+    >({
+      query: ({ trainerId, trainerFees }) => ({
+        url: `/users/${trainerId}/trainer-fees`,
+        method: "PATCH",
+        body: { trainerFees },
+      }),
+      invalidatesTags: (_result, _error, { trainerId }) => [
+        { type: "User", id: trainerId },
+        "Trainer",
+        "Staff",
+      ],
+      transformResponse: (response: any) => transformUser(response),
+    }),
+
+    getTrainerFees: builder.query<User, string>({
+      query: (trainerId) => `/users/${trainerId}`,
+      providesTags: (_result, _error, trainerId) => [
+        { type: "User", id: trainerId },
+      ],
+      transformResponse: (response: any) => transformUser(response),
     }),
   }),
   overrideExisting: false,
@@ -211,4 +373,10 @@ export const {
   useGetMyProfileQuery,
   useUpdateMyProfileMutation,
   useGeneratePresignedUrlMutation,
+  useAddTrainerFeeItemMutation,
+  useUpdateTrainerFeeItemMutation,
+  useDeleteTrainerFeeItemMutation,
+  useToggleTrainerFeeItemMutation,
+  useUpdateTrainerFeesMutation,
+  useGetTrainerFeesQuery,
 } = usersApi;

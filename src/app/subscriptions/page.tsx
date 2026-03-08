@@ -76,6 +76,7 @@ export default function SubscriptionsPage() {
     paymentStatus: "pending" as "paid" | "pending" | "partial",
     paidAmount: 0,
     trainerId: undefined as string | undefined,
+    trainerFeeRowId: undefined as string | undefined,
     notes: undefined as string | undefined,
   });
   const [selectedGymPriceGroupId, setSelectedGymPriceGroupId] =
@@ -152,11 +153,11 @@ export default function SubscriptionsPage() {
     // Calculate gym price total
     if (selectedGymPriceGroupId && selectedGymPriceRowId) {
       const selectedGroup = gymPriceGroups.find(
-        (g) => g._id === selectedGymPriceGroupId
+        (g) => g._id === selectedGymPriceGroupId,
       );
       if (selectedGroup) {
         const selectedPrice = selectedGroup.prices.find(
-          (p) => p._id === selectedGymPriceRowId
+          (p) => p._id === selectedGymPriceRowId,
         );
         if (selectedPrice) {
           gymPriceTotal = calculateGymFinalPrice(selectedPrice);
@@ -178,10 +179,32 @@ export default function SubscriptionsPage() {
     });
 
     // Calculate trainer fee
-    if (formData.trainerId) {
-      const selectedTrainer = trainers.find((t) => t._id === formData.trainerId);
-      if (selectedTrainer && selectedTrainer.trainerFee) {
-        trainerFeeTotal = selectedTrainer.trainerFee;
+    if (formData.trainerId && formData.trainerFeeRowId) {
+      const selectedTrainer = trainers.find(
+        (t) => t._id === formData.trainerId,
+      );
+      if (selectedTrainer && selectedTrainer.trainerFees) {
+        const selectedFee = selectedTrainer.trainerFees.find(
+          (f) => f._id === formData.trainerFeeRowId,
+        );
+        if (selectedFee) {
+          // Calculate final price with promotion if applicable
+          let finalPrice = selectedFee.amount;
+          if (selectedFee.promotionType && selectedFee.promotionValue) {
+            if (selectedFee.promotionType === "percentage") {
+              finalPrice = Math.round(
+                selectedFee.amount -
+                  (selectedFee.amount * selectedFee.promotionValue) / 100,
+              );
+            } else if (selectedFee.promotionType === "mmk") {
+              finalPrice = Math.max(
+                0,
+                selectedFee.amount - selectedFee.promotionValue,
+              );
+            }
+          }
+          trainerFeeTotal = finalPrice;
+        }
       }
     }
 
@@ -200,6 +223,7 @@ export default function SubscriptionsPage() {
     selectedGymPriceRowId,
     selectedServiceRows,
     formData.trainerId,
+    formData.trainerFeeRowId,
     formData.paidAmount,
     gymPriceGroups,
     serviceGroups,
@@ -240,6 +264,7 @@ export default function SubscriptionsPage() {
           paymentStatus: "pending",
           paidAmount: 0,
           trainerId: undefined,
+          trainerFeeRowId: undefined,
           notes: undefined,
         });
       } else {
@@ -300,8 +325,9 @@ export default function SubscriptionsPage() {
         }
 
         // Add trainer if selected
-        if (formData.trainerId) {
+        if (formData.trainerId && formData.trainerFeeRowId) {
           dto.trainerId = formData.trainerId;
+          dto.trainerFeeRowId = formData.trainerFeeRowId;
         }
 
         console.log(
@@ -324,6 +350,7 @@ export default function SubscriptionsPage() {
           paymentStatus: "pending",
           paidAmount: 0,
           trainerId: undefined,
+          trainerFeeRowId: undefined,
           notes: undefined,
         });
         setSelectedGymPriceGroupId("");
@@ -435,6 +462,7 @@ export default function SubscriptionsPage() {
           ? String(subscription.trainer._id)
           : undefined
         : undefined,
+      trainerFeeRowId: undefined, // Not editable in update mode
       notes: subscription.notes || undefined,
     });
     // Note: We cannot change gym price, services, dates, or customer in update mode
@@ -459,20 +487,20 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-6 p-6">
         {/* Header Section */}
-        <div className="mb-8 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+        <div className="rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-xl">
                   <Calendar className="h-8 w-8 text-slate-900 dark:text-slate-100" />
                 </div>
-                <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                   Subscriptions
                 </h1>
               </div>
-              <p className="text-slate-600 dark:text-slate-400 text-lg">
+              <p className="text-slate-600 dark:text-slate-400 mt-1.5 text-base">
                 Manage member subscriptions and renewals
               </p>
             </div>
@@ -725,6 +753,7 @@ export default function SubscriptionsPage() {
                             setFormData({
                               ...formData,
                               trainerId: value === "none" ? undefined : value,
+                              trainerFeeRowId: undefined, // Reset fee tier when trainer changes
                             })
                           }
                         >
@@ -741,6 +770,91 @@ export default function SubscriptionsPage() {
                           </SelectContent>
                         </Select>
                       </div>
+
+                      {/* TRAINER FEE TIER SELECTION - Show when trainer is selected */}
+                      {formData.trainerId &&
+                        (() => {
+                          const selectedTrainer = trainers.find(
+                            (t) => t._id === formData.trainerId,
+                          );
+                          const trainerFees =
+                            selectedTrainer?.trainerFees?.filter(
+                              (f) => f.isActive,
+                            ) || [];
+
+                          if (trainerFees.length === 0) {
+                            return (
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <p className="text-sm text-amber-800">
+                                  ⚠️ This trainer has no active fee tiers
+                                  configured. Please configure trainer fees
+                                  first.
+                                </p>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div className="space-y-2">
+                              <Label htmlFor="trainerFeeRowId">
+                                Trainer Fee Tier *
+                              </Label>
+                              <Select
+                                value={formData.trainerFeeRowId || ""}
+                                onValueChange={(value) =>
+                                  setFormData({
+                                    ...formData,
+                                    trainerFeeRowId: value,
+                                  })
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a fee tier" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {trainerFees.map((fee) => {
+                                    let finalPrice = fee.amount;
+                                    if (
+                                      fee.promotionType &&
+                                      fee.promotionValue
+                                    ) {
+                                      if (fee.promotionType === "percentage") {
+                                        finalPrice = Math.round(
+                                          fee.amount -
+                                            (fee.amount * fee.promotionValue) /
+                                              100,
+                                        );
+                                      } else if (fee.promotionType === "mmk") {
+                                        finalPrice = Math.max(
+                                          0,
+                                          fee.amount - fee.promotionValue,
+                                        );
+                                      }
+                                    }
+
+                                    return (
+                                      <SelectItem key={fee._id} value={fee._id}>
+                                        {fee.duration} {fee.durationUnit} -{" "}
+                                        {finalPrice.toLocaleString()} MMK
+                                        {fee.promotionType &&
+                                          fee.promotionValue && (
+                                            <span className="text-green-600 ml-2">
+                                              (Promotion:{" "}
+                                              {fee.promotionType ===
+                                              "percentage"
+                                                ? `${fee.promotionValue}%`
+                                                : `${fee.promotionValue.toLocaleString()} MMK`}
+                                              )
+                                            </span>
+                                          )}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          );
+                        })()}
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -788,8 +902,10 @@ export default function SubscriptionsPage() {
                           <Label htmlFor="paidAmount">
                             Paid Amount *
                             {!isEditMode && calculatedTotals.grandTotal > 0 && (
-                              <span className="ml-2 text-xs font-normal text-slate-500 dark:text-slate-400">
-                                (Total: {calculatedTotals.grandTotal.toLocaleString()} MMK)
+                              <span className="ml-2 text-xs font-normal text-slate-500">
+                                (Total:{" "}
+                                {calculatedTotals.grandTotal.toLocaleString()}{" "}
+                                MMK)
                               </span>
                             )}
                           </Label>
@@ -844,119 +960,158 @@ export default function SubscriptionsPage() {
 
                       {/* TOTAL SUMMARY - Only show in create mode */}
                       {!isEditMode && calculatedTotals.grandTotal > 0 && (
-                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl p-5 space-y-3">
+                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-5 space-y-3">
                           <div className="flex items-center gap-2 mb-3">
-                            <Calendar className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                            <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100">
+                            <Calendar className="h-5 w-5 text-emerald-600" />
+                            <h3 className="text-lg font-bold text-emerald-900">
                               Subscription Summary
                             </h3>
                           </div>
 
                           {/* Gym Price */}
                           {calculatedTotals.gymPriceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-emerald-200 dark:border-emerald-800/50">
-                              <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                            <div className="flex justify-between items-center py-2 border-b border-emerald-200">
+                              <span className="text-sm font-medium text-emerald-800">
                                 Gym Membership
                               </span>
-                              <span className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-                                {calculatedTotals.gymPriceTotal.toLocaleString()} MMK
+                              <span className="text-sm font-bold text-emerald-900">
+                                {calculatedTotals.gymPriceTotal.toLocaleString()}{" "}
+                                MMK
                               </span>
                             </div>
                           )}
 
                           {/* Other Services */}
                           {calculatedTotals.otherServiceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-emerald-200 dark:border-emerald-800/50">
-                              <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                            <div className="flex justify-between items-center py-2 border-b border-emerald-200">
+                              <span className="text-sm font-medium text-emerald-800">
                                 Additional Services
                               </span>
-                              <span className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-                                {calculatedTotals.otherServiceTotal.toLocaleString()} MMK
+                              <span className="text-sm font-bold text-emerald-900">
+                                {calculatedTotals.otherServiceTotal.toLocaleString()}{" "}
+                                MMK
                               </span>
                             </div>
                           )}
 
                           {/* Trainer Fee */}
                           {calculatedTotals.trainerFeeTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-emerald-200 dark:border-emerald-800/50">
-                              <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                            <div className="flex justify-between items-center py-2 border-b border-emerald-200">
+                              <span className="text-sm font-medium text-emerald-800">
                                 Trainer Fee
                               </span>
-                              <span className="text-sm font-bold text-emerald-900 dark:text-emerald-100">
-                                {calculatedTotals.trainerFeeTotal.toLocaleString()} MMK
+                              <span className="text-sm font-bold text-emerald-900">
+                                {calculatedTotals.trainerFeeTotal.toLocaleString()}{" "}
+                                MMK
                               </span>
                             </div>
                           )}
 
                           {/* Grand Total */}
-                          <div className="flex justify-between items-center pt-3 border-t-2 border-emerald-300 dark:border-emerald-700">
-                            <span className="text-base font-bold text-emerald-900 dark:text-emerald-100">
+                          <div className="flex justify-between items-center pt-3 border-t-2 border-emerald-300">
+                            <span className="text-base font-bold text-emerald-900">
                               Total Amount
                             </span>
-                            <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                            <span className="text-xl font-bold text-emerald-600">
                               {calculatedTotals.grandTotal.toLocaleString()} MMK
                             </span>
                           </div>
 
                           {/* Paid Amount */}
                           {formData.paidAmount > 0 && (
-                            <div className="flex justify-between items-center py-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg px-3">
-                              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                            <div className="flex justify-between items-center py-2 bg-blue-50 rounded-lg px-3">
+                              <span className="text-sm font-medium text-blue-800">
                                 Paid Amount
                               </span>
-                              <span className="text-sm font-bold text-blue-900 dark:text-blue-100">
+                              <span className="text-sm font-bold text-blue-900">
                                 {formData.paidAmount.toLocaleString()} MMK
                               </span>
                             </div>
                           )}
 
                           {/* Remaining Amount */}
-                          {formData.paidAmount > 0 && calculatedTotals.remainingAmount !== 0 && (
-                            <div className={`flex justify-between items-center py-2 rounded-lg px-3 ${
-                              calculatedTotals.remainingAmount > 0
-                                ? "bg-amber-50 dark:bg-amber-950/30"
-                                : "bg-green-50 dark:bg-green-950/30"
-                            }`}>
-                              <span className={`text-sm font-medium ${
-                                calculatedTotals.remainingAmount > 0
-                                  ? "text-amber-800 dark:text-amber-200"
-                                  : "text-green-800 dark:text-green-200"
-                              }`}>
-                                {calculatedTotals.remainingAmount > 0 ? "Remaining Balance" : "Overpaid"}
-                              </span>
-                              <span className={`text-sm font-bold ${
-                                calculatedTotals.remainingAmount > 0
-                                  ? "text-amber-900 dark:text-amber-100"
-                                  : "text-green-900 dark:text-green-100"
-                              }`}>
-                                {Math.abs(calculatedTotals.remainingAmount).toLocaleString()} MMK
-                              </span>
-                            </div>
-                          )}
+                          {formData.paidAmount > 0 &&
+                            calculatedTotals.remainingAmount !== 0 && (
+                              <div
+                                className={`flex justify-between items-center py-2 rounded-lg px-3 ${
+                                  calculatedTotals.remainingAmount > 0
+                                    ? "bg-amber-50"
+                                    : "bg-green-50"
+                                }`}
+                              >
+                                <span
+                                  className={`text-sm font-medium ${
+                                    calculatedTotals.remainingAmount > 0
+                                      ? "text-amber-800"
+                                      : "text-green-800"
+                                  }`}
+                                >
+                                  {calculatedTotals.remainingAmount > 0
+                                    ? "Remaining Balance"
+                                    : "Overpaid"}
+                                </span>
+                                <span
+                                  className={`text-sm font-bold ${
+                                    calculatedTotals.remainingAmount > 0
+                                      ? "text-amber-900"
+                                      : "text-green-900"
+                                  }`}
+                                >
+                                  {Math.abs(
+                                    calculatedTotals.remainingAmount,
+                                  ).toLocaleString()}{" "}
+                                  MMK
+                                </span>
+                              </div>
+                            )}
 
                           {/* Payment Status Indicator */}
                           {formData.paidAmount > 0 && (
                             <div className="text-center pt-2">
                               {calculatedTotals.remainingAmount === 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full">
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                      clipRule="evenodd"
+                                    />
                                   </svg>
                                   Fully Paid
                                 </span>
                               )}
                               {calculatedTotals.remainingAmount > 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                      clipRule="evenodd"
+                                    />
                                   </svg>
                                   Partial Payment
                                 </span>
                               )}
                               {calculatedTotals.remainingAmount < 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                      clipRule="evenodd"
+                                    />
                                   </svg>
                                   Overpayment
                                 </span>
@@ -987,7 +1142,7 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm p-6 mb-6 border border-slate-200 dark:border-slate-800">
+        <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm p-6 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 flex-1">
               <div className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-xl">
@@ -1003,7 +1158,7 @@ export default function SubscriptionsPage() {
                   setPage(1); // Reset to first page when filter changes
                 }}
               >
-                <SelectTrigger className="w-48 border-slate-300 dark:border-slate-700">
+                <SelectTrigger className="w-48 border-slate-300">
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1032,7 +1187,7 @@ export default function SubscriptionsPage() {
                   }
                 }}
               >
-                <SelectTrigger className="w-64 border-slate-300 dark:border-slate-700">
+                <SelectTrigger className="w-64 border-slate-300">
                   <SelectValue placeholder="Select a customer" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1071,7 +1226,7 @@ export default function SubscriptionsPage() {
             }}
           />
           {subscriptions.length > 0 && (
-            <div className="border-t border-slate-200 dark:border-slate-800 p-4">
+            <div className="border-t border-slate-200 p-4">
               <DataTablePagination
                 meta={{
                   page,

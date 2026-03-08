@@ -1,3 +1,5 @@
+import type { TrainerFeeItem } from './extended-types';
+
 export enum Role {
   OWNER = "owner",
   CASHIER = "cashier",
@@ -81,7 +83,7 @@ export interface User {
   bodyMeasurements?: BodyMeasurement;
   measurementHistory?: BodyMeasurement[];
   assignedTrainer?: User | string | null;
-  trainerFee?: number | null;
+  trainerFees?: TrainerFeeItem[];
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
   notes?: string | null;
@@ -98,7 +100,6 @@ export interface CreateUserDto {
   age?: number;
   role: Role;
   assignedTrainer?: string;
-  trainerFee?: number;
   emergencyContact?: string;
   emergencyPhone?: string;
   notes?: string;
@@ -116,7 +117,6 @@ export interface UpdateUserDto {
   role?: Role;
   isActive?: boolean;
   assignedTrainer?: string;
-  trainerFee?: number;
   emergencyContact?: string;
   emergencyPhone?: string;
   notes?: string;
