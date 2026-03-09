@@ -56,7 +56,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "_id",
     header: () => (
       <div className="flex items-center gap-2">
-        <Hash className="h-4 w-4 text-slate-500" />
+        <Hash className="h-4 w-4 text-slate-400" />
         ID
       </div>
     ),
@@ -72,7 +72,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "customer",
     header: () => (
       <div className="flex items-center gap-2">
-        <User className="h-4 w-4 text-slate-500" />
+        <User className="h-4 w-4 text-slate-400" />
         Customer
       </div>
     ),
@@ -96,7 +96,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "trainer",
     header: () => (
       <div className="flex items-center gap-2">
-        <UserCheck className="h-4 w-4 text-slate-500" />
+        <UserCheck className="h-4 w-4 text-slate-400" />
         Trainer
       </div>
     ),
@@ -125,7 +125,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "subscription",
     header: () => (
       <div className="flex items-center gap-2">
-        <Package className="h-4 w-4 text-slate-500" />
+        <Package className="h-4 w-4 text-slate-400" />
         Subscription Details
       </div>
     ),
@@ -162,7 +162,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "grandTotal",
     header: () => (
       <div className="flex items-center gap-2">
-        <DollarSign className="h-4 w-4 text-slate-500" />
+        <DollarSign className="h-4 w-4 text-slate-400" />
         Total Amount
       </div>
     ),
@@ -184,7 +184,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "startDate",
     header: () => (
       <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-slate-500" />
+        <Calendar className="h-4 w-4 text-slate-400" />
         Start Date
       </div>
     ),
@@ -202,7 +202,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "endDate",
     header: () => (
       <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-slate-500" />
+        <Calendar className="h-4 w-4 text-slate-400" />
         End Date
       </div>
     ),
@@ -223,7 +223,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "paymentStatus",
     header: () => (
       <div className="flex items-center gap-2">
-        <CreditCard className="h-4 w-4 text-slate-500" />
+        <CreditCard className="h-4 w-4 text-slate-400" />
         Payment
       </div>
     ),
@@ -247,7 +247,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "status",
     header: () => (
       <div className="flex items-center gap-2">
-        <Activity className="h-4 w-4 text-slate-500" />
+        <Activity className="h-4 w-4 text-slate-400" />
         Status
       </div>
     ),

@@ -241,10 +241,6 @@ export default function SubscriptionsPage() {
           notes: formData.notes || undefined,
         };
 
-        console.log(
-          "Updating subscription with DTO:",
-          JSON.stringify(updateDto, null, 2),
-        );
         await updateSubscription({
           id: subscriptionToEdit._id,
           data: updateDto,
@@ -330,10 +326,6 @@ export default function SubscriptionsPage() {
           dto.trainerFeeRowId = formData.trainerFeeRowId;
         }
 
-        console.log(
-          "Creating subscription with DTO:",
-          JSON.stringify(dto, null, 2),
-        );
         const result = await createSubscription(dto).unwrap();
 
         // Manually refetch subscriptions to ensure the list updates
@@ -358,11 +350,6 @@ export default function SubscriptionsPage() {
         setSelectedServiceRows({});
       }
     } catch (error: any) {
-      console.error(
-        `Failed to ${isEditMode ? "update" : "create"} subscription:`,
-        error,
-      );
-      console.error("Error details:", JSON.stringify(error, null, 2));
       const errorMessage =
         error?.data?.message ||
         error?.message ||
@@ -411,7 +398,6 @@ export default function SubscriptionsPage() {
       try {
         await cancelSubscription(subscription._id).unwrap();
       } catch (error) {
-        console.error("Failed to cancel subscription:", error);
         alert("Failed to cancel subscription. Please try again.");
       }
     }
@@ -430,7 +416,6 @@ export default function SubscriptionsPage() {
       try {
         await deleteSubscription(subscription._id).unwrap();
       } catch (error) {
-        console.error("Failed to delete subscription:", error);
         alert("Failed to delete subscription. Please try again.");
       }
     }
@@ -486,21 +471,21 @@ export default function SubscriptionsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#0F172B]">
       <div className="flex flex-col gap-6 p-6">
         {/* Header Section */}
-        <div className="rounded-2xl bg-white border border-slate-200 p-8 shadow-sm">
+        <div className="rounded-2xl bg-slate-800 border border-slate-700 p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-slate-100 rounded-xl">
-                  <Calendar className="h-8 w-8 text-slate-900" />
+                <div className="p-2.5 bg-slate-700 rounded-xl">
+                  <Calendar className="h-8 w-8 text-white" />
                 </div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-3xl font-bold tracking-tight text-white">
                   Subscriptions
                 </h1>
               </div>
-              <p className="text-slate-600 mt-1.5 text-base">
+              <p className="text-slate-400 mt-1.5 text-base">
                 Manage member subscriptions and renewals
               </p>
             </div>
@@ -519,7 +504,7 @@ export default function SubscriptionsPage() {
                 >
                   <DialogTrigger asChild>
                     <Button
-                      className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm font-semibold px-6 py-6 text-base"
+                      className="bg-slate-100 text-slate-900 hover:bg-white shadow-sm font-semibold px-6 py-6 text-base"
                       onClick={() => {
                         setIsEditMode(false);
                         setSubscriptionToEdit(null);
@@ -902,7 +887,7 @@ export default function SubscriptionsPage() {
                           <Label htmlFor="paidAmount">
                             Paid Amount *
                             {!isEditMode && calculatedTotals.grandTotal > 0 && (
-                              <span className="ml-2 text-xs font-normal text-slate-500">
+                              <span className="ml-2 text-xs font-normal text-slate-400">
                                 (Total:{" "}
                                 {calculatedTotals.grandTotal.toLocaleString()}{" "}
                                 MMK)
@@ -960,21 +945,21 @@ export default function SubscriptionsPage() {
 
                       {/* TOTAL SUMMARY - Only show in create mode */}
                       {!isEditMode && calculatedTotals.grandTotal > 0 && (
-                        <div className="rounded-xl p-5 space-y-3 border border-green-600 bg-green-500/15 backdrop-blur-sm">
+                        <div className="rounded-xl p-5 space-y-3 bg-slate-800/80 border border-slate-600">
                           <div className="flex items-center gap-2 mb-3">
-                            <Calendar className="h-5 w-5 text-green-700" />
-                            <h3 className="text-lg font-bold text-green-800">
+                            <Calendar className="h-5 w-5 text-slate-300" />
+                            <h3 className="text-lg font-bold text-white">
                               Subscription Summary
                             </h3>
                           </div>
 
                           {/* Gym Price */}
                           {calculatedTotals.gymPriceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-green-600/40">
-                              <span className="text-sm font-medium text-green-800">
+                            <div className="flex justify-between items-center py-2 border-b border-slate-700">
+                              <span className="text-sm font-medium text-slate-300">
                                 Gym Membership
                               </span>
-                              <span className="text-sm font-bold text-green-900">
+                              <span className="text-sm font-bold text-white">
                                 {calculatedTotals.gymPriceTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -983,11 +968,11 @@ export default function SubscriptionsPage() {
 
                           {/* Other Services */}
                           {calculatedTotals.otherServiceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-green-600/40">
-                              <span className="text-sm font-medium text-green-800">
+                            <div className="flex justify-between items-center py-2 border-b border-slate-700">
+                              <span className="text-sm font-medium text-slate-300">
                                 Additional Services
                               </span>
-                              <span className="text-sm font-bold text-green-900">
+                              <span className="text-sm font-bold text-white">
                                 {calculatedTotals.otherServiceTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -996,11 +981,11 @@ export default function SubscriptionsPage() {
 
                           {/* Trainer Fee */}
                           {calculatedTotals.trainerFeeTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-green-600/40">
-                              <span className="text-sm font-medium text-green-800">
+                            <div className="flex justify-between items-center py-2 border-b border-slate-700">
+                              <span className="text-sm font-medium text-slate-300">
                                 Trainer Fee
                               </span>
-                              <span className="text-sm font-bold text-green-900">
+                              <span className="text-sm font-bold text-white">
                                 {calculatedTotals.trainerFeeTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -1008,22 +993,22 @@ export default function SubscriptionsPage() {
                           )}
 
                           {/* Grand Total */}
-                          <div className="flex justify-between items-center pt-3 border-t border-green-600/60">
-                            <span className="text-base font-bold text-green-900">
+                          <div className="flex justify-between items-center pt-3 border-t border-slate-500">
+                            <span className="text-base font-bold text-white">
                               Total Amount
                             </span>
-                            <span className="text-xl font-bold text-green-700">
+                            <span className="text-xl font-bold text-white">
                               {calculatedTotals.grandTotal.toLocaleString()} MMK
                             </span>
                           </div>
 
                           {/* Paid Amount */}
                           {formData.paidAmount > 0 && (
-                            <div className="flex justify-between items-center py-2 rounded-lg px-3 border border-green-600/40 bg-green-500/10 backdrop-blur-sm">
-                              <span className="text-sm font-medium text-green-800">
+                            <div className="flex justify-between items-center py-2 rounded-lg px-3 bg-slate-700/50 border border-slate-600">
+                              <span className="text-sm font-medium text-slate-300">
                                 Paid Amount
                               </span>
-                              <span className="text-sm font-bold text-green-900">
+                              <span className="text-sm font-bold text-white">
                                 {formData.paidAmount.toLocaleString()} MMK
                               </span>
                             </div>
@@ -1032,13 +1017,13 @@ export default function SubscriptionsPage() {
                           {/* Remaining Amount */}
                           {formData.paidAmount > 0 &&
                             calculatedTotals.remainingAmount !== 0 && (
-                              <div className="flex justify-between items-center py-2 rounded-lg px-3 border border-green-600/40 bg-green-500/10 backdrop-blur-sm">
-                                <span className="text-sm font-medium text-green-800">
+                              <div className="flex justify-between items-center py-2 rounded-lg px-3 bg-red-950/50 border border-red-800">
+                                <span className="text-sm font-medium text-red-300">
                                   {calculatedTotals.remainingAmount > 0
                                     ? "Remaining Balance"
                                     : "Overpaid"}
                                 </span>
-                                <span className="text-sm font-bold text-green-900">
+                                <span className="text-sm font-bold text-red-400">
                                   {Math.abs(
                                     calculatedTotals.remainingAmount,
                                   ).toLocaleString()}{" "}
@@ -1051,49 +1036,25 @@ export default function SubscriptionsPage() {
                           {formData.paidAmount > 0 && (
                             <div className="text-center pt-2">
                               {calculatedTotals.remainingAmount === 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-500/15 border border-green-600/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                      clipRule="evenodd"
-                                    />
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 bg-emerald-900/30 border border-emerald-700 px-3 py-1 rounded-full">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                   </svg>
                                   Fully Paid
                                 </span>
                               )}
                               {calculatedTotals.remainingAmount > 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-500/15 border border-green-600/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                      clipRule="evenodd"
-                                    />
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-400 bg-amber-900/30 border border-amber-700 px-3 py-1 rounded-full">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                   </svg>
                                   Partial Payment
                                 </span>
                               )}
                               {calculatedTotals.remainingAmount < 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-500/15 border border-green-600/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                      clipRule="evenodd"
-                                    />
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-400 bg-red-900/30 border border-red-700 px-3 py-1 rounded-full">
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                                   </svg>
                                   Overpayment
                                 </span>
@@ -1124,13 +1085,13 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
+        <div className="bg-slate-800 rounded-2xl shadow-sm p-6 border border-slate-700">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 flex-1">
-              <div className="p-2.5 bg-slate-100 rounded-xl">
-                <Filter className="h-5 w-5 text-slate-700" />
+              <div className="p-2.5 bg-slate-700 rounded-xl">
+                <Filter className="h-5 w-5 text-slate-300" />
               </div>
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm font-semibold text-white">
                 Filter by Status:
               </span>
               <Select
@@ -1140,7 +1101,7 @@ export default function SubscriptionsPage() {
                   setPage(1); // Reset to first page when filter changes
                 }}
               >
-                <SelectTrigger className="w-48 border-slate-300">
+                <SelectTrigger className="w-48 border-slate-600">
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1155,10 +1116,10 @@ export default function SubscriptionsPage() {
 
             {/* Customer History Selector */}
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-slate-100 rounded-xl">
-                <History className="h-5 w-5 text-slate-700" />
+              <div className="p-2.5 bg-slate-700 rounded-xl">
+                <History className="h-5 w-5 text-slate-300" />
               </div>
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm font-semibold text-white">
                 View History:
               </span>
               <Select
@@ -1169,7 +1130,7 @@ export default function SubscriptionsPage() {
                   }
                 }}
               >
-                <SelectTrigger className="w-64 border-slate-300">
+                <SelectTrigger className="w-64 border-slate-600">
                   <SelectValue placeholder="Select a customer" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1195,7 +1156,7 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-2xl bg-white shadow-sm overflow-hidden border border-slate-200">
+        <div className="rounded-2xl bg-slate-800 shadow-sm overflow-hidden border border-slate-700">
           <DataTable
             columns={columns}
             data={subscriptions.slice((page - 1) * limit, page * limit)}
@@ -1203,12 +1164,11 @@ export default function SubscriptionsPage() {
             getRowId={(row) => row._id}
             emptyMessage="No subscriptions found."
             onRowClick={(subscription) => {
-              console.log("Clicked subscription:", subscription._id);
               // router.push(`/subscriptions/${subscription._id}`);
             }}
           />
           {subscriptions.length > 0 && (
-            <div className="border-t border-slate-200 p-4">
+            <div className="border-t border-slate-700 p-4">
               <DataTablePagination
                 meta={{
                   page,
@@ -1240,4 +1200,3 @@ export default function SubscriptionsPage() {
     </div>
   );
 }
-

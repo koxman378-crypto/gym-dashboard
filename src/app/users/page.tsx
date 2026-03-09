@@ -246,40 +246,25 @@ export default function UsersPage() {
         bodyMeasurements: undefined,
       });
     } catch (error) {
-      console.error("Failed to create user:", error);
     }
   };
 
   const handleToggleActive = async (user: User) => {
     try {
       // Debug logging
-      console.log("Full user object:", user);
-      console.log("User ID (_id):", user._id);
-      console.log("User keys:", Object.keys(user));
 
       if (!user._id) {
-        console.error("Error: user._id is undefined!");
         alert(
           "Cannot update user: User ID is missing. Please refresh the page and try again.",
         );
         return;
       }
 
-      console.log("Updating user:", user._id, "with data:", {
-        isActive: !user.isActive,
-      });
       await updateUser({
         id: user._id,
         data: { isActive: !user.isActive },
       }).unwrap();
-      console.log("User updated successfully");
     } catch (error: any) {
-      console.error("Failed to update user:", error);
-      console.error("Error details:", {
-        status: error?.status,
-        data: error?.data,
-        message: error?.data?.message || error?.message,
-      });
       alert(
         `Failed to update user: ${error?.data?.message || error?.message || "Unknown error"}`,
       );
@@ -288,7 +273,6 @@ export default function UsersPage() {
 
   const handleDeleteUser = async (userId: string) => {
     if (!userId) {
-      console.error("Error: userId is undefined!");
       alert(
         "Cannot delete user: User ID is missing. Please refresh the page and try again.",
       );
@@ -297,11 +281,8 @@ export default function UsersPage() {
 
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        console.log("Deleting user:", userId);
         await deleteUser(userId).unwrap();
-        console.log("User deleted successfully");
       } catch (error: any) {
-        console.error("Failed to delete user:", error);
         alert(
           `Failed to delete user: ${error?.data?.message || error?.message || "Unknown error"}`,
         );
@@ -372,7 +353,6 @@ export default function UsersPage() {
           id: selectedUser._id,
           data: updateData,
         }).unwrap();
-        console.log("User updated successfully");
       }
 
       // Handle body measurements separately (only for customers)
@@ -388,14 +368,12 @@ export default function UsersPage() {
             customerId: selectedUser._id,
             measurements: editFormData.bodyMeasurements,
           }).unwrap();
-          console.log("Body measurements updated successfully");
         }
       }
 
       setIsEditDialogOpen(false);
       setSelectedUser(null);
     } catch (error: any) {
-      console.error("Failed to update user:", error);
       alert(
         `Failed to update user: ${error?.data?.message || error?.message || "Unknown error"}`,
       );
@@ -429,20 +407,20 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#0F172B]">
       <div className="flex flex-col gap-6 p-6">
         {/* Header */}
-        <div className="mb-6 rounded-2xl bg-white border border-slate-200 p-8 shadow-sm">
+        <div className="mb-6 rounded-2xl bg-slate-800 border border-slate-700 p-8 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="rounded-xl bg-slate-100 p-3.5">
-                <Users2 className="h-8 w-8 text-slate-900" />
+              <div className="rounded-xl bg-slate-700 p-3.5">
+                <Users2 className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-3xl font-bold text-white tracking-tight">
                   Users Management
                 </h1>
-                <p className="text-slate-600 mt-1.5 text-base">
+                <p className="text-slate-400 mt-1.5 text-base">
                   {currentUser?.role === Role.TRAINER
                     ? "Manage your assigned customers"
                     : "Manage all users, staff, and customers"}
@@ -458,7 +436,7 @@ export default function UsersPage() {
                   onOpenChange={setIsCreateDialogOpen}
                 >
                   <DialogTrigger asChild>
-                    <Button className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm font-semibold px-6 py-6 text-base">
+                    <Button className="bg-slate-100 text-slate-900 hover:bg-white shadow-sm font-semibold px-6 py-6 text-base">
                       <Plus className="mr-2 h-5 w-5" />
                       Create User
                     </Button>
@@ -1058,7 +1036,7 @@ export default function UsersPage() {
         </Dialog>
 
         {/* Search and Filters */}
-        <div className="rounded-xl bg-white p-6 shadow-lg border border-slate-200">
+        <div className="rounded-xl bg-slate-800 p-6 shadow-lg border border-slate-700">
           <div className="flex gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -1066,7 +1044,7 @@ export default function UsersPage() {
                 placeholder="Search by name..."
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
-                className="pl-10 border-slate-300 hover:border-slate-400 focus-visible:border-slate-500 transition-colors"
+                className="pl-10 border-slate-600 hover:border-slate-400 focus-visible:border-slate-500 transition-colors"
               />
             </div>
             <div className="relative flex-1">
@@ -1075,11 +1053,11 @@ export default function UsersPage() {
                 placeholder="Search by email..."
                 value={searchEmail}
                 onChange={(e) => setSearchEmail(e.target.value)}
-                className="pl-10 border-slate-300 hover:border-slate-400 focus-visible:border-slate-500 transition-colors"
+                className="pl-10 border-slate-600 hover:border-slate-400 focus-visible:border-slate-500 transition-colors"
               />
             </div>
             <Select value={filterRole} onValueChange={setFilterRole}>
-              <SelectTrigger className="w-45 border-slate-300 hover:border-slate-400 transition-colors">
+              <SelectTrigger className="w-45 border-slate-600 hover:border-slate-400 transition-colors">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
@@ -1106,35 +1084,35 @@ export default function UsersPage() {
 
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-            <p className="text-sm text-slate-600 font-semibold uppercase tracking-wide mb-1">
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
               Total Users
             </p>
-            <p className="text-3xl font-bold text-slate-900">
+            <p className="text-3xl font-bold text-white">
               {allUsers.length}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-            <p className="text-sm text-slate-600 font-semibold uppercase tracking-wide mb-1">
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
               Active Users
             </p>
-            <p className="text-3xl font-bold text-slate-900">
+            <p className="text-3xl font-bold text-white">
               {allUsers.filter((u) => u.isActive).length}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-            <p className="text-sm text-slate-600 font-semibold uppercase tracking-wide mb-1">
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
               Customers
             </p>
-            <p className="text-3xl font-bold text-slate-900">
+            <p className="text-3xl font-bold text-white">
               {customers.length}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-            <p className="text-sm text-slate-600 font-semibold uppercase tracking-wide mb-1">
+          <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
               {currentUser?.role === Role.CASHIER ? "Trainers" : "Staff"}
             </p>
-            <p className="text-3xl font-bold text-slate-900">
+            <p className="text-3xl font-bold text-white">
               {currentUser?.role === Role.CASHIER
                 ? trainers.length
                 : staff.length}
@@ -1143,7 +1121,7 @@ export default function UsersPage() {
         </div>
 
         {/* Users Table */}
-        <div className="rounded-2xl bg-white shadow-sm overflow-hidden border border-slate-200">
+        <div className="rounded-2xl bg-slate-800 shadow-sm overflow-hidden border border-slate-700">
           <Table>
             <TableHeader>
               <TableRow>

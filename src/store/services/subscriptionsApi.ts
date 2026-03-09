@@ -43,7 +43,6 @@ export const subscriptionsApi = api.injectEndpoints({
         if (response?.results && Array.isArray(response.results)) {
           return response.results;
         }
-        console.error("Unexpected subscription response format:", response);
         return [];
       },
       providesTags: ["Subscription"],

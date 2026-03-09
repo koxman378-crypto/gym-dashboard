@@ -30,7 +30,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      className="h-9 w-9 hover:bg-slate-100"
+      className="h-9 w-9 hover:bg-slate-700"
       onClick={toggleTheme}
     >
       {/* Show Moon in Light mode (to switch to dark), Show Sun in Dark mode (to switch to light) */}

@@ -28,10 +28,10 @@ export default function Home() {
   }, [isAuthenticated, isLoading, user, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50">
+    <div className="flex min-h-screen items-center justify-center bg-[#0F172B]">
       <div className="text-center">
         <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
-        <p className="text-lg font-medium text-slate-700">
+        <p className="text-lg font-medium text-slate-300">
           Loading...
         </p>
       </div>

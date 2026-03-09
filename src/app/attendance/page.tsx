@@ -92,7 +92,6 @@ export default function AttendancePage() {
       await checkIn({ autoCloseAfter }).unwrap();
       refetchActive();
     } catch (error) {
-      console.error("Failed to check in:", error);
       alert("Failed to check in. Please try again.");
     }
   };
@@ -102,7 +101,6 @@ export default function AttendancePage() {
       await checkOut().unwrap();
       refetchActive();
     } catch (error) {
-      console.error("Failed to check out:", error);
       alert("Failed to check out. Please try again.");
     }
   };
@@ -125,14 +123,14 @@ export default function AttendancePage() {
   const columns = createAttendanceColumns();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#0F172B]">
       <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
-        <div className="mb-8 rounded-2xl bg-white border border-slate-200 p-8 shadow-sm">
+        <div className="mb-8 rounded-2xl bg-slate-800 border border-slate-700 p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="text-white">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-white/15 rounded-2xl backdrop-blur-sm ring-2 ring-white/20">
+                <div className="p-2.5 bg-slate-800/15 rounded-2xl backdrop-blur-sm ring-2 ring-white/20">
                   <Clock className="h-8 w-8" />
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight">
@@ -146,7 +144,7 @@ export default function AttendancePage() {
             <div className="flex gap-2">
               <Button
                 onClick={() => router.push("/measurements")}
-                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
+                className="bg-slate-800/20 hover:bg-slate-800/30 text-white border border-white/30 backdrop-blur-sm"
                 size="lg"
               >
                 <UserIcon className="h-5 w-5 mr-2" />
@@ -157,7 +155,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Check-In/Out Card */}
-        <div className="mb-8 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg p-6 border border-border/40">
+        <div className="mb-8 rounded-2xl bg-slate-800/80 backdrop-blur-sm shadow-lg p-6 border border-border/40">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Current Status */}
             <div className="space-y-4">
@@ -210,7 +208,7 @@ export default function AttendancePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="p-4 bg-[#0F172B] rounded-xl border border-slate-700">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium">Status</span>
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-500 text-white">
@@ -337,7 +335,7 @@ export default function AttendancePage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-8 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                <div className="p-8 bg-[#0F172B] rounded-xl border border-slate-700 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
                     No data available for this period
@@ -349,7 +347,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Attendance History Table */}
-        <div className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg overflow-hidden border border-border/40">
+        <div className="rounded-2xl bg-slate-800/80 backdrop-blur-sm shadow-lg overflow-hidden border border-border/40">
           <div className="p-6 border-b border-border/40">
             <h2 className="text-2xl font-semibold flex items-center gap-2">
               <Calendar className="h-6 w-6 text-blue-600" />

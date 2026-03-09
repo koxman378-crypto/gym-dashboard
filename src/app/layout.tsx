@@ -6,7 +6,6 @@ import "./globals.css";
 import { ReduxProvider } from "@/src/store/provider";
 import { AppLayout } from "@/src/components/layout/AppLayout";
 import { TokenRefreshProvider } from "@/src/components/auth/TokenRefreshProvider";
-import { ThemeProvider } from "@/src/components/theme/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,22 +23,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        suppressHydrationWarning
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          <ReduxProvider>
-            <TokenRefreshProvider />
-            <AppLayout>{children}</AppLayout>
-          </ReduxProvider>
-        </ThemeProvider>
+        <ReduxProvider>
+          <TokenRefreshProvider />
+          <AppLayout>{children}</AppLayout>
+        </ReduxProvider>
       </body>
     </html>
   );

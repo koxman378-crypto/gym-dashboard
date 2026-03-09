@@ -11,13 +11,6 @@ import type {
 // Transform backend user to frontend user
 // Backend always returns _id as string (not ObjectId)
 const transformUser = (user: any): User => {
-  console.log("🔍 [transformUser] Raw user from backend:", {
-    _id: user._id,
-    name: user.name,
-    role: user.role,
-    trainerFeesCount: user?.trainerFees?.length || 0,
-    rawTrainerFees: user?.trainerFees,
-  });
 
   const assignedTrainer =
     user?.assignedTrainer && typeof user.assignedTrainer === "object"
@@ -45,12 +38,6 @@ const transformUser = (user: any): User => {
     trainerFees: trainerFees || undefined,
   };
 
-  console.log("✅ [transformUser] Final transformed user:", {
-    _id: transformedUser._id,
-    name: transformedUser.name,
-    trainerFeesCount: transformedUser.trainerFees?.length || 0,
-    trainerFees: transformedUser.trainerFees,
-  });
 
   return transformedUser;
 };

@@ -47,7 +47,6 @@ export default function ProfilePage() {
     try {
       await logout().unwrap();
     } catch (error) {
-      console.error("Logout failed:", error);
     } finally {
       router.push("/auth/login");
     }
@@ -79,7 +78,6 @@ export default function ProfilePage() {
         contentType: file.type,
       }).unwrap();
 
-      console.log("✅ Presigned URL received:", response);
 
       // Validate response
       if (!response.uploadUrl) {
@@ -101,15 +99,12 @@ export default function ProfilePage() {
         },
       });
 
-      console.log("📤 S3 Response Status:", uploadResponse.status);
 
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
-        console.error("❌ S3 Error Response:", errorText);
         throw new Error(`S3 upload failed with status: ${uploadResponse.status}. ${errorText}`);
       }
 
-      console.log("✅ Image uploaded to S3 successfully");
 
       // Step 3: Set the avatar URL (this will trigger edit mode)
       setAvatar(publicUrl);
@@ -124,7 +119,6 @@ export default function ProfilePage() {
       }, 5000);
 
     } catch (error: any) {
-      console.error("❌ Image upload failed:", error);
       
       if (error?.status === 404) {
         setUploadError("Upload endpoint not found. Please restart the backend server.");
@@ -194,7 +188,6 @@ export default function ProfilePage() {
       setSuccessMessage("Profile updated successfully!");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: any) {
-      console.error("Failed to update profile:", error);
       
       // Handle error messages
       if (error?.data?.message) {
@@ -221,8 +214,8 @@ export default function ProfilePage() {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-600">Loading profile...</div>
+      <div className="min-h-screen bg-[#0F172B] flex items-center justify-center">
+        <div className="text-slate-400">Loading profile...</div>
       </div>
     );
   }
@@ -230,12 +223,12 @@ export default function ProfilePage() {
   const currentUser = profileData || authUser;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#0F172B]">
       <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <h2 className="text-2xl font-semibold text-white">
               Profile Settings
             </h2>
             <Button
@@ -265,7 +258,7 @@ export default function ProfilePage() {
 
           {/* Avatar Section */}
           <div className="mb-6">
-            <Label className="text-sm font-medium text-slate-700 mb-2 block">
+            <Label className="text-sm font-medium text-slate-300 mb-2 block">
               Profile Picture
             </Label>
             <div className="flex items-center gap-4">
@@ -274,17 +267,17 @@ export default function ProfilePage() {
                   <img
                     src={avatar}
                     alt="Profile"
-                    className="h-24 w-24 rounded-full object-cover border-2 border-slate-200"
+                    className="h-24 w-24 rounded-full object-cover border-2 border-slate-700"
                   />
                 ) : (
-                  <div className="h-24 w-24 rounded-full bg-slate-200 flex items-center justify-center">
-                    <User className="h-12 w-12 text-slate-500" />
+                  <div className="h-24 w-24 rounded-full bg-slate-600 flex items-center justify-center">
+                    <User className="h-12 w-12 text-slate-400" />
                   </div>
                 )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingImage}
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-700 transition-colors"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 transition-colors"
                 >
                   <Camera className="h-4 w-4" />
                 </button>
@@ -298,10 +291,10 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-400">
                   Click the camera icon to upload a new profile picture
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   JPG, PNG or GIF. Max size 5MB.
                 </p>
                 {uploadingImage && (
@@ -316,46 +309,46 @@ export default function ProfilePage() {
           {/* User Information */}
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-slate-700">
+              <Label className="text-sm font-medium text-slate-300">
                 Name
               </Label>
               <Input
                 value={currentUser?.name || ""}
                 disabled
-                className="mt-1 bg-slate-50"
+                className="mt-1 bg-[#0F172B]"
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Name cannot be changed
               </p>
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-700">
+              <Label className="text-sm font-medium text-slate-300">
                 Email
               </Label>
               <Input
                 value={currentUser?.email || ""}
                 disabled
-                className="mt-1 bg-slate-50"
+                className="mt-1 bg-[#0F172B]"
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Email cannot be changed
               </p>
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-700">
+              <Label className="text-sm font-medium text-slate-300">
                 Role
               </Label>
               <Input
                 value={currentUser?.role || ""}
                 disabled
-                className="mt-1 bg-slate-50 capitalize"
+                className="mt-1 bg-[#0F172B] capitalize"
               />
             </div>
 
             <div>
-              <Label htmlFor="nickname" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="nickname" className="text-sm font-medium text-slate-300">
                 Nickname (Optional)
               </Label>
               <Input
@@ -368,7 +361,7 @@ export default function ProfilePage() {
                 placeholder="Enter your nickname"
                 className="mt-1"
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 This is how others will see you in the app
               </p>
             </div>
@@ -376,7 +369,7 @@ export default function ProfilePage() {
 
           {/* Action Buttons */}
           {isEditing && (
-            <div className="flex gap-3 mt-6 pt-6 border-t border-slate-200">
+            <div className="flex gap-3 mt-6 pt-6 border-t border-slate-700">
               <Button
                 onClick={handleSave}
                 disabled={isUpdating || uploadingImage}

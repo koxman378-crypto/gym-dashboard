@@ -41,7 +41,7 @@ const authenticatedBaseQuery = fetchBaseQuery({
 const handleLogout = (api: any) => {
   api.dispatch(logout());
   if (typeof window !== "undefined") {
-    window.location.href = "/login";
+    window.location.href = "/auth/login";
   }
 };
 
@@ -56,7 +56,6 @@ const refreshAccessToken = async (
 ): Promise<{ accessToken?: string; user?: any } | null> => {
   // If a refresh is already in progress, wait for it
   if (refreshPromise) {
-    console.log("⏳ Refresh already in progress, waiting...");
     return await refreshPromise;
   }
 
@@ -70,14 +69,12 @@ const refreshAccessToken = async (
       );
 
       if (refreshResult.error) {
-        console.error("❌ Token refresh failed:", refreshResult.error);
         return null;
       }
 
       if (refreshResult.data) {
         const data = refreshResult.data as { accessToken?: string; user?: any };
         if (data.accessToken) {
-          console.log("✅ Token refreshed successfully in baseApi");
           return data;
         }
       }
@@ -116,13 +113,11 @@ export const baseQueryWithReauth: BaseQueryFn<
       "error" in result.error &&
       result.error.error === "TIMEOUT_ERROR")
   ) {
-    console.error("Request timeout:", url);
     return result;
   }
 
   // If 401 Unauthorized, try to refresh token
   if (result.error?.status === 401) {
-    console.log("🔄 401 detected, attempting token refresh...");
     const refreshData = await refreshAccessToken(api, extraOptions);
 
     if (refreshData?.accessToken) {
@@ -150,7 +145,6 @@ export const baseQueryWithReauth: BaseQueryFn<
       result = await authenticatedBaseQuery(args, api, extraOptions);
     } else {
       // Refresh failed - logout user only if we're not already on /auth/refresh endpoint
-      console.log("❌ Refresh failed, logging out user");
       handleLogout(api);
     }
   }

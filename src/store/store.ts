@@ -37,7 +37,6 @@ const createStorage = () => {
       try {
         return Promise.resolve(localStorage.getItem(key));
       } catch (error) {
-        console.error("localStorage getItem error:", error);
         return Promise.resolve(null);
       }
     },
@@ -45,7 +44,6 @@ const createStorage = () => {
       try {
         return Promise.resolve(localStorage.setItem(key, value));
       } catch (error) {
-        console.error("localStorage setItem error:", error);
         return Promise.resolve();
       }
     },
@@ -53,7 +51,6 @@ const createStorage = () => {
       try {
         return Promise.resolve(localStorage.removeItem(key));
       } catch (error) {
-        console.error("localStorage removeItem error:", error);
         return Promise.resolve();
       }
     },

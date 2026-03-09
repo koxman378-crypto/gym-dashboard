@@ -46,7 +46,6 @@ export function useTokenRefresh() {
 
         if (!response.ok) {
           // Refresh token expired or invalid - logout user
-          console.log("Token refresh failed, logging out");
           dispatch(logout());
           return;
         }
@@ -73,14 +72,11 @@ export function useTokenRefresh() {
               },
             }),
           );
-          console.log("✅ Token refreshed successfully on app load");
         } else {
           // Invalid response - logout
-          console.log("❌ Invalid refresh response, logging out");
           dispatch(logout());
         }
       } catch (error) {
-        console.error("Token refresh error:", error);
         // Network error or refresh failed - logout user
         dispatch(logout());
       }

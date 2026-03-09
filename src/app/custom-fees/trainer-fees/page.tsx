@@ -162,25 +162,25 @@ export default function TrainerFeesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-[#0F172B]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading...</p>
+          <p className="mt-4 text-slate-400">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#0F172B]">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-8 shadow-sm">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-bold text-white tracking-tight">
               Trainer Fees Management
             </h1>
-            <p className="text-slate-600 mt-2 text-base">
+            <p className="text-slate-400 mt-2 text-base">
               Manage fee tiers and promotional pricing for each trainer
             </p>
           </div>
@@ -189,15 +189,15 @@ export default function TrainerFeesPage() {
         {/* Trainers Grid */}
         <div className="grid gap-6">
           {trainers.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-12 text-center">
               <div className="max-w-md mx-auto">
-                <div className="rounded-full bg-slate-100 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <div className="rounded-full bg-slate-700 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                   <UserIcon className="h-8 w-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                <h3 className="text-lg font-semibold text-white mb-2">
                   No Trainers Found
                 </h3>
-                <p className="text-slate-600">
+                <p className="text-slate-400">
                   Create trainers in the staff management section first
                 </p>
               </div>
@@ -206,10 +206,10 @@ export default function TrainerFeesPage() {
             trainers.map((trainer) => (
               <div
                 key={trainer._id}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
               >
                 {/* Trainer Header */}
-                <div className="bg-slate-50 border-b border-slate-200 p-6">
+                <div className="bg-[#0F172B] border-b border-slate-700 p-6">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -217,10 +217,10 @@ export default function TrainerFeesPage() {
                           <UserIcon className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
-                          <h2 className="text-xl font-bold text-slate-900">
+                          <h2 className="text-xl font-bold text-white">
                             {trainer.name}
                           </h2>
-                          <p className="text-sm text-slate-600">
+                          <p className="text-sm text-slate-400">
                             {trainer.email}
                           </p>
                         </div>
@@ -228,7 +228,7 @@ export default function TrainerFeesPage() {
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                             (trainer.trainerFees?.length ?? 0) > 0
                               ? "bg-emerald-100 text-emerald-800"
-                              : "bg-slate-200 text-slate-700"
+                              : "bg-slate-600 text-slate-300"
                           }`}
                         >
                           {trainer.trainerFees?.length ?? 0} tier
@@ -260,23 +260,23 @@ export default function TrainerFeesPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-slate-200">
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                          <tr className="border-b border-slate-700">
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                               Duration
                             </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                               Base Amount
                             </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                               Promotion
                             </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                               Final Price
                             </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                               Status
                             </th>
-                            <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">
+                            <th className="text-center py-3 px-4 text-sm font-semibold text-slate-300">
                               Actions
                             </th>
                           </tr>
@@ -291,20 +291,20 @@ export default function TrainerFeesPage() {
                             return (
                               <tr
                                 key={fee._id}
-                                className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                                className={`border-b border-slate-100 hover:bg-slate-800 transition-colors ${
                                   index === trainer.trainerFees!.length - 1
                                     ? "border-b-0"
                                     : ""
                                 }`}
                               >
                                 <td className="py-4 px-4">
-                                  <span className="font-medium text-slate-900">
+                                  <span className="font-medium text-white">
                                     {fee.duration} {fee.durationUnit}
                                   </span>
                                 </td>
                                 <td className="py-4 px-4">
                                   <span
-                                    className={`text-slate-700 ${
+                                    className={`text-slate-300 ${
                                       hasPromotion
                                         ? "line-through text-sm"
                                         : "font-semibold"
@@ -328,7 +328,7 @@ export default function TrainerFeesPage() {
                                   )}
                                 </td>
                                 <td className="py-4 px-4">
-                                  <span className="text-lg font-bold text-slate-900">
+                                  <span className="text-lg font-bold text-white">
                                     {finalPrice.toLocaleString()} MMK
                                   </span>
                                 </td>
@@ -337,7 +337,7 @@ export default function TrainerFeesPage() {
                                     className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                                       fee.isActive
                                         ? "bg-blue-100 text-blue-800"
-                                        : "bg-slate-200 text-slate-700"
+                                        : "bg-slate-600 text-slate-300"
                                     }`}
                                   >
                                     {fee.isActive ? "Active" : "Inactive"}
@@ -354,7 +354,7 @@ export default function TrainerFeesPage() {
                                     className={
                                       fee.isActive
                                         ? "border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700"
-                                        : "border-slate-300 hover:bg-slate-100 text-slate-600"
+                                        : "border-slate-600 hover:bg-slate-700 text-slate-400"
                                     }
                                   >
                                     {fee.isActive ? (
@@ -381,8 +381,8 @@ export default function TrainerFeesPage() {
                       </table>
                     </div>
                   ) : (
-                    <div className="text-center py-8 border border-dashed border-slate-300 rounded-xl">
-                      <p className="text-slate-500 mb-3">
+                    <div className="text-center py-8 border border-dashed border-slate-600 rounded-xl">
+                      <p className="text-slate-400 mb-3">
                         No fee tiers configured yet.
                       </p>
                       <Button
@@ -434,7 +434,7 @@ export default function TrainerFeesPage() {
                   type="button"
                   size="sm"
                   onClick={addFeeRow}
-                  className="bg-slate-900 text-white hover:bg-slate-800"
+                  className="bg-slate-100 text-slate-900 hover:bg-white"
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add Tier
                 </Button>
@@ -448,10 +448,10 @@ export default function TrainerFeesPage() {
                   return (
                     <div
                       key={index}
-                      className="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50"
+                      className="border border-slate-700 rounded-xl p-5 space-y-4 bg-[#0F172B]"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-semibold text-slate-700">
+                        <span className="text-sm font-semibold text-slate-300">
                           Tier {index + 1}
                         </span>
                         <Button
@@ -467,7 +467,7 @@ export default function TrainerFeesPage() {
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-600">
+                          <Label className="text-xs font-semibold text-slate-400">
                             Duration *
                           </Label>
                           <Input
@@ -481,11 +481,11 @@ export default function TrainerFeesPage() {
                               )
                             }
                             min={1}
-                            className="border-slate-300"
+                            className="border-slate-600"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-600">
+                          <Label className="text-xs font-semibold text-slate-400">
                             Unit *
                           </Label>
                           <Select
@@ -494,7 +494,7 @@ export default function TrainerFeesPage() {
                               updateFeeRow(index, "durationUnit", value)
                             }
                           >
-                            <SelectTrigger className="border-slate-300">
+                            <SelectTrigger className="border-slate-600">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -507,7 +507,7 @@ export default function TrainerFeesPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-600">
+                        <Label className="text-xs font-semibold text-slate-400">
                           Amount (MMK) *
                         </Label>
                         <Input
@@ -522,13 +522,13 @@ export default function TrainerFeesPage() {
                           }
                           placeholder="50000"
                           min={0}
-                          className="border-slate-300"
+                          className="border-slate-600"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-600">
+                          <Label className="text-xs font-semibold text-slate-400">
                             Promotion Type
                           </Label>
                           <Select
@@ -543,7 +543,7 @@ export default function TrainerFeesPage() {
                               )
                             }
                           >
-                            <SelectTrigger className="border-slate-300">
+                            <SelectTrigger className="border-slate-600">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -558,7 +558,7 @@ export default function TrainerFeesPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-600">
+                          <Label className="text-xs font-semibold text-slate-400">
                             Discount Value
                           </Label>
                           <Input
@@ -576,12 +576,12 @@ export default function TrainerFeesPage() {
                             }
                             disabled={!fee.promotionType}
                             min={0}
-                            className="border-slate-300"
+                            className="border-slate-600"
                           />
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-700">
                         <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -590,7 +590,7 @@ export default function TrainerFeesPage() {
                             onChange={(e) =>
                               updateFeeRow(index, "isActive", e.target.checked)
                             }
-                            className="w-4 h-4 text-slate-900 border-slate-300 rounded focus:ring-slate-500"
+                            className="w-4 h-4 text-white border-slate-600 rounded focus:ring-slate-500"
                           />
                           <Label
                             htmlFor={`active-${index}`}
@@ -601,7 +601,7 @@ export default function TrainerFeesPage() {
                         </div>
                         {hasPromotion && (
                           <div className="text-right">
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-slate-400">
                               Final Price
                             </div>
                             <div className="text-lg font-bold text-emerald-600">
@@ -616,8 +616,8 @@ export default function TrainerFeesPage() {
               </div>
 
               {formData.length === 0 && (
-                <div className="text-center py-8 border border-dashed border-slate-300 rounded-xl">
-                  <p className="text-slate-500 mb-3">
+                <div className="text-center py-8 border border-dashed border-slate-600 rounded-xl">
+                  <p className="text-slate-400 mb-3">
                     No fee tiers configured. Click "Add Tier" to start.
                   </p>
                 </div>
@@ -638,7 +638,7 @@ export default function TrainerFeesPage() {
             <Button
               onClick={handleSave}
               disabled={formData.length === 0}
-              className="bg-slate-900 text-white hover:bg-slate-800"
+              className="bg-slate-100 text-slate-900 hover:bg-white"
             >
               Save Changes
             </Button>

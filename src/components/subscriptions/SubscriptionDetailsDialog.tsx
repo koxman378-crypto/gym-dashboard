@@ -127,7 +127,7 @@ export const SubscriptionDetailsDialog = ({
               <User className="h-4 w-4" />
               Customer Information
             </h3>
-            <div className="bg-slate-50 p-4 rounded-lg space-y-1">
+            <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Name:</span>
                 <span className="font-medium">{customer?.name || "N/A"}</span>
@@ -152,7 +152,7 @@ export const SubscriptionDetailsDialog = ({
                 <Package className="h-4 w-4" />
                 Gym Price Package
               </h3>
-              <div className="bg-slate-50 p-4 rounded-lg space-y-1">
+              <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
                     Package Name:
@@ -215,7 +215,7 @@ export const SubscriptionDetailsDialog = ({
                 {subscription.otherServiceGroups.map((group, idx) => (
                   <div
                     key={idx}
-                    className="bg-slate-50 p-4 rounded-lg space-y-2"
+                    className="bg-[#0F172B] p-4 rounded-lg space-y-2"
                   >
                     <div className="font-medium text-sm border-b pb-1">
                       {group.groupName}
@@ -279,7 +279,7 @@ export const SubscriptionDetailsDialog = ({
                 <UserCheck className="h-4 w-4" />
                 Trainer Assignment
               </h3>
-              <div className="bg-slate-50 p-4 rounded-lg space-y-1">
+              <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
                     Trainer Name:
@@ -332,7 +332,7 @@ export const SubscriptionDetailsDialog = ({
               <Calendar className="h-4 w-4" />
               Subscription Period
             </h3>
-            <div className="bg-slate-50 p-4 rounded-lg space-y-1">
+            <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
                   Start Date:
@@ -364,7 +364,7 @@ export const SubscriptionDetailsDialog = ({
               <Banknote className="h-4 w-4" />
               Fee Breakdown
             </h3>
-            <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+            <div className="bg-[#0F172B] p-4 rounded-lg space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
                   Gym Package Total:
@@ -409,7 +409,7 @@ export const SubscriptionDetailsDialog = ({
               <CreditCard className="h-4 w-4" />
               Payment Information
             </h3>
-            <div className="bg-slate-50 p-4 rounded-lg space-y-1">
+            <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
                   Payment Status:
@@ -447,7 +447,7 @@ export const SubscriptionDetailsDialog = ({
                 <Activity className="h-4 w-4" />
                 Additional Information
               </h3>
-              <div className="bg-slate-50 p-4 rounded-lg space-y-1">
+              <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
                 {createdBy && (
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">

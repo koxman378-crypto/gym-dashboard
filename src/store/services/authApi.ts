@@ -63,7 +63,6 @@ export const authApi = api.injectEndpoints({
             }),
           );
         } catch (error) {
-          console.error("Login failed:", error);
         }
       },
     }),
@@ -91,7 +90,6 @@ export const authApi = api.injectEndpoints({
             }),
           );
         } catch (error) {
-          console.error("Registration failed:", error);
         }
       },
     }),
@@ -106,7 +104,6 @@ export const authApi = api.injectEndpoints({
           await queryFulfilled;
           dispatch(logout());
         } catch (error) {
-          console.error("Logout failed:", error);
           // Even if logout fails, clear local state
           dispatch(logout());
         }
@@ -119,7 +116,6 @@ export const authApi = api.injectEndpoints({
           await queryFulfilled;
           dispatch(logout());
         } catch (error) {
-          console.error("Logout all failed:", error);
           dispatch(logout());
         }
       },
@@ -148,7 +144,6 @@ export const authApi = api.injectEndpoints({
             }),
           );
         } catch (error) {
-          console.error("Token refresh failed:", error);
         }
       },
     }),

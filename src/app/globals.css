@@ -1,30 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
+  --background: 225 47% 11%;       /* #0F172B */
+  --foreground: 210 40% 98%;       /* slate-50 */
+  --card: 217 33% 17%;             /* slate-800 */
+  --card-foreground: 210 40% 98%;
+  --popover: 217 33% 17%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 160 84% 39%;          /* emerald-600 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 25% 27%;        /* slate-700 */
+  --secondary-foreground: 210 40% 98%;
+  --muted: 215 25% 27%;
+  --muted-foreground: 215 20% 65%; /* slate-400 */
+  --accent: 215 25% 27%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 50%;
   --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --border: 215 25% 27%;           /* slate-700 */
+  --input: 215 25% 27%;
+  --ring: 160 84% 39%;
   --radius: 0.75rem;
   --success: 142.1 76.2% 36.3%;
   --warning: 38.4 92% 50.2%;
-  --gradient-from: 221.2 83.2% 53.3%;
-  --gradient-to: 262.1 83.3% 57.8%;
+  --gradient-from: 160 84% 39%;
+  --gradient-to: 199 89% 48%;
 }
 
 @theme inline {
@@ -43,14 +43,14 @@ body {
 }
 
 :root {
-  --sidebar-background: 0 0% 98%;
-  --sidebar-foreground: 240 5.3% 26.1%;
-  --sidebar-primary: 221.2 83.2% 53.3%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 210 40% 96.1%;
-  --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 221.2 83.2% 53.3%;
+  --sidebar-background: 222 47% 8%;     /* darker than page bg */
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-primary: 160 84% 39%;       /* emerald */
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 215 25% 27%;        /* slate-700 */
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-border: 215 25% 27%;
+  --sidebar-ring: 160 84% 39%;
 }
 
 @layer utilities {
@@ -77,8 +77,8 @@ body {
   
   .glass-effect {
     backdrop-filter: blur(12px) saturate(180%);
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(209, 213, 219, 0.3);
+    background-color: rgba(15, 23, 43, 0.85);
+    border: 1px solid rgba(71, 85, 105, 0.4);
   }
   
   .card-hover {

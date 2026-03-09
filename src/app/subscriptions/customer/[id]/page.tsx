@@ -76,11 +76,11 @@ const SubscriptionCard = ({
   const isExpired = new Date(subscription.endDate) < new Date();
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+    <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:shadow-lg transition-shadow">
       {/* Header with ID and Status */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm font-semibold text-slate-600">
+          <span className="font-mono text-sm font-semibold text-slate-400">
             #{subscription._id.slice(-8).toUpperCase()}
           </span>
         </div>
@@ -97,11 +97,11 @@ const SubscriptionCard = ({
         {/* Gym Package */}
         {gymPrice && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
               <Package className="h-4 w-4" />
               Gym Package
             </div>
-            <div className="bg-slate-50 p-3 rounded-md">
+            <div className="bg-[#0F172B] p-3 rounded-md">
               <div className="flex justify-between items-start">
                 <div>
                   <div className="font-medium">{gymPrice.groupName}</div>
@@ -131,11 +131,11 @@ const SubscriptionCard = ({
         {/* Additional Services */}
         {servicesCount > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
               <Package className="h-4 w-4" />
               Additional Services ({servicesCount})
             </div>
-            <div className="bg-slate-50 p-3 rounded-md">
+            <div className="bg-[#0F172B] p-3 rounded-md">
               <div className="text-sm text-emerald-600 font-semibold">
                 {subscription.otherServiceTotal.toLocaleString()} MMK
               </div>
@@ -146,11 +146,11 @@ const SubscriptionCard = ({
         {/* Trainer */}
         {subscription.trainer && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
               <User className="h-4 w-4" />
               Trainer
             </div>
-            <div className="bg-slate-50 p-3 rounded-md">
+            <div className="bg-[#0F172B] p-3 rounded-md">
               <div className="flex justify-between">
                 <div className="text-sm">
                   {subscription.trainer.trainerName}
@@ -254,7 +254,7 @@ export default function CustomerSubscriptionsPage() {
   const customerData = typeof customer === "object" ? customer : null;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-[#0F172B] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -269,12 +269,12 @@ export default function CustomerSubscriptionsPage() {
 
           {isLoading ? (
             <div className="animate-pulse">
-              <div className="h-8 bg-slate-200 rounded w-64 mb-2"></div>
-              <div className="h-4 bg-slate-200 rounded w-48"></div>
+              <div className="h-8 bg-slate-600 rounded w-64 mb-2"></div>
+              <div className="h-4 bg-slate-600 rounded w-48"></div>
             </div>
           ) : customerData ? (
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-3xl font-bold text-white mb-2">
                 {customerData.name}'s Subscriptions
               </h1>
               <div className="flex items-center gap-4 text-muted-foreground">
@@ -288,7 +288,7 @@ export default function CustomerSubscriptionsPage() {
               </div>
             </div>
           ) : (
-            <h1 className="text-3xl font-bold text-slate-900">
+            <h1 className="text-3xl font-bold text-white">
               Customer Subscriptions
             </h1>
           )}
@@ -328,9 +328,9 @@ export default function CustomerSubscriptionsPage() {
           !error &&
           subscriptions &&
           subscriptions.length === 0 && (
-            <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-12 text-center">
               <Package className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              <h2 className="text-xl font-semibold text-white mb-2">
                 No Subscriptions Found
               </h2>
               <p className="text-muted-foreground">

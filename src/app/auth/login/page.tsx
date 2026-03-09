@@ -71,7 +71,6 @@ export default function LoginPage() {
         router.push("/users");
       }
     } catch (err: any) {
-      console.error("Login failed:", err);
     }
   };
 
@@ -87,26 +86,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#0F172B] p-4">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8">
+        <div className="rounded-2xl border border-slate-700 bg-slate-800 shadow-sm p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg">
                 <span className="text-2xl font-bold">GM</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome Back</h1>
-            <p className="text-slate-600 mt-2">
+            <h1 className="text-3xl font-bold tracking-tight text-white">Welcome Back</h1>
+            <p className="text-slate-400 mt-2">
               Sign in to your gym account
             </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
-              <p className="text-sm text-red-600">
+            <div className="mb-6 rounded-lg bg-red-950 border border-red-800 p-4">
+              <p className="text-sm text-red-400">
                 {(error as any)?.data?.message ||
                   "Login failed. Please check your credentials."}
               </p>
@@ -156,7 +155,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -176,7 +175,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full cursor-pointer bg-slate-900 text-white hover:bg-slate-800"
+              className="w-full cursor-pointer bg-slate-100 text-slate-900 hover:bg-white"
               size="lg"
               disabled={isLoading}
             >
@@ -197,7 +196,7 @@ export default function LoginPage() {
               <div className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-slate-500">
+              <span className="bg-slate-800 px-2 text-slate-400">
                 New to Gym Manager?
               </span>
             </div>
@@ -205,11 +204,11 @@ export default function LoginPage() {
 
           {/* Register Link */}
           <div className="text-center">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-400">
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/register"
-                className="font-medium text-slate-900 hover:text-slate-700 hover:underline underline-offset-4"
+                className="font-medium text-white hover:text-slate-300 hover:underline underline-offset-4"
               >
                 Create account
               </Link>
