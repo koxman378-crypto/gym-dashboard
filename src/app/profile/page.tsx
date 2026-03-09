@@ -20,9 +20,11 @@ export default function ProfilePage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { user: authUser } = useAppSelector((state) => state.auth);
-  const { data: profileData, isLoading: profileLoading } = useGetMyProfileQuery();
-  
-  const [updateProfile, { isLoading: isUpdating }] = useUpdateMyProfileMutation();
+  const { data: profileData, isLoading: profileLoading } =
+    useGetMyProfileQuery();
+
+  const [updateProfile, { isLoading: isUpdating }] =
+    useUpdateMyProfileMutation();
   const [generatePresignedUrl] = useGeneratePresignedUrlMutation();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
@@ -31,7 +33,9 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = React.useState(false);
   const [uploadingImage, setUploadingImage] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(
+    null,
+  );
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -52,7 +56,9 @@ export default function ProfilePage() {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -78,14 +84,15 @@ export default function ProfilePage() {
         contentType: file.type,
       }).unwrap();
 
-
       // Validate response
       if (!response.uploadUrl) {
         throw new Error("Backend didn't return upload URL");
       }
 
       if (!response.publicUrl) {
-        throw new Error("Backend didn't return public URL. Check S3Service configuration.");
+        throw new Error(
+          "Backend didn't return public URL. Check S3Service configuration.",
+        );
       }
 
       const { uploadUrl, publicUrl } = response;
@@ -99,29 +106,31 @@ export default function ProfilePage() {
         },
       });
 
-
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
-        throw new Error(`S3 upload failed with status: ${uploadResponse.status}. ${errorText}`);
+        throw new Error(
+          `S3 upload failed with status: ${uploadResponse.status}. ${errorText}`,
+        );
       }
-
 
       // Step 3: Set the avatar URL (this will trigger edit mode)
       setAvatar(publicUrl);
       setIsEditing(true);
-      setSuccessMessage("Image uploaded! Click 'Save Changes' to update your profile.");
-      
+      setSuccessMessage(
+        "Image uploaded! Click 'Save Changes' to update your profile.",
+      );
+
       // Auto-dismiss success message after 5 seconds
       setTimeout(() => {
         if (isEditing) {
           setSuccessMessage(null);
         }
       }, 5000);
-
     } catch (error: any) {
-      
       if (error?.status === 404) {
-        setUploadError("Upload endpoint not found. Please restart the backend server.");
+        setUploadError(
+          "Upload endpoint not found. Please restart the backend server.",
+        );
       } else if (error?.data?.message) {
         setUploadError(`Upload failed: ${error.data.message}`);
       } else if (error?.message) {
@@ -141,22 +150,22 @@ export default function ProfilePage() {
   const handleSave = async () => {
     try {
       setUploadError(null);
-      
+
       // Build update payload - only send changed fields
-      const updateData: { 
-        name?: string; 
-        nickname?: string; 
+      const updateData: {
+        name?: string;
+        nickname?: string;
         phone?: string;
         address?: string;
         avatar?: string;
       } = {};
-      
+
       // Only include nickname if it has a value
       if (nickname && nickname.trim()) {
         updateData.nickname = nickname.trim();
       }
-      
-      // Only include avatar if it has a value  
+
+      // Only include avatar if it has a value
       if (avatar) {
         updateData.avatar = avatar;
       }
@@ -173,26 +182,27 @@ export default function ProfilePage() {
       const updatedUser = await updateProfile(updateData).unwrap();
 
       // Update Redux state with new user data
-      dispatch(setUser({
-        id: updatedUser._id,
-        _id: updatedUser._id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        nickname: updatedUser.nickname || undefined,
-        role: updatedUser.role,
-        avatar: updatedUser.avatar || undefined,
-        isActive: updatedUser.isActive,
-      }));
+      dispatch(
+        setUser({
+          id: updatedUser._id,
+          _id: updatedUser._id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          nickname: updatedUser.nickname || undefined,
+          role: updatedUser.role,
+          avatar: updatedUser.avatar || undefined,
+          isActive: updatedUser.isActive,
+        }),
+      );
 
       setIsEditing(false);
       setSuccessMessage("Profile updated successfully!");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error: any) {
-      
       // Handle error messages
       if (error?.data?.message) {
-        const errorMsg = Array.isArray(error.data.message) 
-          ? error.data.message.join(", ") 
+        const errorMsg = Array.isArray(error.data.message)
+          ? error.data.message.join(", ")
           : error.data.message;
         setUploadError(`Update failed: ${errorMsg}`);
       } else {
@@ -309,9 +319,7 @@ export default function ProfilePage() {
           {/* User Information */}
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Name
-              </Label>
+              <Label className="text-sm font-medium text-slate-300">Name</Label>
               <Input
                 value={currentUser?.name || ""}
                 disabled
@@ -337,9 +345,7 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Role
-              </Label>
+              <Label className="text-sm font-medium text-slate-300">Role</Label>
               <Input
                 value={currentUser?.role || ""}
                 disabled
@@ -348,7 +354,10 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <Label htmlFor="nickname" className="text-sm font-medium text-slate-300">
+              <Label
+                htmlFor="nickname"
+                className="text-sm font-medium text-slate-300"
+              >
                 Nickname (Optional)
               </Label>
               <Input
@@ -394,4 +403,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

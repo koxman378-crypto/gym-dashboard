@@ -104,8 +104,7 @@ export default function GymPricesPage() {
       await createGroup(formData).unwrap();
       setIsCreateDialogOpen(false);
       resetForm();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleEdit = (group: GymPriceGroup) => {
@@ -153,8 +152,7 @@ export default function GymPricesPage() {
     if (!confirm("Are you sure you want to delete this group?")) return;
     try {
       await deleteGroup(id).unwrap();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleToggleGroup = async (group: GymPriceGroup) => {
@@ -165,10 +163,12 @@ export default function GymPricesPage() {
 
     // If trying to activate this group, check if another is already active
     if (!group.isActive) {
-      const activeGroup = gymPriceGroups.find((g) => g._id !== group._id && g.isActive);
+      const activeGroup = gymPriceGroups.find(
+        (g) => g._id !== group._id && g.isActive,
+      );
       if (activeGroup) {
         const confirmActivate = confirm(
-          `Only one gym price group can be active at a time.\n\nCurrently active: "${activeGroup.name}"\n\nDo you want to deactivate "${activeGroup.name}" and activate "${group.name}" instead?`
+          `Only one gym price group can be active at a time.\n\nCurrently active: "${activeGroup.name}"\n\nDo you want to deactivate "${activeGroup.name}" and activate "${group.name}" instead?`,
         );
         if (!confirmActivate) {
           return;
@@ -177,7 +177,10 @@ export default function GymPricesPage() {
         try {
           await toggleGroup(activeGroup._id).unwrap();
         } catch (error: any) {
-          alert(error?.data?.message || "Failed to deactivate current active group. Please try again.");
+          alert(
+            error?.data?.message ||
+              "Failed to deactivate current active group. Please try again.",
+          );
           return;
         }
       }
@@ -229,7 +232,10 @@ export default function GymPricesPage() {
     if (a.isActive && !b.isActive) return -1;
     if (!a.isActive && b.isActive) return 1;
     // Then sort by creation date (newest first)
-    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    return (
+      new Date(b.createdAt || 0).getTime() -
+      new Date(a.createdAt || 0).getTime()
+    );
   });
 
   return (
@@ -314,20 +320,25 @@ export default function GymPricesPage() {
                         size="sm"
                         onClick={() => handleToggleGroup(group)}
                         disabled={!group._id}
-                        className={group.isActive
-                          ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
-                          : "border-slate-600 hover:bg-slate-700 text-slate-400"
+                        className={
+                          group.isActive
+                            ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
+                            : "border-slate-600 hover:bg-slate-700 text-slate-400"
                         }
                       >
                         {group.isActive ? (
                           <>
                             <ToggleRight className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">Active</span>
+                            <span className="text-xs font-semibold">
+                              Active
+                            </span>
                           </>
                         ) : (
                           <>
                             <ToggleLeft className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">Activate</span>
+                            <span className="text-xs font-semibold">
+                              Activate
+                            </span>
                           </>
                         )}
                       </Button>
@@ -444,20 +455,25 @@ export default function GymPricesPage() {
                                   onClick={() =>
                                     handleToggleItem(group._id, price._id)
                                   }
-                                  className={price.isActive
-                                    ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
-                                    : "border-slate-600 hover:bg-slate-700 text-slate-400"
+                                  className={
+                                    price.isActive
+                                      ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
+                                      : "border-slate-600 hover:bg-slate-700 text-slate-400"
                                   }
                                 >
                                   {price.isActive ? (
                                     <>
                                       <ToggleRight className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">Active</span>
+                                      <span className="text-xs font-semibold">
+                                        Active
+                                      </span>
                                     </>
                                   ) : (
                                     <>
                                       <ToggleLeft className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">Inactive</span>
+                                      <span className="text-xs font-semibold">
+                                        Inactive
+                                      </span>
                                     </>
                                   )}
                                 </Button>
@@ -741,4 +757,3 @@ export default function GymPricesPage() {
     </div>
   );
 }
-

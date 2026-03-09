@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useRegisterMutation } from "@/src/store/services/authApi";
 import { useAppSelector } from "@/src/store/hooks";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Dumbbell } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -87,8 +88,7 @@ export default function RegisterPage() {
       }).unwrap();
       // Redirect to users page after successful registration
       router.push("/users");
-    } catch (err: any) {
-    }
+    } catch (err: any) {}
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,28 +103,39 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0F172B] p-4">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 shadow-sm p-8">
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Full-screen background image */}
+      <Image
+        src="https://ambit-gym.s3.ap-southeast-1.amazonaws.com/gym-reg.jpg"
+        alt="Gym background"
+        fill
+        priority
+        className="object-cover object-center"
+      />
+
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/60" />
+
+      {/* Centered register box */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4 py-10">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-[2px] p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg">
-                <span className="text-2xl font-bold">GM</span>
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 shadow-lg shadow-emerald-900/50">
+                <span className="text-2xl font-bold text-white">GM</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
               Create Account
             </h1>
-            <p className="text-slate-400 mt-2">
-              Join our gym management system
-            </p>
+            <p className="mt-2 text-white/70">Join our gym management system</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 rounded-lg bg-red-950 border border-red-800 p-4">
-              <p className="text-sm text-red-400">
+            <div className="mb-6 rounded-lg border border-red-500/40 bg-red-950/60 p-4 backdrop-blur-sm">
+              <p className="text-sm text-red-300">
                 {(error as any)?.data?.message ||
                   "Registration failed. Please try again."}
               </p>
@@ -135,7 +146,10 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Field */}
             <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">
+              <label
+                htmlFor="name"
+                className="text-sm font-medium text-white/90"
+              >
                 Full Name
               </label>
               <Input
@@ -145,18 +159,21 @@ export default function RegisterPage() {
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                className={validationErrors.name ? "border-red-500" : ""}
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 transition-colors ${validationErrors.name ? "border-red-500" : ""}`}
                 disabled={isLoading}
                 autoComplete="name"
               />
               {validationErrors.name && (
-                <p className="text-sm text-red-500">{validationErrors.name}</p>
+                <p className="text-sm text-red-400">{validationErrors.name}</p>
               )}
             </div>
 
             {/* Email Field */}
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-white/90"
+              >
                 Email Address
               </label>
               <Input
@@ -166,12 +183,12 @@ export default function RegisterPage() {
                 placeholder="your.email@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className={validationErrors.email ? "border-red-500" : ""}
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.email ? "border-red-500" : ""}`}
                 disabled={isLoading}
                 autoComplete="email"
               />
               {validationErrors.email && (
-                <p className="text-sm text-red-500">{validationErrors.email}</p>
+                <p className="text-sm text-red-400">{validationErrors.email}</p>
               )}
             </div>
 
@@ -179,11 +196,12 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               {/* Phone Field */}
               <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium">
+                <label
+                  htmlFor="phone"
+                  className="text-sm font-medium text-white/90"
+                >
                   Phone{" "}
-                  <span className="text-slate-400 text-xs">
-                    (optional)
-                  </span>
+                  <span className="text-white/50 text-xs">(optional)</span>
                 </label>
                 <Input
                   id="phone"
@@ -192,6 +210,7 @@ export default function RegisterPage() {
                   placeholder="+1234567890"
                   value={formData.phone}
                   onChange={handleChange}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors"
                   disabled={isLoading}
                   autoComplete="tel"
                 />
@@ -199,11 +218,11 @@ export default function RegisterPage() {
 
               {/* Age Field */}
               <div className="space-y-2">
-                <label htmlFor="age" className="text-sm font-medium">
-                  Age{" "}
-                  <span className="text-slate-400 text-xs">
-                    (optional)
-                  </span>
+                <label
+                  htmlFor="age"
+                  className="text-sm font-medium text-white/90"
+                >
+                  Age <span className="text-white/50 text-xs">(optional)</span>
                 </label>
                 <Input
                   id="age"
@@ -212,7 +231,7 @@ export default function RegisterPage() {
                   placeholder="25"
                   value={formData.age}
                   onChange={handleChange}
-                  className={validationErrors.age ? "border-red-500" : ""}
+                  className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.age ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   min="1"
                   max="120"
@@ -220,12 +239,15 @@ export default function RegisterPage() {
               </div>
             </div>
             {validationErrors.age && (
-              <p className="text-sm text-red-500">{validationErrors.age}</p>
+              <p className="text-sm text-red-400">{validationErrors.age}</p>
             )}
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-white/90"
+              >
                 Password
               </label>
               <div className="relative">
@@ -236,16 +258,14 @@ export default function RegisterPage() {
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={
-                    validationErrors.password ? "border-red-500 pr-10" : "pr-10"
-                  }
+                  className={`pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.password ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -256,7 +276,7 @@ export default function RegisterPage() {
                 </button>
               </div>
               {validationErrors.password && (
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-red-400">
                   {validationErrors.password}
                 </p>
               )}
@@ -264,7 +284,10 @@ export default function RegisterPage() {
 
             {/* Confirm Password Field */}
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
+              <label
+                htmlFor="confirmPassword"
+                className="text-sm font-medium text-white/90"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -275,18 +298,14 @@ export default function RegisterPage() {
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={
-                    validationErrors.confirmPassword
-                      ? "border-red-500 pr-10"
-                      : "pr-10"
-                  }
+                  className={`pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.confirmPassword ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-green-300 hover:text-green-400 transition-colors"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? (
@@ -297,7 +316,7 @@ export default function RegisterPage() {
                 </button>
               </div>
               {validationErrors.confirmPassword && (
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-red-400">
                   {validationErrors.confirmPassword}
                 </p>
               )}
@@ -306,7 +325,7 @@ export default function RegisterPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-slate-100 text-slate-900 hover:bg-white"
+              className="w-full cursor-pointer bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-900/40 transition-all mt-2"
               size="lg"
               disabled={isLoading}
             >
@@ -316,7 +335,10 @@ export default function RegisterPage() {
                   Creating account...
                 </>
               ) : (
-                "Create Account"
+                <>
+                  <Dumbbell className="mr-2 h-4 w-4" />
+                  Create Account
+                </>
               )}
             </Button>
           </form>
@@ -324,10 +346,10 @@ export default function RegisterPage() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" />
+              <div className="w-full border-t border-white/20" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-800 px-2 text-slate-400">
+              <span className="bg-transparent px-2 text-white/50">
                 Already have an account?
               </span>
             </div>
@@ -335,11 +357,11 @@ export default function RegisterPage() {
 
           {/* Login Link */}
           <div className="text-center">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-white/60">
               Already registered?{" "}
               <Link
                 href="/auth/login"
-                className="font-medium text-white hover:text-slate-300 hover:underline"
+                className="font-semibold text-emerald-400 hover:text-emerald-300 underline-offset-4 hover:underline transition-colors"
               >
                 Sign in
               </Link>
@@ -350,4 +372,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

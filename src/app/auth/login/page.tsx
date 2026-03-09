@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useLoginMutation } from "@/src/store/services/authApi";
 import { useAppSelector } from "@/src/store/hooks";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Dumbbell } from "lucide-react";
 import { Role } from "@/src/types/type";
 
 export default function LoginPage() {
@@ -70,8 +71,7 @@ export default function LoginPage() {
       } else {
         router.push("/users");
       }
-    } catch (err: any) {
-    }
+    } catch (err: any) {}
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,26 +86,39 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0F172B] p-4">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-slate-700 bg-slate-800 shadow-sm p-8">
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Full-screen background image */}
+      <Image
+        src="https://ambit-gym.s3.ap-southeast-1.amazonaws.com/gym-login.jpg"
+        alt="Gym background"
+        fill
+        priority
+        className="object-cover object-center"
+      />
+
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/60" />
+
+      {/* Centered login box */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-[2px] p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg">
-                <span className="text-2xl font-bold">GM</span>
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 shadow-lg shadow-emerald-900/50">
+                <span className="text-2xl font-bold text-white">GM</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Welcome Back</h1>
-            <p className="text-slate-400 mt-2">
-              Sign in to your gym account
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
+              Welcome Back
+            </h1>
+            <p className="mt-2 text-white/70">Sign in to your gym account</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 rounded-lg bg-red-950 border border-red-800 p-4">
-              <p className="text-sm text-red-400">
+            <div className="mb-6 rounded-lg border border-red-500/40 bg-red-950/60 p-4 backdrop-blur-sm">
+              <p className="text-sm text-red-300">
                 {(error as any)?.data?.message ||
                   "Login failed. Please check your credentials."}
               </p>
@@ -116,7 +129,10 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Field */}
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-white/90"
+              >
                 Email Address
               </label>
               <Input
@@ -126,18 +142,21 @@ export default function LoginPage() {
                 placeholder="your.email@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className={validationErrors.email ? "border-red-500" : ""}
+                className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.email ? "border-red-500" : ""}`}
                 disabled={isLoading}
                 autoComplete="email"
               />
               {validationErrors.email && (
-                <p className="text-sm text-red-500">{validationErrors.email}</p>
+                <p className="text-sm text-red-400">{validationErrors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-white/90"
+              >
                 Password
               </label>
               <div className="relative">
@@ -148,14 +167,14 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`pr-10 ${validationErrors.password ? "border-red-500" : ""}`}
+                  className={`pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.password ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-green-300 hover:text-green-400 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -166,7 +185,7 @@ export default function LoginPage() {
                 </button>
               </div>
               {validationErrors.password && (
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-red-400">
                   {validationErrors.password}
                 </p>
               )}
@@ -175,7 +194,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full cursor-pointer bg-slate-100 text-slate-900 hover:bg-white"
+              className="w-full cursor-pointer bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-900/40 transition-all mt-2"
               size="lg"
               disabled={isLoading}
             >
@@ -185,7 +204,7 @@ export default function LoginPage() {
                   Signing in...
                 </>
               ) : (
-                "Sign In"
+                <>Sign In</>
               )}
             </Button>
           </form>
@@ -193,10 +212,10 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t" />
+              <div className="w-full border-t border-white/20" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-slate-800 px-2 text-slate-400">
+              <span className="bg-transparent px-2 text-white/50">
                 New to Gym Manager?
               </span>
             </div>
@@ -204,36 +223,18 @@ export default function LoginPage() {
 
           {/* Register Link */}
           <div className="text-center">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-white/60">
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/register"
-                className="font-medium text-white hover:text-slate-300 hover:underline underline-offset-4"
+                className="font-semibold text-emerald-400 hover:text-emerald-300 underline-offset-4 hover:underline transition-colors"
               >
                 Create account
               </Link>
             </p>
           </div>
         </div>
-
-        {/* Demo Credentials */}
-        {/* <div className="mt-4 rounded-lg border bg-card/50 backdrop-blur-sm p-4">
-          <p className="text-xs font-semibold text-muted-foreground mb-2 text-center">
-            Demo Credentials
-          </p>
-          <div className="text-xs space-y-1.5 bg-muted/50 rounded p-3">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Email:</span>
-              <span className="font-mono font-semibold">owner@gym.com</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Password:</span>
-              <span className="font-mono font-semibold">password123</span>
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   );
 }
-

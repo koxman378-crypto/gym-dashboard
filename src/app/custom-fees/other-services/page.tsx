@@ -101,8 +101,7 @@ export default function OtherServicesPage() {
       await createGroup(formData).unwrap();
       setIsCreateDialogOpen(false);
       resetForm();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleEdit = (group: OtherServiceGroup) => {
@@ -151,8 +150,7 @@ export default function OtherServicesPage() {
     if (!confirm("Are you sure you want to delete this service group?")) return;
     try {
       await deleteGroup(id).unwrap();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleToggleGroup = async (group: OtherServiceGroup) => {
@@ -163,10 +161,12 @@ export default function OtherServicesPage() {
 
     // If trying to activate this group, check if another is already active
     if (!group.isActive) {
-      const activeGroup = serviceGroups.find((g) => g._id !== group._id && g.isActive);
+      const activeGroup = serviceGroups.find(
+        (g) => g._id !== group._id && g.isActive,
+      );
       if (activeGroup) {
         const confirmActivate = confirm(
-          `Only one service group can be active at a time.\n\nCurrently active: "${activeGroup.name}"\n\nDo you want to deactivate "${activeGroup.name}" and activate "${group.name}" instead?`
+          `Only one service group can be active at a time.\n\nCurrently active: "${activeGroup.name}"\n\nDo you want to deactivate "${activeGroup.name}" and activate "${group.name}" instead?`,
         );
         if (!confirmActivate) {
           return;
@@ -175,7 +175,10 @@ export default function OtherServicesPage() {
         try {
           await toggleGroup(activeGroup._id).unwrap();
         } catch (error: any) {
-          alert(error?.data?.message || "Failed to deactivate current active group. Please try again.");
+          alert(
+            error?.data?.message ||
+              "Failed to deactivate current active group. Please try again.",
+          );
           return;
         }
       }
@@ -227,14 +230,17 @@ export default function OtherServicesPage() {
     if (a.isActive && !b.isActive) return -1;
     if (!a.isActive && b.isActive) return 1;
     // Then sort by creation date (newest first)
-    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    return (
+      new Date(b.createdAt || 0).getTime() -
+      new Date(a.createdAt || 0).getTime()
+    );
   });
 
   return (
     <div className="min-h-screen bg-[#0F172B]">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header Section */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-8 shadow-lg">  
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-8 shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight">
@@ -313,20 +319,25 @@ export default function OtherServicesPage() {
                         size="sm"
                         onClick={() => handleToggleGroup(group)}
                         disabled={!group._id}
-                        className={group.isActive
-                          ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
-                          : "border-slate-600 hover:bg-slate-700 text-slate-400"
+                        className={
+                          group.isActive
+                            ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
+                            : "border-slate-600 hover:bg-slate-700 text-slate-400"
                         }
                       >
                         {group.isActive ? (
                           <>
                             <ToggleRight className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">Active</span>
+                            <span className="text-xs font-semibold">
+                              Active
+                            </span>
                           </>
                         ) : (
                           <>
                             <ToggleLeft className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">Activate</span>
+                            <span className="text-xs font-semibold">
+                              Activate
+                            </span>
                           </>
                         )}
                       </Button>
@@ -408,14 +419,20 @@ export default function OtherServicesPage() {
                               <td className="py-4 px-4">
                                 <div className="flex flex-col">
                                   <span className="text-xs text-slate-400">
-                                    {service.price.toLocaleString()} MMK × {service.duration}
+                                    {service.price.toLocaleString()} MMK ×{" "}
+                                    {service.duration}
                                   </span>
                                   <span
                                     className={`text-slate-300 ${
-                                      hasPromotion ? "line-through text-sm" : "font-semibold"
+                                      hasPromotion
+                                        ? "line-through text-sm"
+                                        : "font-semibold"
                                     }`}
                                   >
-                                    {(service.price * service.duration).toLocaleString()} MMK
+                                    {(
+                                      service.price * service.duration
+                                    ).toLocaleString()}{" "}
+                                    MMK
                                   </span>
                                 </div>
                               </td>
@@ -456,20 +473,25 @@ export default function OtherServicesPage() {
                                   onClick={() =>
                                     handleToggleItem(group._id, service._id)
                                   }
-                                  className={service.isActive
-                                    ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
-                                    : "border-slate-600 hover:bg-slate-700 text-slate-400"
+                                  className={
+                                    service.isActive
+                                      ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
+                                      : "border-slate-600 hover:bg-slate-700 text-slate-400"
                                   }
                                 >
                                   {service.isActive ? (
                                     <>
                                       <ToggleRight className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">Active</span>
+                                      <span className="text-xs font-semibold">
+                                        Active
+                                      </span>
                                     </>
                                   ) : (
                                     <>
                                       <ToggleLeft className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">Inactive</span>
+                                      <span className="text-xs font-semibold">
+                                        Inactive
+                                      </span>
                                     </>
                                   )}
                                 </Button>
@@ -632,7 +654,13 @@ export default function OtherServicesPage() {
 
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold text-slate-400">
-                        Price per {service.durationUnit === 'months' ? 'Month' : service.durationUnit === 'days' ? 'Day' : 'Year'} (MMK) *
+                        Price per{" "}
+                        {service.durationUnit === "months"
+                          ? "Month"
+                          : service.durationUnit === "days"
+                            ? "Day"
+                            : "Year"}{" "}
+                        (MMK) *
                       </Label>
                       <Input
                         type="number"
@@ -729,8 +757,11 @@ export default function OtherServicesPage() {
                       </div>
                       <div className="text-right">
                         <div className="text-[10px] text-slate-400 mb-0.5">
-                          {service.price.toLocaleString()} × {service.duration} {service.durationUnit}
-                          {service.promotionType && service.promotionValue && ` - ${service.promotionValue}${service.promotionType === 'percentage' ? '%' : ' MMK'}`}
+                          {service.price.toLocaleString()} × {service.duration}{" "}
+                          {service.durationUnit}
+                          {service.promotionType &&
+                            service.promotionValue &&
+                            ` - ${service.promotionValue}${service.promotionType === "percentage" ? "%" : " MMK"}`}
                         </div>
                         <div className="text-xs text-slate-400 mb-1">
                           Total Price
@@ -778,4 +809,3 @@ export default function OtherServicesPage() {
     </div>
   );
 }
-

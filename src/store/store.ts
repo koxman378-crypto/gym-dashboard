@@ -1,4 +1,3 @@
-
 import { configureStore } from "@reduxjs/toolkit";
 import {
   persistStore,
@@ -13,51 +12,34 @@ import {
 import authReducer from "./slices/authSlice";
 import { api } from "./services/baseApi";
 
-
-// Create a simple storage that works in all environments
-const createStorage = () => {
-  if (typeof window === "undefined") {
-    // Server-side - return noop storage
-    return {
-      getItem(_key: string) {
-        return Promise.resolve(null);
-      },
-      setItem(_key: string, value: string) {
-        return Promise.resolve(value);
-      },
-      removeItem(_key: string) {
-        return Promise.resolve();
-      },
-    };
-  }
-
-  // Client-side - use localStorage directly
-  return {
-    getItem(key: string) {
-      try {
-        return Promise.resolve(localStorage.getItem(key));
-      } catch (error) {
-        return Promise.resolve(null);
-      }
-    },
-    setItem(key: string, value: string) {
-      try {
-        return Promise.resolve(localStorage.setItem(key, value));
-      } catch (error) {
-        return Promise.resolve();
-      }
-    },
-    removeItem(key: string) {
-      try {
-        return Promise.resolve(localStorage.removeItem(key));
-      } catch (error) {
-        return Promise.resolve();
-      }
-    },
-  };
+// Lazy storage proxy — always the same object shape on both server and client.
+// Actual localStorage calls only execute client-side (window is available).
+const storage = {
+  getItem(key: string) {
+    if (typeof window === "undefined") return Promise.resolve(null);
+    try {
+      return Promise.resolve(localStorage.getItem(key));
+    } catch {
+      return Promise.resolve(null);
+    }
+  },
+  setItem(key: string, value: string) {
+    if (typeof window === "undefined") return Promise.resolve();
+    try {
+      return Promise.resolve(localStorage.setItem(key, value));
+    } catch {
+      return Promise.resolve();
+    }
+  },
+  removeItem(key: string) {
+    if (typeof window === "undefined") return Promise.resolve();
+    try {
+      return Promise.resolve(localStorage.removeItem(key));
+    } catch {
+      return Promise.resolve();
+    }
+  },
 };
-
-const storage = createStorage();
 
 const authPersistConfig = {
   key: "auth",

@@ -138,9 +138,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarHeader className="border-b border-slate-700">
             <div className="flex items-center gap-3 px-3 py-4">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600">
-                <span className="text-sm font-bold text-white">
-                  GM
-                </span>
+                <span className="text-sm font-bold text-white">GM</span>
               </div>
               <h2 className="text-lg font-semibold text-white group-data-[collapsible=icon]:hidden">
                 Gym Manager
@@ -237,19 +235,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </Sidebar>
         <SidebarInset>
           <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-slate-700 bg-slate-900 px-6">
-            <h1 className="text-xl font-semibold text-white">
-              Dashboard
-            </h1>
+            <h1 className="text-xl font-semibold text-white">Dashboard</h1>
             {/* <div className="ml-auto">
               <ThemeToggle />
             </div> */}
           </header>
-          <main className="flex-1 bg-[#0F172B]">
-            {children}
-          </main>
+          <main className="flex-1 bg-[#0F172B]">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
   );
 }
-

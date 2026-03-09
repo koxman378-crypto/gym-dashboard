@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: 225 47% 11%;       /* #0F172B */
-  --foreground: 210 40% 98%;       /* slate-50 */
-  --card: 217 33% 17%;             /* slate-800 */
+  --background: 225 47% 11%; /* #0F172B */
+  --foreground: 210 40% 98%; /* slate-50 */
+  --card: 217 33% 17%; /* slate-800 */
   --card-foreground: 210 40% 98%;
   --popover: 217 33% 17%;
   --popover-foreground: 210 40% 98%;
-  --primary: 160 84% 39%;          /* emerald-600 */
+  --primary: 160 84% 39%; /* emerald-600 */
   --primary-foreground: 0 0% 100%;
-  --secondary: 215 25% 27%;        /* slate-700 */
+  --secondary: 215 25% 27%; /* slate-700 */
   --secondary-foreground: 210 40% 98%;
   --muted: 215 25% 27%;
   --muted-foreground: 215 20% 65%; /* slate-400 */
@@ -17,7 +17,7 @@
   --accent-foreground: 210 40% 98%;
   --destructive: 0 62.8% 50%;
   --destructive-foreground: 210 40% 98%;
-  --border: 215 25% 27%;           /* slate-700 */
+  --border: 215 25% 27%; /* slate-700 */
   --input: 215 25% 27%;
   --ring: 160 84% 39%;
   --radius: 0.75rem;
@@ -34,20 +34,25 @@
   --font-mono: var(--font-geist-mono);
 }
 
-
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-feature-settings:
+    "rlig" 1,
+    "calt" 1;
 }
 
 :root {
-  --sidebar-background: 222 47% 8%;     /* darker than page bg */
+  --sidebar-background: 222 47% 8%; /* darker than page bg */
   --sidebar-foreground: 210 40% 98%;
-  --sidebar-primary: 160 84% 39%;       /* emerald */
+  --sidebar-primary: 160 84% 39%; /* emerald */
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 215 25% 27%;        /* slate-700 */
+  --sidebar-accent: 215 25% 27%; /* slate-700 */
   --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-border: 215 25% 27%;
   --sidebar-ring: 160 84% 39%;
@@ -55,41 +60,51 @@ body {
 
 @layer utilities {
   .gradient-bg {
-    background: linear-gradient(135deg, hsl(var(--gradient-from)) 0%, hsl(var(--gradient-to)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-from)) 0%,
+      hsl(var(--gradient-to)) 100%
+    );
   }
-  
+
   .gradient-border {
     position: relative;
     background: hsl(var(--background));
     background-clip: padding-box;
     border: 2px solid transparent;
   }
-  
+
   .gradient-border::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     z-index: -1;
     margin: -2px;
     border-radius: inherit;
-    background: linear-gradient(135deg, hsl(var(--gradient-from)) 0%, hsl(var(--gradient-to)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-from)) 0%,
+      hsl(var(--gradient-to)) 100%
+    );
   }
-  
+
   .glass-effect {
     backdrop-filter: blur(12px) saturate(180%);
     background-color: rgba(15, 23, 43, 0.85);
     border: 1px solid rgba(71, 85, 105, 0.4);
   }
-  
+
   .card-hover {
     transition: all 0.3s ease;
   }
-  
+
   .card-hover:hover {
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
     transform: translateY(-0.25rem);
   }
-  
+
   .glow-effect {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
