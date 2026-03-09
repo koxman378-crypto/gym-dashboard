@@ -960,21 +960,21 @@ export default function SubscriptionsPage() {
 
                       {/* TOTAL SUMMARY - Only show in create mode */}
                       {!isEditMode && calculatedTotals.grandTotal > 0 && (
-                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-5 space-y-3">
+                        <div className="rounded-xl p-5 space-y-3 border border-green-600 bg-green-500/15 backdrop-blur-sm">
                           <div className="flex items-center gap-2 mb-3">
-                            <Calendar className="h-5 w-5 text-emerald-600" />
-                            <h3 className="text-lg font-bold text-emerald-900">
+                            <Calendar className="h-5 w-5 text-green-700 dark:text-green-300" />
+                            <h3 className="text-lg font-bold text-green-800 dark:text-green-200">
                               Subscription Summary
                             </h3>
                           </div>
 
                           {/* Gym Price */}
                           {calculatedTotals.gymPriceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-emerald-200">
-                              <span className="text-sm font-medium text-emerald-800">
+                            <div className="flex justify-between items-center py-2 border-b border-green-600/40">
+                              <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                 Gym Membership
                               </span>
-                              <span className="text-sm font-bold text-emerald-900">
+                              <span className="text-sm font-bold text-green-900 dark:text-green-100">
                                 {calculatedTotals.gymPriceTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -983,11 +983,11 @@ export default function SubscriptionsPage() {
 
                           {/* Other Services */}
                           {calculatedTotals.otherServiceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-emerald-200">
-                              <span className="text-sm font-medium text-emerald-800">
+                            <div className="flex justify-between items-center py-2 border-b border-green-600/40">
+                              <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                 Additional Services
                               </span>
-                              <span className="text-sm font-bold text-emerald-900">
+                              <span className="text-sm font-bold text-green-900 dark:text-green-100">
                                 {calculatedTotals.otherServiceTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -996,11 +996,11 @@ export default function SubscriptionsPage() {
 
                           {/* Trainer Fee */}
                           {calculatedTotals.trainerFeeTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-emerald-200">
-                              <span className="text-sm font-medium text-emerald-800">
+                            <div className="flex justify-between items-center py-2 border-b border-green-600/40">
+                              <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                 Trainer Fee
                               </span>
-                              <span className="text-sm font-bold text-emerald-900">
+                              <span className="text-sm font-bold text-green-900 dark:text-green-100">
                                 {calculatedTotals.trainerFeeTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -1008,22 +1008,22 @@ export default function SubscriptionsPage() {
                           )}
 
                           {/* Grand Total */}
-                          <div className="flex justify-between items-center pt-3 border-t-2 border-emerald-300">
-                            <span className="text-base font-bold text-emerald-900">
+                          <div className="flex justify-between items-center pt-3 border-t border-green-600/60">
+                            <span className="text-base font-bold text-green-900 dark:text-green-100">
                               Total Amount
                             </span>
-                            <span className="text-xl font-bold text-emerald-600">
+                            <span className="text-xl font-bold text-green-700 dark:text-green-300">
                               {calculatedTotals.grandTotal.toLocaleString()} MMK
                             </span>
                           </div>
 
                           {/* Paid Amount */}
                           {formData.paidAmount > 0 && (
-                            <div className="flex justify-between items-center py-2 bg-blue-50 rounded-lg px-3">
-                              <span className="text-sm font-medium text-blue-800">
+                            <div className="flex justify-between items-center py-2 rounded-lg px-3 border border-green-600/40 bg-green-500/10 backdrop-blur-sm">
+                              <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                 Paid Amount
                               </span>
-                              <span className="text-sm font-bold text-blue-900">
+                              <span className="text-sm font-bold text-green-900 dark:text-green-100">
                                 {formData.paidAmount.toLocaleString()} MMK
                               </span>
                             </div>
@@ -1032,31 +1032,13 @@ export default function SubscriptionsPage() {
                           {/* Remaining Amount */}
                           {formData.paidAmount > 0 &&
                             calculatedTotals.remainingAmount !== 0 && (
-                              <div
-                                className={`flex justify-between items-center py-2 rounded-lg px-3 ${
-                                  calculatedTotals.remainingAmount > 0
-                                    ? "bg-amber-50"
-                                    : "bg-green-50"
-                                }`}
-                              >
-                                <span
-                                  className={`text-sm font-medium ${
-                                    calculatedTotals.remainingAmount > 0
-                                      ? "text-amber-800"
-                                      : "text-green-800"
-                                  }`}
-                                >
+                              <div className="flex justify-between items-center py-2 rounded-lg px-3 border border-green-600/40 bg-green-500/10 backdrop-blur-sm">
+                                <span className="text-sm font-medium text-green-800 dark:text-green-200">
                                   {calculatedTotals.remainingAmount > 0
                                     ? "Remaining Balance"
                                     : "Overpaid"}
                                 </span>
-                                <span
-                                  className={`text-sm font-bold ${
-                                    calculatedTotals.remainingAmount > 0
-                                      ? "text-amber-900"
-                                      : "text-green-900"
-                                  }`}
-                                >
+                                <span className="text-sm font-bold text-green-900 dark:text-green-100">
                                   {Math.abs(
                                     calculatedTotals.remainingAmount,
                                   ).toLocaleString()}{" "}
@@ -1069,7 +1051,7 @@ export default function SubscriptionsPage() {
                           {formData.paidAmount > 0 && (
                             <div className="text-center pt-2">
                               {calculatedTotals.remainingAmount === 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-200 bg-green-500/15 border border-green-600/50 px-3 py-1 rounded-full backdrop-blur-sm">
                                   <svg
                                     className="w-4 h-4"
                                     fill="currentColor"
@@ -1085,7 +1067,7 @@ export default function SubscriptionsPage() {
                                 </span>
                               )}
                               {calculatedTotals.remainingAmount > 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-200 bg-green-500/15 border border-green-600/50 px-3 py-1 rounded-full backdrop-blur-sm">
                                   <svg
                                     className="w-4 h-4"
                                     fill="currentColor"
@@ -1101,7 +1083,7 @@ export default function SubscriptionsPage() {
                                 </span>
                               )}
                               {calculatedTotals.remainingAmount < 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-200 bg-green-500/15 border border-green-600/50 px-3 py-1 rounded-full backdrop-blur-sm">
                                   <svg
                                     className="w-4 h-4"
                                     fill="currentColor"

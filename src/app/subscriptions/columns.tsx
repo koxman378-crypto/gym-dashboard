@@ -103,14 +103,18 @@ export const createSubscriptionColumns = ({
     cell: ({ row }) => {
       const trainer = row.original.trainer;
       if (!trainer) {
-        return <span className="text-sm text-muted-foreground">No Trainer</span>;
+        return (
+          <span className="text-sm text-muted-foreground">No Trainer</span>
+        );
       }
       return (
         <div>
-          <div className="font-medium text-sm">{trainer.trainerName || "Unknown"}</div>
-          {trainer.trainerFee && (
+          <div className="font-medium text-sm">
+            {trainer.trainerName || "Unknown"}
+          </div>
+          {typeof trainer.finalPrice === "number" && (
             <div className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-              {trainer.trainerFee.toLocaleString()} MMK/month
+              {trainer.finalPrice.toLocaleString()} MMK/{trainer.durationUnit}
             </div>
           )}
         </div>

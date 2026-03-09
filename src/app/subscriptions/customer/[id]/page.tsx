@@ -156,7 +156,7 @@ const SubscriptionCard = ({
                   {subscription.trainer.trainerName}
                 </div>
                 <div className="text-sm font-semibold text-emerald-600">
-                  {subscription.trainer.trainerFee.toLocaleString()} MMK
+                  {subscription.trainer.finalPrice.toLocaleString()} MMK
                 </div>
               </div>
             </div>

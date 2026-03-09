@@ -40,7 +40,7 @@ export function SubscriptionHistoryDialog({
     switch (subscription.status) {
       case "active":
         return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+          <Badge className="backdrop-blur-sm bg-green-500/30 border border-green-600 text-green-700 dark:bg-green-800/30 dark:text-green-200 dark:border-green-400">
             Active
           </Badge>
         );
