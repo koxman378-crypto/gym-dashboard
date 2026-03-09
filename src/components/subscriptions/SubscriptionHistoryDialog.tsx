@@ -40,19 +40,19 @@ export function SubscriptionHistoryDialog({
     switch (subscription.status) {
       case "active":
         return (
-          <Badge className="backdrop-blur-sm bg-green-500/30 border border-green-600 text-green-700 dark:bg-green-800/30 dark:text-green-200 dark:border-green-400">
+          <Badge className="backdrop-blur-sm bg-green-500/30 border border-green-600 text-green-700">
             Active
           </Badge>
         );
       case "expired":
         return (
-          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+          <Badge className="bg-gray-100 text-gray-800">
             Expired
           </Badge>
         );
       case "cancelled":
         return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+          <Badge className="bg-red-100 text-red-800">
             Cancelled
           </Badge>
         );
@@ -65,19 +65,19 @@ export function SubscriptionHistoryDialog({
     switch (paymentStatus) {
       case "paid":
         return (
-          <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">
+          <Badge className="bg-emerald-100 text-emerald-800">
             Paid
           </Badge>
         );
       case "pending":
         return (
-          <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100">
+          <Badge className="bg-orange-100 text-orange-800">
             Pending
           </Badge>
         );
       case "partial":
         return (
-          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+          <Badge className="bg-blue-100 text-blue-800">
             Partial
           </Badge>
         );
@@ -114,17 +114,17 @@ export function SubscriptionHistoryDialog({
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-slate-600 dark:text-slate-400">
+            <div className="text-slate-600">
               Loading history...
             </div>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Package className="h-16 w-16 text-red-300 dark:text-red-700 mb-4" />
-            <p className="text-red-600 dark:text-red-400">
+            <Package className="h-16 w-16 text-red-300 mb-4" />
+            <p className="text-red-600">
               Error loading subscription history
             </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+            <p className="text-sm text-slate-500 mt-2">
               {error && typeof error === "object" && "data" in error
                 ? String((error as any).data?.message || "Unknown error")
                 : "Failed to load data"}
@@ -132,8 +132,8 @@ export function SubscriptionHistoryDialog({
           </div>
         ) : history.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Package className="h-16 w-16 text-slate-300 dark:text-slate-700 mb-4" />
-            <p className="text-slate-600 dark:text-slate-400">
+            <Package className="h-16 w-16 text-slate-300 mb-4" />
+            <p className="text-slate-600">
               No subscription history found
             </p>
           </div>
@@ -142,20 +142,20 @@ export function SubscriptionHistoryDialog({
             {history.map((subscription) => (
               <div
                 key={subscription._id}
-                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5 hover:shadow-md transition-shadow"
+                className="rounded-lg border border-slate-200 bg-white p-5 hover:shadow-md transition-shadow"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-900 rounded-lg">
-                      <Calendar className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+                    <div className="p-2 bg-slate-100 rounded-lg">
+                      <Calendar className="h-5 w-5 text-slate-700" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         {getStatusBadge(subscription)}
                         {getPaymentStatusBadge(subscription.paymentStatus)}
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                      <p className="text-xs text-slate-600">
                         Purchased on{" "}
                         {formatDate(
                           subscription.createdAt || subscription.startDate,
@@ -168,7 +168,7 @@ export function SubscriptionHistoryDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="hover:bg-slate-100 dark:hover:bg-slate-900"
+                      className="hover:bg-slate-100"
                     >
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View Details
@@ -183,10 +183,10 @@ export function SubscriptionHistoryDialog({
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-slate-500" />
-                      <span className="text-slate-600 dark:text-slate-400">
+                      <span className="text-slate-600">
                         Period:
                       </span>
-                      <span className="font-medium text-slate-900 dark:text-slate-100">
+                      <span className="font-medium text-slate-900">
                         {formatDate(subscription.startDate)} -{" "}
                         {formatDate(subscription.endDate)}
                       </span>
@@ -196,10 +196,10 @@ export function SubscriptionHistoryDialog({
                     {subscription.trainer && (
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-slate-500" />
-                        <span className="text-slate-600 dark:text-slate-400">
+                        <span className="text-slate-600">
                           Trainer:
                         </span>
-                        <span className="font-medium text-slate-900 dark:text-slate-100">
+                        <span className="font-medium text-slate-900">
                           {subscription.trainer.trainerName || "N/A"}
                         </span>
                       </div>
@@ -210,19 +210,19 @@ export function SubscriptionHistoryDialog({
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <DollarSign className="h-4 w-4 text-slate-500" />
-                      <span className="text-slate-600 dark:text-slate-400">
+                      <span className="text-slate-600">
                         Total:
                       </span>
-                      <span className="font-bold text-slate-900 dark:text-slate-100">
+                      <span className="font-bold text-slate-900">
                         {subscription.grandTotal.toLocaleString()} MMK
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <DollarSign className="h-4 w-4 text-slate-500" />
-                      <span className="text-slate-600 dark:text-slate-400">
+                      <span className="text-slate-600">
                         Paid:
                       </span>
-                      <span className="font-medium text-slate-900 dark:text-slate-100">
+                      <span className="font-medium text-slate-900">
                         {subscription.paidAmount.toLocaleString()} MMK
                       </span>
                     </div>
@@ -231,13 +231,13 @@ export function SubscriptionHistoryDialog({
 
                 {/* Package Details */}
                 {subscription.gymPriceGroup && (
-                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <p className="text-sm font-semibold text-slate-900 mb-2">
                       Gym Package: {subscription.gymPriceGroup.groupName}
                     </p>
                     <Badge
                       variant="outline"
-                      className="bg-slate-50 dark:bg-slate-900"
+                      className="bg-slate-50"
                     >
                       {subscription.gymPriceGroup.selectedPrice.duration}{" "}
                       {subscription.gymPriceGroup.selectedPrice.durationUnit} -{" "}
@@ -250,15 +250,15 @@ export function SubscriptionHistoryDialog({
                 {/* Other Services */}
                 {subscription.otherServiceGroups &&
                   subscription.otherServiceGroups.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                    <div className="mt-4 pt-4 border-t border-slate-200">
+                      <p className="text-sm font-semibold text-slate-900 mb-2">
                         Additional Services:
                       </p>
                       <div className="space-y-2">
                         {subscription.otherServiceGroups.map(
                           (serviceGroup, idx) => (
                             <div key={idx} className="ml-4">
-                              <p className="text-sm text-slate-700 dark:text-slate-300 mb-1">
+                              <p className="text-sm text-slate-700 mb-1">
                                 {serviceGroup.groupName}
                               </p>
                               <div className="flex flex-wrap gap-2">
@@ -267,7 +267,7 @@ export function SubscriptionHistoryDialog({
                                     <Badge
                                       key={service.serviceRowId}
                                       variant="outline"
-                                      className="bg-slate-50 dark:bg-slate-900"
+                                      className="bg-slate-50"
                                     >
                                       {service.name} -{" "}
                                       {service.finalPrice.toLocaleString()} MMK
@@ -284,8 +284,8 @@ export function SubscriptionHistoryDialog({
 
                 {/* Notes */}
                 {subscription.notes && (
-                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <p className="text-xs text-slate-600">
                       <span className="font-semibold">Notes:</span>{" "}
                       {subscription.notes}
                     </p>
@@ -299,3 +299,4 @@ export function SubscriptionHistoryDialog({
     </Dialog>
   );
 }
+

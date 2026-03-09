@@ -171,14 +171,14 @@ export default function BodyMeasurementsHistoryPage() {
 
       {/* Access Denied Message */}
       {!isLoading && user && !hasAccess() && (
-        <div className="rounded-lg border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20 p-6">
+        <div className="rounded-lg border-2 border-red-200 bg-red-50 p-6">
           <div className="flex items-center gap-3">
-            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+            <AlertCircle className="h-6 w-6 text-red-600" />
             <div>
-              <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
+              <h3 className="text-lg font-semibold text-red-900">
                 Access Denied
               </h3>
-              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+              <p className="text-sm text-red-700 mt-1">
                 You don't have permission to view this user's measurements.
               </p>
             </div>

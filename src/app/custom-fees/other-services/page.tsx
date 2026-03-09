@@ -223,10 +223,10 @@ export default function OtherServicesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-slate-100 mx-auto"></div>
-          <p className="mt-4 text-slate-600 dark:text-slate-400">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading...</p>
         </div>
       </div>
     );
@@ -242,23 +242,23 @@ export default function OtherServicesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-900">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header Section */}
-        <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-lg">  
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg">  
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                 Other Services
               </h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-2 text-base">
+              <p className="text-slate-600 mt-2 text-base">
                 Configure additional services like sauna, pool, and other
                 amenities
               </p>
             </div>
             <Button
               onClick={() => setIsCreateDialogOpen(true)}
-              className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-sm font-semibold px-6 py-6"
+              className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm font-semibold px-6 py-6"
             >
               <Plus className="mr-2 h-5 w-5" />
               Create Group
@@ -269,20 +269,20 @@ export default function OtherServicesPage() {
         {/* Service Groups Grid */}
         <div className="grid gap-6">
           {sortedServiceGroups.length === 0 ? (
-            <div className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
               <div className="max-w-md mx-auto">
-                <div className="rounded-full bg-slate-100 dark:bg-slate-900 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <div className="rounded-full bg-slate-100 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                   <Plus className="h-8 w-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
                   No Service Groups Yet
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                <p className="text-slate-600 mb-6">
                   Create your first service group to get started
                 </p>
                 <Button
                   onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200"
+                  className="bg-slate-900 text-white hover:bg-slate-800"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Create First Group
@@ -293,27 +293,27 @@ export default function OtherServicesPage() {
             sortedServiceGroups.map((group) => (
               <div
                 key={group._id}
-                className="bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
               >
                 {/* Group Header */}
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-900 dark:to-slate-900 border-b border-blue-100 dark:border-slate-800 p-6">
+                <div className="bg-linear-to-r from-blue-50 to-cyan-50 border-b border-blue-100 p-6">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        <h2 className="text-xl font-bold text-slate-900">
                           {group.name}
                         </h2>
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                             group.isActive
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
-                              : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-slate-200 text-slate-700"
                           }`}
                         >
                           {group.isActive ? "Active" : "Inactive"}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <p className="text-sm text-slate-600">
                         {group.services.length} service
                         {group.services.length !== 1 ? "s" : ""} configured
                       </p>
@@ -325,8 +325,8 @@ export default function OtherServicesPage() {
                         onClick={() => handleToggleGroup(group)}
                         disabled={!group._id}
                         className={group.isActive
-                          ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                          : "border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                          ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                          : "border-slate-300 hover:bg-slate-50 text-slate-600"
                         }
                       >
                         {group.isActive ? (
@@ -345,7 +345,7 @@ export default function OtherServicesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit(group)}
-                        className="border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                        className="border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-700"
                       >
                         <Edit className="h-4 w-4 mr-1.5" />
                         <span className="text-xs font-semibold">Edit</span>
@@ -354,7 +354,7 @@ export default function OtherServicesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleDelete(group._id)}
-                        className="border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400"
+                        className="border-red-300 bg-red-50 hover:bg-red-100 text-red-700"
                       >
                         <Trash2 className="h-4 w-4 mr-1.5" />
                         <span className="text-xs font-semibold">Delete</span>
@@ -368,26 +368,26 @@ export default function OtherServicesPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-800">
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <tr className="border-b border-slate-200">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Service Name
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Duration
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Price per Unit
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Promotion
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Final Price
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Status
                           </th>
-                          <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">
                             Actions
                           </th>
                         </tr>
@@ -400,29 +400,29 @@ export default function OtherServicesPage() {
                           return (
                             <tr
                               key={service._id}
-                              className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors ${
+                              className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
                                 index === group.services.length - 1
                                   ? "border-b-0"
                                   : ""
                               }`}
                             >
                               <td className="py-4 px-4">
-                                <span className="font-medium text-slate-900 dark:text-slate-100">
+                                <span className="font-medium text-slate-900">
                                   {service.name}
                                 </span>
                               </td>
                               <td className="py-4 px-4">
-                                <span className="text-slate-700 dark:text-slate-300">
+                                <span className="text-slate-700">
                                   {service.duration} {service.durationUnit}
                                 </span>
                               </td>
                               <td className="py-4 px-4">
                                 <div className="flex flex-col">
-                                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                                  <span className="text-xs text-slate-500">
                                     {service.price.toLocaleString()} MMK × {service.duration}
                                   </span>
                                   <span
-                                    className={`text-slate-700 dark:text-slate-300 ${
+                                    className={`text-slate-700 ${
                                       hasPromotion ? "line-through text-sm" : "font-semibold"
                                     }`}
                                   >
@@ -432,7 +432,7 @@ export default function OtherServicesPage() {
                               </td>
                               <td className="py-4 px-4">
                                 {hasPromotion ? (
-                                  <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-semibold">
+                                  <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 text-xs font-semibold">
                                     -{service.promotionValue}
                                     {service.promotionType === "percentage"
                                       ? "%"
@@ -445,7 +445,7 @@ export default function OtherServicesPage() {
                                 )}
                               </td>
                               <td className="py-4 px-4">
-                                <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                                <span className="text-lg font-bold text-slate-900">
                                   {finalPrice.toLocaleString()} MMK
                                 </span>
                               </td>
@@ -453,8 +453,8 @@ export default function OtherServicesPage() {
                                 <span
                                   className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                                     service.isActive
-                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-                                      : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-slate-200 text-slate-700"
                                   }`}
                                 >
                                   {service.isActive ? "Active" : "Inactive"}
@@ -468,8 +468,8 @@ export default function OtherServicesPage() {
                                     handleToggleItem(group._id, service._id)
                                   }
                                   className={service.isActive
-                                    ? "border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                                    : "border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                    ? "border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700"
+                                    : "border-slate-300 hover:bg-slate-100 text-slate-600"
                                   }
                                 >
                                   {service.isActive ? (
@@ -529,11 +529,11 @@ export default function OtherServicesPage() {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 placeholder="e.g., Extra Services 2026"
-                className="border-slate-300 dark:border-slate-600"
+                className="border-slate-300"
               />
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
               <input
                 type="checkbox"
                 id="isActive"
@@ -560,7 +560,7 @@ export default function OtherServicesPage() {
                   type="button"
                   size="sm"
                   onClick={addServiceRow}
-                  className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200"
+                  className="bg-slate-900 text-white hover:bg-slate-800"
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add Service
                 </Button>
@@ -570,10 +570,10 @@ export default function OtherServicesPage() {
                 {formData.services.map((service, index) => (
                   <div
                     key={index}
-                    className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4 bg-slate-50 dark:bg-slate-900/50"
+                    className="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      <span className="text-sm font-semibold text-slate-700">
                         Service {index + 1}
                       </span>
                       <Button
@@ -581,14 +581,14 @@ export default function OtherServicesPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeServiceRow(index)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      <Label className="text-xs font-semibold text-slate-600">
                         Service Name *
                       </Label>
                       <Input
@@ -597,13 +597,13 @@ export default function OtherServicesPage() {
                           updateServiceRow(index, "name", e.target.value)
                         }
                         placeholder="e.g., Sauna, Swimming Pool"
-                        className="border-slate-300 dark:border-slate-600"
+                        className="border-slate-300"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <Label className="text-xs font-semibold text-slate-600">
                           Duration *
                         </Label>
                         <Input
@@ -616,11 +616,11 @@ export default function OtherServicesPage() {
                               parseInt(e.target.value),
                             )
                           }
-                          className="border-slate-300 dark:border-slate-600"
+                          className="border-slate-300"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <Label className="text-xs font-semibold text-slate-600">
                           Unit *
                         </Label>
                         <Select
@@ -629,7 +629,7 @@ export default function OtherServicesPage() {
                             updateServiceRow(index, "durationUnit", value)
                           }
                         >
-                          <SelectTrigger className="border-slate-300 dark:border-slate-600">
+                          <SelectTrigger className="border-slate-300">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -642,7 +642,7 @@ export default function OtherServicesPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      <Label className="text-xs font-semibold text-slate-600">
                         Price per {service.durationUnit === 'months' ? 'Month' : service.durationUnit === 'days' ? 'Day' : 'Year'} (MMK) *
                       </Label>
                       <Input
@@ -656,13 +656,13 @@ export default function OtherServicesPage() {
                           )
                         }
                         placeholder="50000"
-                        className="border-slate-300 dark:border-slate-600"
+                        className="border-slate-300"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <Label className="text-xs font-semibold text-slate-600">
                           Promotion Type
                         </Label>
                         <Select
@@ -677,7 +677,7 @@ export default function OtherServicesPage() {
                             )
                           }
                         >
-                          <SelectTrigger className="border-slate-300 dark:border-slate-600">
+                          <SelectTrigger className="border-slate-300">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -692,7 +692,7 @@ export default function OtherServicesPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <Label className="text-xs font-semibold text-slate-600">
                           Discount Value
                         </Label>
                         <Input
@@ -711,12 +711,12 @@ export default function OtherServicesPage() {
                               : "5000"
                           }
                           disabled={!service.promotionType}
-                          className="border-slate-300 dark:border-slate-600"
+                          className="border-slate-300"
                         />
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-200">
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -739,14 +739,14 @@ export default function OtherServicesPage() {
                         </Label>
                       </div>
                       <div className="text-right">
-                        <div className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">
+                        <div className="text-[10px] text-slate-400 mb-0.5">
                           {service.price.toLocaleString()} × {service.duration} {service.durationUnit}
                           {service.promotionType && service.promotionValue && ` - ${service.promotionValue}${service.promotionType === 'percentage' ? '%' : ' MMK'}`}
                         </div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">
+                        <div className="text-xs text-slate-600 mb-1">
                           Total Price
                         </div>
-                        <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                        <div className="text-lg font-bold text-slate-900">
                           {calculateFinalPrice(service).toLocaleString()} MMK
                         </div>
                       </div>
@@ -756,7 +756,7 @@ export default function OtherServicesPage() {
               </div>
 
               {formData.services.length === 0 && (
-                <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                <div className="text-center py-8 text-slate-500">
                   <p>No services added yet. Click "Add Service" to start.</p>
                 </div>
               )}
@@ -779,7 +779,7 @@ export default function OtherServicesPage() {
               type="button"
               onClick={isEditDialogOpen ? handleUpdate : handleCreate}
               disabled={!formData.name || formData.services.length === 0}
-              className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200"
+              className="bg-slate-900 text-white hover:bg-slate-800"
             >
               {isEditDialogOpen ? "Update Group" : "Create Group"}
             </Button>
@@ -789,3 +789,4 @@ export default function OtherServicesPage() {
     </div>
   );
 }
+

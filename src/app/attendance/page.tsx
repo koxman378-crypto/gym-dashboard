@@ -125,10 +125,10 @@ export default function AttendancePage() {
   const columns = createAttendanceColumns();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50">
       <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
-        <div className="mb-8 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+        <div className="mb-8 rounded-2xl bg-white border border-slate-200 p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="text-white">
               <div className="flex items-center gap-3 mb-2">
@@ -157,7 +157,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Check-In/Out Card */}
-        <div className="mb-8 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg p-6 border border-border/40">
+        <div className="mb-8 rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg p-6 border border-border/40">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Current Status */}
             <div className="space-y-4">
@@ -168,9 +168,9 @@ export default function AttendancePage() {
 
               {isActive ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                  <div className="p-4 bg-green-50 rounded-xl border border-green-200">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                      <span className="text-sm font-medium text-green-800">
                         Status
                       </span>
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
@@ -210,7 +210,7 @@ export default function AttendancePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium">Status</span>
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-500 text-white">
@@ -311,7 +311,7 @@ export default function AttendancePage() {
 
               {monthlyStats ? (
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
                     <p className="text-xs text-muted-foreground mb-1">
                       Total Days
                     </p>
@@ -319,7 +319,7 @@ export default function AttendancePage() {
                       {monthlyStats.totalDays || 0}
                     </p>
                   </div>
-                  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
                     <p className="text-xs text-muted-foreground mb-1">
                       Total Hours
                     </p>
@@ -327,7 +327,7 @@ export default function AttendancePage() {
                       {Number(monthlyStats.totalHours || 0).toFixed(1)}
                     </p>
                   </div>
-                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800 col-span-2">
+                  <div className="p-4 bg-purple-50 rounded-xl border border-purple-200 col-span-2">
                     <p className="text-xs text-muted-foreground mb-1">
                       Average Hours/Day
                     </p>
@@ -337,7 +337,7 @@ export default function AttendancePage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+                <div className="p-8 bg-slate-50 rounded-xl border border-slate-200 text-center">
                   <Calendar className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">
                     No data available for this period
@@ -349,7 +349,7 @@ export default function AttendancePage() {
         </div>
 
         {/* Attendance History Table */}
-        <div className="rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-lg overflow-hidden border border-border/40">
+        <div className="rounded-2xl bg-white/80 backdrop-blur-sm shadow-lg overflow-hidden border border-border/40">
           <div className="p-6 border-b border-border/40">
             <h2 className="text-2xl font-semibold flex items-center gap-2">
               <Calendar className="h-6 w-6 text-blue-600" />
@@ -394,3 +394,4 @@ export default function AttendancePage() {
     </div>
   );
 }
+

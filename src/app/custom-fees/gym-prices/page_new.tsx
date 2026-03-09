@@ -220,8 +220,8 @@ export default function GymPricesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justifyContent-center min-h-screen bg-slate-50 dark:bg-slate-950">
-        <div className="text-slate-600 dark:text-slate-400">Loading...</div>
+      <div className="flex items-center justifyContent-center min-h-screen bg-slate-50">
+        <div className="text-slate-600">Loading...</div>
       </div>
     );
   }
@@ -236,19 +236,19 @@ export default function GymPricesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-              <DollarSign className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
+            <div className="p-3 bg-indigo-100 rounded-xl">
+              <DollarSign className="h-7 w-7 text-indigo-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+              <h1 className="text-3xl font-bold text-slate-900">
                 Gym Prices
               </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600">
                 Manage membership pricing and subscription plans
               </p>
             </div>
@@ -259,7 +259,7 @@ export default function GymPricesPage() {
         <div className="flex justify-end mb-6">
           <Button
             onClick={() => setIsCreateDialogOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
           >
             <Plus className="mr-2 h-4 w-4" /> Create Price Group
           </Button>
@@ -268,12 +268,12 @@ export default function GymPricesPage() {
         {/* Price Groups Grid */}
         <div className="grid gap-6">
           {sortedGymPriceGroups.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
-              <Package2 className="h-16 w-16 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+              <Package2 className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 No Price Groups Yet
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 mb-4">
+              <p className="text-slate-600 mb-4">
                 Create your first gym pricing group to get started
               </p>
               <Button
@@ -287,28 +287,28 @@ export default function GymPricesPage() {
             sortedGymPriceGroups.map((group) => (
               <div
                 key={group._id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
               >
                 {/* Group Header */}
-                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-800/50 dark:to-slate-800/50 p-6 border-b border-indigo-100 dark:border-slate-700">
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 border-b border-indigo-100">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                        <h2 className="text-xl font-bold text-slate-900">
                           {group.name}
                         </h2>
                         <Badge
                           variant={group.isActive ? "default" : "secondary"}
                           className={
                             group.isActive
-                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                              : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-slate-200 text-slate-700"
                           }
                         >
                           {group.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <p className="text-sm text-slate-600">
                         {group.prices.length} pricing tier
                         {group.prices.length !== 1 ? "s" : ""}
                       </p>
@@ -322,8 +322,8 @@ export default function GymPricesPage() {
                         onClick={() => handleToggleGroup(group)}
                         disabled={!group._id}
                         className={group.isActive 
-                          ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                          : "border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                          ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                          : "border-slate-300 hover:bg-slate-50 text-slate-600"
                         }
                       >
                         {group.isActive ? (
@@ -342,7 +342,7 @@ export default function GymPricesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit(group)}
-                        className="border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                        className="border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-700"
                       >
                         <Edit className="h-4 w-4 mr-1.5" />
                         <span className="text-xs font-semibold">Edit</span>
@@ -351,7 +351,7 @@ export default function GymPricesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleDelete(group._id)}
-                        className="border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400"
+                        className="border-red-300 bg-red-50 hover:bg-red-100 text-red-700"
                       >
                         <Trash2 className="h-4 w-4 mr-1.5" />
                         <span className="text-xs font-semibold">Delete</span>
@@ -365,23 +365,23 @@ export default function GymPricesPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <tr className="border-b border-slate-200">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Duration
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Price per Unit
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Promotion
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Final Price
                           </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
                             Status
                           </th>
-                          <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">
                             Actions
                           </th>
                         </tr>
@@ -394,23 +394,23 @@ export default function GymPricesPage() {
                           return (
                             <tr
                               key={price._id}
-                              className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors ${
+                              className={`border-b border-slate-100 hover:bg-slate-50 transition-colors ${
                                 index === group.prices.length - 1 ? "border-b-0" : ""
                               }`}
                             >
                               <td className="py-4 px-4">
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-200 rounded-full text-sm font-semibold text-slate-700">
                                   <TrendingUp className="h-3.5 w-3.5" />
                                   {price.duration} {price.durationUnit}
                                 </span>
                               </td>
                               <td className="py-4 px-4">
                                 <div className="flex flex-col">
-                                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                                  <span className="text-xs text-slate-500">
                                     {price.amount.toLocaleString()} MMK × {price.duration}
                                   </span>
                                   <span
-                                    className={`text-slate-700 dark:text-slate-300 ${
+                                    className={`text-slate-700 ${
                                       hasPromotion ? "line-through text-sm" : "font-semibold"
                                     }`}
                                   >
@@ -420,7 +420,7 @@ export default function GymPricesPage() {
                               </td>
                               <td className="py-4 px-4">
                                 {hasPromotion ? (
-                                  <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-semibold">
+                                  <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 text-xs font-semibold">
                                     -{price.promotionValue}
                                     {price.promotionType === "percentage" ? "%" : " MMK"}
                                   </span>
@@ -431,7 +431,7 @@ export default function GymPricesPage() {
                                 )}
                               </td>
                               <td className="py-4 px-4">
-                                <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                                <span className="text-lg font-bold text-slate-900">
                                   {finalPrice.toLocaleString()} MMK
                                 </span>
                               </td>
@@ -439,8 +439,8 @@ export default function GymPricesPage() {
                                 <span
                                   className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                                     price.isActive
-                                      ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400"
-                                      : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+                                      ? "bg-indigo-100 text-indigo-800"
+                                      : "bg-slate-200 text-slate-700"
                                   }`}
                                 >
                                   {price.isActive ? "Active" : "Inactive"}
@@ -452,8 +452,8 @@ export default function GymPricesPage() {
                                   size="sm"
                                   onClick={() => handleToggleItem(group._id, price._id)}
                                   className={price.isActive
-                                    ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                                    : "border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                    ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                                    : "border-slate-300 hover:bg-slate-100 text-slate-600"
                                   }
                                 >
                                   {price.isActive ? (
@@ -520,7 +520,7 @@ export default function GymPricesPage() {
               </div>
 
               {/* Active Toggle */}
-              <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg">
                 <input
                   type="checkbox"
                   id="isActive"
@@ -543,7 +543,7 @@ export default function GymPricesPage() {
                     size="sm"
                     onClick={addPriceRow}
                     variant="outline"
-                    className="border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400"
+                    className="border-indigo-300 text-indigo-600"
                   >
                     <Plus className="h-4 w-4 mr-1" /> Add Tier
                   </Button>
@@ -553,7 +553,7 @@ export default function GymPricesPage() {
                   {formData.prices.map((price, index) => (
                     <div
                       key={index}
-                      className="border-2 border-slate-200 dark:border-slate-700 p-5 rounded-xl space-y-4 bg-white dark:bg-slate-900"
+                      className="border-2 border-slate-200 p-5 rounded-xl space-y-4 bg-white"
                     >
                       {/* Duration & Unit */}
                       <div className="grid grid-cols-2 gap-3">
@@ -656,7 +656,7 @@ export default function GymPricesPage() {
                       </div>
 
                       {/* Footer */}
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-200">
                         <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -677,14 +677,14 @@ export default function GymPricesPage() {
 
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <div className="text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">
+                            <div className="text-[10px] text-slate-400 mb-0.5">
                               {price.amount.toLocaleString()} × {price.duration} {price.durationUnit}
                               {price.promotionType && price.promotionValue && ` - ${price.promotionValue}${price.promotionType === 'percentage' ? '%' : ' MMK'}`}
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                            <div className="text-xs text-slate-500">
                               Total Price
                             </div>
-                            <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                            <div className="text-lg font-bold text-indigo-600">
                               {calculateFinalPrice(price).toLocaleString()} MMK
                             </div>
                           </div>
@@ -692,7 +692,7 @@ export default function GymPricesPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => removePriceRow(index)}
-                            className="border-red-300 dark:border-red-700 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="border-red-300 text-red-600 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -702,7 +702,7 @@ export default function GymPricesPage() {
                   ))}
 
                   {formData.prices.length === 0 && (
-                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                    <div className="text-center py-8 text-slate-500">
                       No pricing tiers added yet. Click "Add Tier" to create one.
                     </div>
                   )}
@@ -735,3 +735,4 @@ export default function GymPricesPage() {
     </div>
   );
 }
+

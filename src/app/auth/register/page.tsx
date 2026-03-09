@@ -104,28 +104,28 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm p-8">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-lg">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg">
                 <span className="text-2xl font-bold">GM</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
               Create Account
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-slate-600 mt-2">
               Join our gym management system
             </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4">
-              <p className="text-sm text-red-600 dark:text-red-400">
+            <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
+              <p className="text-sm text-red-600">
                 {(error as any)?.data?.message ||
                   "Registration failed. Please try again."}
               </p>
@@ -182,7 +182,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <label htmlFor="phone" className="text-sm font-medium">
                   Phone{" "}
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-slate-500 text-xs">
                     (optional)
                   </span>
                 </label>
@@ -202,7 +202,7 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <label htmlFor="age" className="text-sm font-medium">
                   Age{" "}
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-slate-500 text-xs">
                     (optional)
                   </span>
                 </label>
@@ -246,7 +246,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -287,7 +287,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? (
@@ -307,7 +307,7 @@ export default function RegisterPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-slate-900 text-white hover:bg-slate-800"
               size="lg"
               disabled={isLoading}
             >
@@ -328,7 +328,7 @@ export default function RegisterPage() {
               <div className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
+              <span className="bg-white px-2 text-slate-500">
                 Already have an account?
               </span>
             </div>
@@ -336,11 +336,11 @@ export default function RegisterPage() {
 
           {/* Login Link */}
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-500">
               Already registered?{" "}
               <Link
                 href="/auth/login"
-                className="font-medium text-primary hover:underline"
+                className="font-medium text-slate-900 hover:text-slate-700 hover:underline"
               >
                 Sign in
               </Link>
@@ -351,3 +351,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

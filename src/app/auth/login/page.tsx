@@ -87,26 +87,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border bg-card shadow-2xl p-8">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg">
                 <span className="text-2xl font-bold">GM</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome Back</h1>
+            <p className="text-slate-600 mt-2">
               Sign in to your gym account
             </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-4">
-              <p className="text-sm text-red-600 dark:text-red-400">
+            <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4">
+              <p className="text-sm text-red-600">
                 {(error as any)?.data?.message ||
                   "Login failed. Please check your credentials."}
               </p>
@@ -149,14 +149,14 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`pr-10 ${validationErrors.password ? "border-red-500" : ""} ${showPassword ? "text-cyan-300" : ""}`}
+                  className={`pr-10 ${validationErrors.password ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -176,7 +176,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full cursor-pointer text-cyan-300"
+              className="w-full cursor-pointer bg-slate-900 text-white hover:bg-slate-800"
               size="lg"
               disabled={isLoading}
             >
@@ -197,7 +197,7 @@ export default function LoginPage() {
               <div className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
+              <span className="bg-white px-2 text-slate-500">
                 New to Gym Manager?
               </span>
             </div>
@@ -205,11 +205,11 @@ export default function LoginPage() {
 
           {/* Register Link */}
           <div className="text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-500">
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/register"
-                className="font-medium text-primary hover:underline underline-offset-4 decoration-cyan-400"
+                className="font-medium text-slate-900 hover:text-slate-700 hover:underline underline-offset-4"
               >
                 Create account
               </Link>
@@ -237,3 +237,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

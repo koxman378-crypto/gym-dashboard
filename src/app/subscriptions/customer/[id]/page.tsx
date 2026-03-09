@@ -76,11 +76,11 @@ const SubscriptionCard = ({
   const isExpired = new Date(subscription.endDate) < new Date();
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 hover:shadow-lg transition-shadow">
+    <div className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
       {/* Header with ID and Status */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm font-semibold text-slate-600 dark:text-slate-400">
+          <span className="font-mono text-sm font-semibold text-slate-600">
             #{subscription._id.slice(-8).toUpperCase()}
           </span>
         </div>
@@ -97,11 +97,11 @@ const SubscriptionCard = ({
         {/* Gym Package */}
         {gymPrice && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <Package className="h-4 w-4" />
               Gym Package
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
+            <div className="bg-slate-50 p-3 rounded-md">
               <div className="flex justify-between items-start">
                 <div>
                   <div className="font-medium">{gymPrice.groupName}</div>
@@ -131,11 +131,11 @@ const SubscriptionCard = ({
         {/* Additional Services */}
         {servicesCount > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <Package className="h-4 w-4" />
               Additional Services ({servicesCount})
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
+            <div className="bg-slate-50 p-3 rounded-md">
               <div className="text-sm text-emerald-600 font-semibold">
                 {subscription.otherServiceTotal.toLocaleString()} MMK
               </div>
@@ -146,11 +146,11 @@ const SubscriptionCard = ({
         {/* Trainer */}
         {subscription.trainer && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
               <User className="h-4 w-4" />
               Trainer
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-md">
+            <div className="bg-slate-50 p-3 rounded-md">
               <div className="flex justify-between">
                 <div className="text-sm">
                   {subscription.trainer.trainerName}
@@ -186,7 +186,7 @@ const SubscriptionCard = ({
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Grand Total:</span>
-            <span className="text-lg font-bold text-green-600 dark:text-green-500">
+            <span className="text-lg font-bold text-green-600">
               {subscription.grandTotal.toLocaleString()} MMK
             </span>
           </div>
@@ -254,7 +254,7 @@ export default function CustomerSubscriptionsPage() {
   const customerData = typeof customer === "object" ? customer : null;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -269,12 +269,12 @@ export default function CustomerSubscriptionsPage() {
 
           {isLoading ? (
             <div className="animate-pulse">
-              <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded w-64 mb-2"></div>
-              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-48"></div>
+              <div className="h-8 bg-slate-200 rounded w-64 mb-2"></div>
+              <div className="h-4 bg-slate-200 rounded w-48"></div>
             </div>
           ) : customerData ? (
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">
                 {customerData.name}'s Subscriptions
               </h1>
               <div className="flex items-center gap-4 text-muted-foreground">
@@ -288,7 +288,7 @@ export default function CustomerSubscriptionsPage() {
               </div>
             </div>
           ) : (
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            <h1 className="text-3xl font-bold text-slate-900">
               Customer Subscriptions
             </h1>
           )}
@@ -297,7 +297,7 @@ export default function CustomerSubscriptionsPage() {
         {/* Subscription Count */}
         {!isLoading && subscriptions && subscriptions.length > 0 && (
           <div className="mb-6">
-            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-lg">
+            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg">
               <Activity className="h-4 w-4" />
               <span className="font-semibold">{subscriptions.length}</span>
               <span>
@@ -316,8 +316,8 @@ export default function CustomerSubscriptionsPage() {
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
-            <p className="text-red-600 dark:text-red-400">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-600">
               Failed to load subscriptions. Please try again.
             </p>
           </div>
@@ -328,9 +328,9 @@ export default function CustomerSubscriptionsPage() {
           !error &&
           subscriptions &&
           subscriptions.length === 0 && (
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-12 text-center">
-              <Package className="h-16 w-16 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
+              <Package className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">
                 No Subscriptions Found
               </h2>
               <p className="text-muted-foreground">

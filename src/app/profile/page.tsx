@@ -221,8 +221,8 @@ export default function ProfilePage() {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
-        <div className="text-slate-600 dark:text-slate-400">Loading profile...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-600">Loading profile...</div>
       </div>
     );
   }
@@ -230,12 +230,12 @@ export default function ProfilePage() {
   const currentUser = profileData || authUser;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50">
       <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-slate-950 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            <h2 className="text-2xl font-semibold text-slate-900">
               Profile Settings
             </h2>
             <Button
@@ -251,21 +251,21 @@ export default function ProfilePage() {
 
           {/* Success Message */}
           {successMessage && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-              <p className="text-sm text-green-700 dark:text-green-400">{successMessage}</p>
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700">{successMessage}</p>
             </div>
           )}
 
           {/* Error Message */}
           {uploadError && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-              <p className="text-sm text-red-700 dark:text-red-400">{uploadError}</p>
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-700">{uploadError}</p>
             </div>
           )}
 
           {/* Avatar Section */}
           <div className="mb-6">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">
+            <Label className="text-sm font-medium text-slate-700 mb-2 block">
               Profile Picture
             </Label>
             <div className="flex items-center gap-4">
@@ -274,17 +274,17 @@ export default function ProfilePage() {
                   <img
                     src={avatar}
                     alt="Profile"
-                    className="h-24 w-24 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
+                    className="h-24 w-24 rounded-full object-cover border-2 border-slate-200"
                   />
                 ) : (
-                  <div className="h-24 w-24 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                    <User className="h-12 w-12 text-slate-500 dark:text-slate-400" />
+                  <div className="h-24 w-24 rounded-full bg-slate-200 flex items-center justify-center">
+                    <User className="h-12 w-12 text-slate-500" />
                   </div>
                 )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingImage}
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 flex items-center justify-center hover:bg-slate-700 dark:hover:bg-slate-300 transition-colors"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-700 transition-colors"
                 >
                   <Camera className="h-4 w-4" />
                 </button>
@@ -298,14 +298,14 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-600">
                   Click the camera icon to upload a new profile picture
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   JPG, PNG or GIF. Max size 5MB.
                 </p>
                 {uploadingImage && (
-                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+                  <p className="text-sm text-blue-600 mt-2">
                     Uploading image...
                   </p>
                 )}
@@ -316,46 +316,46 @@ export default function ProfilePage() {
           {/* User Information */}
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label className="text-sm font-medium text-slate-700">
                 Name
               </Label>
               <Input
                 value={currentUser?.name || ""}
                 disabled
-                className="mt-1 bg-slate-50 dark:bg-slate-900"
+                className="mt-1 bg-slate-50"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Name cannot be changed
               </p>
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label className="text-sm font-medium text-slate-700">
                 Email
               </Label>
               <Input
                 value={currentUser?.email || ""}
                 disabled
-                className="mt-1 bg-slate-50 dark:bg-slate-900"
+                className="mt-1 bg-slate-50"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Email cannot be changed
               </p>
             </div>
 
             <div>
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label className="text-sm font-medium text-slate-700">
                 Role
               </Label>
               <Input
                 value={currentUser?.role || ""}
                 disabled
-                className="mt-1 bg-slate-50 dark:bg-slate-900 capitalize"
+                className="mt-1 bg-slate-50 capitalize"
               />
             </div>
 
             <div>
-              <Label htmlFor="nickname" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <Label htmlFor="nickname" className="text-sm font-medium text-slate-700">
                 Nickname (Optional)
               </Label>
               <Input
@@ -368,7 +368,7 @@ export default function ProfilePage() {
                 placeholder="Enter your nickname"
                 className="mt-1"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 This is how others will see you in the app
               </p>
             </div>
@@ -376,7 +376,7 @@ export default function ProfilePage() {
 
           {/* Action Buttons */}
           {isEditing && (
-            <div className="flex gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex gap-3 mt-6 pt-6 border-t border-slate-200">
               <Button
                 onClick={handleSave}
                 disabled={isUpdating || uploadingImage}
@@ -401,3 +401,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

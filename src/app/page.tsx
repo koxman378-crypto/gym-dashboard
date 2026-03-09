@@ -28,13 +28,14 @@ export default function Home() {
   }, [isAuthenticated, isLoading, user, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50">
       <div className="text-center">
-        <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600 dark:border-emerald-900 dark:border-t-emerald-400"></div>
-        <p className="text-lg font-medium text-slate-700 dark:text-slate-300">
+        <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
+        <p className="text-lg font-medium text-slate-700">
           Loading...
         </p>
       </div>
     </div>
   );
 }
+
