@@ -10,7 +10,7 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import authReducer, { setCredentials, setAccessToken, setUser, logout, type AuthState } from "./slices/authSlice";
+import authReducer from "./slices/authSlice";
 import { api } from "./services/baseApi";
 
 
@@ -62,7 +62,7 @@ const storage = createStorage();
 const authPersistConfig = {
   key: "auth",
   storage,
-  whitelist: ["user", "isAuthenticated"], // Only persist user and auth status, NOT accessToken
+  whitelist: ["user", "accessToken", "isAuthenticated"],
 };
 
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);

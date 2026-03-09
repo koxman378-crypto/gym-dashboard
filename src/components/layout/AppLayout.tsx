@@ -100,7 +100,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const authPages = ["/login", "/register", "/forgot-password", "/auth"];
   const isAuthPage = authPages.some((page) => pathname?.startsWith(page));
 
-  // Redirect to login if not authenticated (using useEffect to avoid render issues)
   useEffect(() => {
     if (!isAuthenticated && !isAuthPage) {
       router.push("/auth/login");
@@ -123,7 +122,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Show loading or nothing while redirecting unauthenticated users
+  // Show nothing while redirecting unauthenticated users
   if (!isAuthenticated) {
     return null;
   }
