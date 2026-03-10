@@ -79,14 +79,26 @@ export const createSubscriptionColumns = ({
     cell: ({ row }) => {
       const customer = row.original.customer;
       const customerData = typeof customer === "object" ? customer : null;
-      const customerId = typeof customer === "object" ? customer._id : customer;
       return (
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <div className="font-medium">{customerData?.name || "Unknown"}</div>
-            <div className="text-sm text-muted-foreground">
-              {customerData?.email || ""}
+        <div className="flex items-center gap-3 min-w-55">
+          {customerData?.avatar ? (
+            <img
+              src={customerData.avatar}
+              alt={customerData.name}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white uppercase select-none">
+              {(customerData?.name ?? "?").trim().charAt(0)}
             </div>
+          )}
+          <div className="min-w-0">
+            <p className="font-semibold leading-none truncate text-white">
+              {customerData?.name || "Unknown"}
+            </p>
+            <p className="text-xs text-slate-400 truncate mt-1">
+              {customerData?.email || "-"}
+            </p>
           </div>
         </div>
       );
@@ -108,15 +120,31 @@ export const createSubscriptionColumns = ({
         );
       }
       return (
-        <div>
-          <div className="font-medium text-sm">
-            {trainer.trainerName || "Unknown"}
-          </div>
-          {typeof trainer.finalPrice === "number" && (
-            <div className="text-xs text-emerald-600 font-semibold">
-              {trainer.finalPrice.toLocaleString()} MMK/{trainer.durationUnit}
+        <div className="flex items-center gap-3 min-w-60">
+          {trainer.trainerAvatar ? (
+            <img
+              src={trainer.trainerAvatar}
+              alt={trainer.trainerName}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white uppercase select-none">
+              {(trainer.trainerName ?? "?").trim().charAt(0)}
             </div>
           )}
+          <div className="min-w-0">
+            <p className="font-semibold leading-none truncate text-white">
+              {trainer.trainerName || "Unknown"}
+            </p>
+            <p className="text-xs text-slate-400 truncate mt-1">
+              {trainer.trainerEmail || "-"}
+            </p>
+            <p className="text-xs text-emerald-400 font-semibold mt-1">
+              {typeof trainer.finalPrice === "number"
+                ? `${trainer.finalPrice.toLocaleString()} MMK/${trainer.durationUnit}`
+                : "-"}
+            </p>
+          </div>
         </div>
       );
     },
@@ -322,4 +350,3 @@ export const createSubscriptionColumns = ({
     },
   },
 ];
-

@@ -1,4 +1,11 @@
-import { type ColumnDef } from "@tanstack/react-table";
+import {
+  type ColumnDef,
+  type SortingState,
+  type ColumnFiltersState,
+  type VisibilityState,
+} from "@tanstack/react-table";
+
+export type { SortingState, ColumnFiltersState, VisibilityState };
 
 export interface PaginationMeta {
   page: number;
@@ -35,4 +42,11 @@ export interface DataTableProps<TData> {
   onRowSelectionChange?: (selectedRows: TData[]) => void;
   emptyMessage?: string;
   getRowId?: (row: TData) => string;
+  // Filtering
+  filterColumn?: string;
+  filterPlaceholder?: string;
+  // Column visibility toggle
+  showColumnVisibility?: boolean;
+  // Toolbar slot for extra controls (search inputs, buttons, etc.)
+  toolbar?: React.ReactNode;
 }

@@ -11,7 +11,6 @@ import type {
 // Transform backend user to frontend user
 // Backend always returns _id as string (not ObjectId)
 const transformUser = (user: any): User => {
-
   const assignedTrainer =
     user?.assignedTrainer && typeof user.assignedTrainer === "object"
       ? {
@@ -38,11 +37,18 @@ const transformUser = (user: any): User => {
     trainerFees: trainerFees || undefined,
   };
 
-
   return transformedUser;
 };
 
-const transformUserArray = (users: any[]): User[] => users.map(transformUser);
+const transformUserArray = (users: any): User[] => {
+  if (Array.isArray(users)) return users.map(transformUser);
+  // Handle paginated response shape: { data: [], total, page, limit }
+  if (users?.data && Array.isArray(users.data))
+    return users.data.map(transformUser);
+  if (users?.results && Array.isArray(users.results))
+    return users.results.map(transformUser);
+  return [];
+};
 
 export const usersApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -75,15 +81,54 @@ export const usersApi = api.injectEndpoints({
     }),
 
     getAllCustomers: builder.query<
-      User[],
-      { isActive?: boolean; assignedTrainer?: string }
+      {
+        data: User[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      },
+      {
+        isActive?: boolean;
+        assignedTrainer?: string;
+        page?: number;
+        limit?: number;
+      }
     >({
       query: (params) => ({
         url: "/users/customers",
         params,
       }),
       providesTags: ["Customer"],
-      transformResponse: (response: any[]) => transformUserArray(response),
+      transformResponse: (response: any, _meta, arg) => {
+        let data: User[] = [];
+        let total = 0;
+        const page = arg.page ?? 1;
+        const limit = arg.limit ?? 10;
+
+        if (Array.isArray(response)) {
+          data = response.map(transformUser);
+          total = response.length;
+        } else if (response?.results && Array.isArray(response.results)) {
+          // Backend shape: { results, totalResults, totalPages, page, limit }
+          data = response.results.map(transformUser);
+          total = response.totalResults ?? response.results.length;
+        } else if (response?.data && Array.isArray(response.data)) {
+          data = response.data.map(transformUser);
+          total = response.total ?? response.data.length;
+        }
+
+        return {
+          data,
+          total,
+          page: response?.page ?? page,
+          limit: response?.limit ?? limit,
+          totalPages:
+            response?.totalPages != null
+              ? response.totalPages
+              : Math.ceil(total / limit) || 1,
+        };
+      },
     }),
 
     // ============ TRAINERS LIST ============
@@ -111,6 +156,7 @@ export const usersApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { id }) => [
         { type: "User", id },
+        "Me",
         "Staff",
         "Customer",
         "Trainer",
@@ -124,7 +170,7 @@ export const usersApi = api.injectEndpoints({
         url: `/users/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Staff", "Customer", "Trainer", "Statistics"],
+      invalidatesTags: ["Me", "Staff", "Customer", "Trainer", "Statistics"],
     }),
 
     // ============ BODY MEASUREMENTS ============
@@ -201,7 +247,13 @@ export const usersApi = api.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: ["Me"],
+      invalidatesTags: (result) => [
+        "Me",
+        "Staff",
+        "Customer",
+        "Trainer",
+        ...(result?._id ? [{ type: "User" as const, id: result._id }] : []),
+      ],
       transformResponse: (response: any) => transformUser(response),
     }),
 

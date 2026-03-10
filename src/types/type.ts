@@ -1,4 +1,4 @@
-import type { TrainerFeeItem } from './extended-types';
+import type { TrainerFeeItem } from "./extended-types";
 
 export enum Role {
   OWNER = "owner",
@@ -95,6 +95,7 @@ export interface CreateUserDto {
   email: string;
   password: string;
   name: string;
+  nickname?: string;
   phone?: string;
   address?: string;
   age?: number;
@@ -111,6 +112,7 @@ export interface CreateUserDto {
 export interface UpdateUserDto {
   email?: string;
   name?: string;
+  nickname?: string;
   phone?: string;
   address?: string;
   age?: number;

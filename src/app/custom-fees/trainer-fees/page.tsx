@@ -211,29 +211,39 @@ export default function TrainerFeesPage() {
                 {/* Trainer Header */}
                 <div className="bg-[#0F172B] border-b border-slate-700 p-6">
                   <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="rounded-full bg-blue-100 p-2">
-                          <UserIcon className="h-5 w-5 text-blue-600" />
+                    <div className="flex items-center gap-3">
+                      {trainer.avatar ? (
+                        <img
+                          src={trainer.avatar}
+                          alt={trainer.name}
+                          className="h-11 w-11 shrink-0 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-600 text-base font-semibold text-white uppercase select-none">
+                          {trainer.name.trim().charAt(0)}
                         </div>
-                        <div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2">
                           <h2 className="text-xl font-bold text-white">
                             {trainer.name}
                           </h2>
-                          <p className="text-sm text-slate-400">
-                            {trainer.email}
-                          </p>
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              (trainer.trainerFees?.length ?? 0) > 0
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-slate-600 text-slate-300"
+                            }`}
+                          >
+                            {trainer.trainerFees?.length ?? 0} tier
+                            {(trainer.trainerFees?.length ?? 0) !== 1
+                              ? "s"
+                              : ""}
+                          </span>
                         </div>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            (trainer.trainerFees?.length ?? 0) > 0
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-slate-600 text-slate-300"
-                          }`}
-                        >
-                          {trainer.trainerFees?.length ?? 0} tier
-                          {(trainer.trainerFees?.length ?? 0) !== 1 ? "s" : ""}
-                        </span>
+                        <p className="text-sm text-slate-400">
+                          {trainer.email}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2">

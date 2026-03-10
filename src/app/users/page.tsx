@@ -65,12 +65,15 @@ import {
 } from "@/src/components/ui/select";
 import { useAppSelector } from "@/src/store/hooks";
 import { UserActionsDropdown } from "@/src/components/users/UserActionsDropdown";
+import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
 import { useRouter } from "next/navigation";
 
 export default function UsersPage() {
   const [searchName, setSearchName] = useState("");
   const [searchEmail, setSearchEmail] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
+  const [userPage, setUserPage] = useState(1);
+  const [userLimit, setUserLimit] = useState(20);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -112,19 +115,6 @@ export default function UsersPage() {
     return assignedTrainer._id || "none";
   };
 
-  const getAssignedTrainerName = (
-    assignedTrainer: User["assignedTrainer"],
-  ): string => {
-    if (!assignedTrainer) return "No Trainer";
-    if (typeof assignedTrainer === "string") {
-      const matchedTrainer = trainers.find(
-        (trainer) => trainer._id === assignedTrainer,
-      );
-      return matchedTrainer?.name || assignedTrainer || "No Trainer";
-    }
-    return assignedTrainer.name || "No Trainer";
-  };
-
   // Get current logged-in user
   const currentUser = useAppSelector((state) => state.auth.user);
   const { isAuthenticated, accessToken } = useAppSelector(
@@ -135,13 +125,20 @@ export default function UsersPage() {
   // - OWNER: Fetches all staff (cashiers + trainers) + customers
   // - CASHIER: Fetches only trainers + customers (can't see other cashiers/owners)
   // - TRAINER:Fetches all customers (can see all, but can only update assigned ones)
-  const { data: customers = [], isLoading: customersLoading } =
+  const { data: customersData, isLoading: customersLoading } =
     useGetAllCustomersQuery(
-      {},
+      { page: userPage, limit: userLimit },
       {
-        skip: !isAuthenticated || !accessToken, // Wait for authentication
+        skip: !isAuthenticated || !accessToken,
       },
     );
+  const customers = customersData?.data ?? [];
+  const customersMeta = {
+    page: customersData?.page ?? userPage,
+    limit: customersData?.limit ?? userLimit,
+    total: customersData?.total ?? 0,
+    totalPages: customersData?.totalPages ?? 1,
+  };
   const { data: staff = [], isLoading: staffLoading } = useGetAllStaffQuery(
     undefined,
     {
@@ -208,10 +205,10 @@ export default function UsersPage() {
     email: "",
     password: "",
     name: "",
+    nickname: "",
     phone: "",
     age: undefined,
     role: Role.CUSTOMER,
-    assignedTrainer: undefined,
     bodyMeasurements: undefined,
   });
 
@@ -239,14 +236,13 @@ export default function UsersPage() {
         email: "",
         password: "",
         name: "",
+        nickname: "",
         phone: "",
         age: undefined,
         role: Role.CUSTOMER,
-        assignedTrainer: undefined,
         bodyMeasurements: undefined,
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleToggleActive = async (user: User) => {
@@ -489,6 +485,19 @@ export default function UsersPage() {
                         />
                       </div>
                       <div className="space-y-2">
+                        <Label htmlFor="nickname">Nickname</Label>
+                        <Input
+                          id="nickname"
+                          value={formData.nickname || ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nickname: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
                         <Label htmlFor="phone">Phone</Label>
                         <Input
                           id="phone"
@@ -549,37 +558,6 @@ export default function UsersPage() {
                           </SelectContent>
                         </Select>
                       </div>
-
-                      {/* Personal Trainer Assignment (only for customers) */}
-                      {formData.role === Role.CUSTOMER && (
-                        <div className="space-y-2">
-                          <Label htmlFor="assignedTrainer">
-                            Assign Trainer (Optional)
-                          </Label>
-                          <Select
-                            value={formData.assignedTrainer || "none"}
-                            onValueChange={(value) =>
-                              setFormData({
-                                ...formData,
-                                assignedTrainer:
-                                  value === "none" ? undefined : value,
-                              })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a trainer" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">No Trainer</SelectItem>
-                              {trainers.map((trainer) => (
-                                <SelectItem key={trainer._id} value={trainer._id}>
-                                  {trainer.nickname || trainer.name} ({trainer.email})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
 
                       {/* Body Measurements Section (Optional) */}
                       <div className="space-y-3 border-t pt-4">
@@ -1043,7 +1021,10 @@ export default function UsersPage() {
               <Input
                 placeholder="Search by name..."
                 value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
+                onChange={(e) => {
+                  setSearchName(e.target.value);
+                  setUserPage(1);
+                }}
                 className="pl-10 border-slate-600 hover:border-slate-400 focus-visible:border-slate-500 transition-colors"
               />
             </div>
@@ -1052,11 +1033,20 @@ export default function UsersPage() {
               <Input
                 placeholder="Search by email..."
                 value={searchEmail}
-                onChange={(e) => setSearchEmail(e.target.value)}
+                onChange={(e) => {
+                  setSearchEmail(e.target.value);
+                  setUserPage(1);
+                }}
                 className="pl-10 border-slate-600 hover:border-slate-400 focus-visible:border-slate-500 transition-colors"
               />
             </div>
-            <Select value={filterRole} onValueChange={setFilterRole}>
+            <Select
+              value={filterRole}
+              onValueChange={(v) => {
+                setFilterRole(v);
+                setUserPage(1);
+              }}
+            >
               <SelectTrigger className="w-45 border-slate-600 hover:border-slate-400 transition-colors">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
@@ -1088,9 +1078,7 @@ export default function UsersPage() {
             <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
               Total Users
             </p>
-            <p className="text-3xl font-bold text-white">
-              {allUsers.length}
-            </p>
+            <p className="text-3xl font-bold text-white">{allUsers.length}</p>
           </div>
           <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
             <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
@@ -1105,7 +1093,7 @@ export default function UsersPage() {
               Customers
             </p>
             <p className="text-3xl font-bold text-white">
-              {customers.length}
+              {customersMeta.total || customers.length}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -1125,11 +1113,10 @@ export default function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Assigned Trainer</TableHead>
+                <TableHead>Nickname</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
@@ -1137,32 +1124,49 @@ export default function UsersPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow key="loading">
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     Loading users...
                   </TableCell>
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow key="empty">
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     No users found
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredUsers.map((user) => (
                   <TableRow key={user._id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {user.avatar ? (
+                          <img
+                            src={user.avatar}
+                            alt={user.name}
+                            className="h-9 w-9 shrink-0 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white uppercase select-none">
+                            {user.name.trim().charAt(0)}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-medium leading-none truncate">
+                            {user.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate mt-0.5">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell>{user.phone || "-"}</TableCell>
                     <TableCell>
                       <Badge variant={getRoleBadgeVariant(user.role)}>
                         {user.role}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      {user.role === Role.CUSTOMER
-                        ? getAssignedTrainerName(user.assignedTrainer)
-                        : "-"}
-                    </TableCell>
+                    <TableCell>{user.nickname || "-"}</TableCell>
                     <TableCell>
                       <Badge variant={user.isActive ? "success" : "warning"}>
                         {user.isActive ? "Active" : "Inactive"}
@@ -1189,9 +1193,20 @@ export default function UsersPage() {
               )}
             </TableBody>
           </Table>
+          {/* Server-side pagination for customers */}
+          <div className="border-t border-slate-700 p-4">
+            <DataTablePagination
+              meta={customersMeta}
+              onPageChange={(p) => setUserPage(p)}
+              onPageSizeChange={(s) => {
+                setUserLimit(s);
+                setUserPage(1);
+              }}
+              isLoading={customersLoading}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

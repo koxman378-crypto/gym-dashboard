@@ -18,7 +18,13 @@ export const subscriptionsApi = api.injectEndpoints({
     }),
 
     getAllSubscriptions: builder.query<
-      Subscription[],
+      {
+        data: Subscription[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      },
       {
         page?: number;
         limit?: number;
@@ -31,19 +37,38 @@ export const subscriptionsApi = api.injectEndpoints({
         url: "/subscriptions",
         params,
       }),
-      transformResponse: (response: any) => {
-        // Handle both array and paginated response
+      transformResponse: (response: any, _meta, arg) => {
+        // Normalise any backend shape into { data, total, page, limit, totalPages }
+        let data: Subscription[] = [];
+        let total = 0;
+        const page = arg.page ?? 1;
+        const limit = arg.limit ?? 10;
+
         if (Array.isArray(response)) {
-          return response;
+          data = response;
+          total = response.length;
+        } else if (response?.data && Array.isArray(response.data)) {
+          data = response.data;
+          total = response.total ?? response.data.length;
+        } else if (response?.results && Array.isArray(response.results)) {
+          data = response.results;
+          total =
+            response.totalResults ?? response.total ?? response.results.length;
         }
-        // If paginated response with data/results field
-        if (response?.data && Array.isArray(response.data)) {
-          return response.data;
-        }
-        if (response?.results && Array.isArray(response.results)) {
-          return response.results;
-        }
-        return [];
+
+        const resolvedTotal =
+          response?.totalResults ?? response?.total ?? total;
+        const resolvedLimit = response?.limit ?? limit;
+        const computedTotalPages =
+          resolvedLimit > 0 ? Math.ceil(resolvedTotal / resolvedLimit) : 1;
+
+        return {
+          data,
+          total: resolvedTotal,
+          page: response?.page ?? page,
+          limit: resolvedLimit,
+          totalPages: response?.totalPages ?? computedTotalPages,
+        };
       },
       providesTags: ["Subscription"],
     }),

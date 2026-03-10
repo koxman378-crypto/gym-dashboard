@@ -305,7 +305,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-green-300 hover:text-green-400 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
                   tabIndex={-1}
                 >
                   {showConfirmPassword ? (
@@ -335,10 +335,7 @@ export default function RegisterPage() {
                   Creating account...
                 </>
               ) : (
-                <>
-                  <Dumbbell className="mr-2 h-4 w-4" />
-                  Create Account
-                </>
+                <>Create Account</>
               )}
             </Button>
           </form>

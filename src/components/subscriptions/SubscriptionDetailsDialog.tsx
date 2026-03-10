@@ -90,6 +90,7 @@ export const SubscriptionDetailsDialog = ({
     typeof subscription.customer === "object" ? subscription.customer : null;
   const createdBy =
     typeof subscription.createdBy === "object" ? subscription.createdBy : null;
+  const trainer = subscription.trainer;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -273,7 +274,7 @@ export const SubscriptionDetailsDialog = ({
             )}
 
           {/* Trainer Information */}
-          {subscription.trainer && (
+          {trainer && (
             <div className="space-y-2">
               <h3 className="font-semibold flex items-center gap-2">
                 <UserCheck className="h-4 w-4" />
@@ -285,7 +286,7 @@ export const SubscriptionDetailsDialog = ({
                     Trainer Name:
                   </span>
                   <span className="font-medium">
-                    {subscription.trainer.trainerName}
+                    {trainer.trainerName || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -293,7 +294,9 @@ export const SubscriptionDetailsDialog = ({
                     Duration:
                   </span>
                   <span className="font-medium">
-                    {subscription.trainer.duration} {subscription.trainer.durationUnit}
+                    {trainer.duration && trainer.durationUnit
+                      ? `${trainer.duration} ${trainer.durationUnit}`
+                      : "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -301,25 +304,29 @@ export const SubscriptionDetailsDialog = ({
                     Base Amount:
                   </span>
                   <span className="font-medium">
-                    {subscription.trainer.amount.toLocaleString()} MMK
+                    {typeof trainer.amount === "number"
+                      ? `${trainer.amount.toLocaleString()} MMK`
+                      : "N/A"}
                   </span>
                 </div>
-                {subscription.trainer.promotionType && subscription.trainer.promotionValue && (
+                {trainer.promotionType && trainer.promotionValue && (
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">
                       Promotion:
                     </span>
                     <span className="font-medium text-green-600">
-                      {subscription.trainer.promotionType === "percentage"
-                        ? `${subscription.trainer.promotionValue}% off`
-                        : `${Number(subscription.trainer.promotionValue).toLocaleString()} MMK off`}
+                      {trainer.promotionType === "percentage"
+                        ? `${trainer.promotionValue}% off`
+                        : `${Number(trainer.promotionValue).toLocaleString()} MMK off`}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between font-semibold">
                   <span className="text-sm">Trainer Fee:</span>
                   <span className="text-emerald-600">
-                    {subscription.trainer.finalPrice.toLocaleString()} MMK
+                    {typeof trainer.finalPrice === "number"
+                      ? `${trainer.finalPrice.toLocaleString()} MMK`
+                      : "N/A"}
                   </span>
                 </div>
               </div>
@@ -482,4 +489,3 @@ export const SubscriptionDetailsDialog = ({
     </Dialog>
   );
 };
-

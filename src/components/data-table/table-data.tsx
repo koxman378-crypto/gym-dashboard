@@ -4,11 +4,22 @@ import * as React from "react";
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
   useReactTable,
   type ColumnDef,
   type RowSelectionState,
+  type SortingState,
+  type ColumnFiltersState,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
+import {
+  Loader2,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  Settings2,
+} from "lucide-react";
 
 import {
   Table,
@@ -18,10 +29,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/src/components/ui/table";
+import { Input } from "@/src/components/ui/input";
+import { Button } from "@/src/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
 import { TableLoaderOverlay } from "@/src/components/loading";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableProps } from "@/src/types/table";
 import { cn } from "@/src/lib/utils";
+
+/** Clickable sortable header — use inside column `header` definitions */
+export function SortableHeader({
+  column,
+  label,
+}: {
+  column: any;
+  label: string;
+}) {
+  const sorted = column.getIsSorted();
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="-ml-3 h-8 data-[state=open]:bg-accent"
+      onClick={() => column.toggleSorting(sorted === "asc")}
+    >
+      {label}
+      {sorted === "asc" ? (
+        <ChevronUp className="ml-2 h-4 w-4" />
+      ) : sorted === "desc" ? (
+        <ChevronDown className="ml-2 h-4 w-4" />
+      ) : (
+        <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+      )}
+    </Button>
+  );
+}
 
 // Generic DataTable component
 export function DataTable<TData>({
@@ -35,10 +82,19 @@ export function DataTable<TData>({
   onRowSelectionChange,
   emptyMessage = "No results.",
   getRowId,
+  filterColumn,
+  filterPlaceholder,
+  showColumnVisibility = false,
+  toolbar,
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
 
-  // Memoize columns to prevent unnecessary re-renders
   const memoizedColumns = React.useMemo(() => columns, [columns]);
 
   const table = useReactTable({
@@ -46,6 +102,9 @@ export function DataTable<TData>({
     columns: memoizedColumns,
     state: {
       rowSelection,
+      sorting,
+      columnFilters,
+      columnVisibility,
     },
     enableRowSelection,
     onRowSelectionChange: (updater) => {
@@ -64,13 +123,68 @@ export function DataTable<TData>({
         onRowSelectionChange(selectedRows);
       }
     },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getRowId: getRowId ? (row) => getRowId(row) : undefined,
     manualPagination: true, // Server-side pagination
   });
 
+  const hasToolbar = filterColumn || showColumnVisibility || toolbar;
+
   return (
     <div className="flex flex-col gap-4">
+      {/* Toolbar: filter input + column visibility + custom slot */}
+      {hasToolbar && (
+        <div className="flex items-center gap-2">
+          {filterColumn && (
+            <Input
+              placeholder={filterPlaceholder ?? `Filter…`}
+              value={
+                (table.getColumn(filterColumn)?.getFilterValue() as string) ??
+                ""
+              }
+              onChange={(e) =>
+                table.getColumn(filterColumn)?.setFilterValue(e.target.value)
+              }
+              className="max-w-sm"
+            />
+          )}
+
+          {/* Custom toolbar controls passed by the parent */}
+          {toolbar && <div className="flex items-center gap-2">{toolbar}</div>}
+
+          {showColumnVisibility && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="ml-auto">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((col) => col.getCanHide())
+                  .map((col) => (
+                    <DropdownMenuCheckboxItem
+                      key={col.id}
+                      className="capitalize"
+                      checked={col.getIsVisible()}
+                      onCheckedChange={(value) => col.toggleVisibility(!!value)}
+                    >
+                      {col.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      )}
+
       <div className="relative overflow-hidden rounded-lg border">
         <TableLoaderOverlay show={isSoftLoading} />
         <Table>

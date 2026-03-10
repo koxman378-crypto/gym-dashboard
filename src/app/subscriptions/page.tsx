@@ -99,24 +99,29 @@ export default function SubscriptionsPage() {
     refetch,
   } = useGetAllSubscriptionsQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
-    page: undefined, // Get all results for client-side pagination
-    limit: undefined,
+    page,
+    limit,
   });
-  const subscriptions = Array.isArray(subscriptionsData)
-    ? subscriptionsData
-    : [];
+  const subscriptions = subscriptionsData?.data ?? [];
+  const paginationMeta = {
+    page: subscriptionsData?.page ?? page,
+    limit: subscriptionsData?.limit ?? limit,
+    total: subscriptionsData?.total ?? 0,
+    totalPages: subscriptionsData?.totalPages ?? 1,
+  };
 
   // Fetch customers for dropdown
   const {
-    data: customers = [],
+    data: customersData_,
     isLoading: isLoadingCustomers,
     error: customersError,
   } = useGetAllCustomersQuery(
-    {},
+    { limit: 100 },
     {
       skip: !isAuthenticated || !accessToken,
     },
   );
+  const customers = customersData_?.data ?? [];
 
   // Fetch active gym price groups
   const { data: gymPriceGroups = [] } = useGetAllGymPriceGroupsQuery(
@@ -136,7 +141,7 @@ export default function SubscriptionsPage() {
 
   // Fetch trainers for dropdown
   const { data: trainers = [] } = useGetAllTrainersQuery(undefined, {
-    skip: !isAuthenticated || !accessToken || !isCreateDialogOpen,
+    skip: !isAuthenticated || !accessToken,
   });
 
   const [createSubscription] = useCreateSubscriptionMutation();
@@ -470,6 +475,38 @@ export default function SubscriptionsPage() {
     [canCreateSubscription, currentUser],
   );
 
+  const subscriptionsWithTrainerInfo = useMemo(() => {
+    if (!subscriptions.length) return subscriptions;
+
+    const trainerById = new Map(
+      trainers.map((trainer) => [trainer._id, trainer]),
+    );
+
+    return subscriptions.map((subscription) => {
+      if (!subscription.trainer) return subscription;
+
+      const trainerId = subscription.trainer.trainerId;
+      const matchedTrainer = trainerId ? trainerById.get(trainerId) : undefined;
+
+      return {
+        ...subscription,
+        trainer: {
+          ...subscription.trainer,
+          trainerName:
+            subscription.trainer.trainerName ||
+            matchedTrainer?.name ||
+            "Unknown",
+          trainerEmail:
+            subscription.trainer.trainerEmail || matchedTrainer?.email,
+          trainerAvatar:
+            subscription.trainer.trainerAvatar ||
+            matchedTrainer?.avatar ||
+            null,
+        },
+      };
+    });
+  }, [subscriptions, trainers]);
+
   return (
     <div className="min-h-screen bg-[#0F172B]">
       <div className="flex flex-col gap-6 p-6">
@@ -754,6 +791,38 @@ export default function SubscriptionsPage() {
                             ))}
                           </SelectContent>
                         </Select>
+
+                        {/* Selected trainer preview card */}
+                        {formData.trainerId &&
+                          (() => {
+                            const selectedTrainer = trainers.find(
+                              (t) => t._id === formData.trainerId,
+                            );
+                            if (!selectedTrainer) return null;
+                            return (
+                              <div className="flex items-center gap-3 rounded-lg border border-slate-600 bg-slate-800/60 px-4 py-3">
+                                {selectedTrainer.avatar ? (
+                                  <img
+                                    src={selectedTrainer.avatar}
+                                    alt={selectedTrainer.name}
+                                    className="h-10 w-10 shrink-0 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white uppercase select-none">
+                                    {selectedTrainer.name.trim().charAt(0)}
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-white leading-none truncate">
+                                    {selectedTrainer.name}
+                                  </p>
+                                  <p className="text-xs text-slate-400 truncate mt-0.5">
+                                    {selectedTrainer.email}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })()}
                       </div>
 
                       {/* TRAINER FEE TIER SELECTION - Show when trainer is selected */}
@@ -1183,7 +1252,7 @@ export default function SubscriptionsPage() {
         <div className="rounded-2xl bg-slate-800 shadow-sm overflow-hidden border border-slate-700">
           <DataTable
             columns={columns}
-            data={subscriptions.slice((page - 1) * limit, page * limit)}
+            data={subscriptionsWithTrainerInfo}
             isLoading={isLoading}
             getRowId={(row) => row._id}
             emptyMessage="No subscriptions found."
@@ -1191,15 +1260,10 @@ export default function SubscriptionsPage() {
               // router.push(`/subscriptions/${subscription._id}`);
             }}
           />
-          {subscriptions.length > 0 && (
+          {paginationMeta.total > 0 && (
             <div className="border-t border-slate-700 p-4">
               <DataTablePagination
-                meta={{
-                  page,
-                  limit,
-                  total: subscriptions.length,
-                  totalPages: Math.ceil(subscriptions.length / limit),
-                }}
+                meta={paginationMeta}
                 onPageChange={(newPage) => setPage(newPage)}
                 onPageSizeChange={(newLimit) => {
                   setLimit(newLimit);

@@ -146,6 +146,8 @@ export interface UpdateTrainerFeesDto {
 export interface TrainerSnapshot {
   trainerId: string;
   trainerName: string;
+  trainerEmail?: string;
+  trainerAvatar?: string | null;
   feeRowId: string;
   duration: number;
   durationUnit: DurationUnit;

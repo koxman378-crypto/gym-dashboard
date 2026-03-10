@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, History, Calendar, TrendingUp, TrendingDown, User } from "lucide-react";
+import {
+  ArrowLeft,
+  History,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  User,
+} from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import {
@@ -16,7 +23,6 @@ import {
 import {
   useGetMyProfileQuery,
   useGetMeasurementHistoryQuery,
-  useGetAllTrainersQuery,
 } from "@/src/store/services/usersApi";
 import { useAppSelector } from "@/src/store/hooks";
 import { User as UserType } from "@/src/types/type";
@@ -32,41 +38,32 @@ export default function MeasurementsPage() {
       skip: !isAuthenticated,
     });
 
+  const measurementUserId = userProfile?._id || currentUser?._id;
+
   const { data: measurementHistory, isLoading: isLoadingHistory } =
-    useGetMeasurementHistoryQuery(currentUser?._id || "", {
-      skip: !isAuthenticated || !currentUser?._id,
+    useGetMeasurementHistoryQuery(measurementUserId || "", {
+      skip: !isAuthenticated || !measurementUserId,
     });
 
-  // Fetch all trainers to map IDs to names
-  const { data: trainers = [] } = useGetAllTrainersQuery(undefined, {
-    skip: !isAuthenticated,
-  });
-
-  // Create a lookup map for trainer IDs to names
-  const trainerMap = trainers.reduce((map, trainer) => {
-    map[trainer._id] = trainer.name;
-    return map;
-  }, {} as Record<string, string>);
-
-  // Helper function to get trainer name from measuredBy field
-  const getTrainerName = (measuredBy: string | UserType | null | undefined): string => {
+  // Helper: measuredBy can be a populated User object or just a string ID.
+  // The history/profile APIs already populate it as an object with `name`.
+  // Customers cannot call /users/trainers (403), so we only use what's inline.
+  const getTrainerName = (
+    measuredBy: string | UserType | null | undefined,
+  ): string => {
     if (!measuredBy) return "-";
-    
-    // If it's already an object with name
     if (typeof measuredBy === "object" && "name" in measuredBy) {
-      return measuredBy.name || "-";
+      return (measuredBy as UserType).name || "-";
     }
-    
-    // If it's a string (ID), look it up in the trainer map
-    if (typeof measuredBy === "string") {
-      return trainerMap[measuredBy] || measuredBy; // Fallback to ID if name not found
-    }
-    
-    return "-";
+    // String ID — name was not populated; show a generic label
+    return "Staff";
   };
 
   // Calculate trend (comparing with previous measurement)
-  const getTrend = (current: number | null | undefined, previous: number | null | undefined) => {
+  const getTrend = (
+    current: number | null | undefined,
+    previous: number | null | undefined,
+  ) => {
     if (!current || !previous) return null;
     const diff = current - previous;
     if (Math.abs(diff) < 0.1) return null; // No significant change
@@ -124,49 +121,65 @@ export default function MeasurementsPage() {
             {userProfile.bodyMeasurements?.height && (
               <div>
                 <p className="text-sm text-muted-foreground">Height</p>
-                <p className="text-2xl font-bold">{userProfile.bodyMeasurements.height} cm</p>
+                <p className="text-2xl font-bold">
+                  {userProfile.bodyMeasurements.height} cm
+                </p>
               </div>
             )}
             {userProfile.bodyMeasurements?.weight && (
               <div>
                 <p className="text-sm text-muted-foreground">Weight</p>
-                <p className="text-2xl font-bold">{userProfile.bodyMeasurements.weight} kg</p>
+                <p className="text-2xl font-bold">
+                  {userProfile.bodyMeasurements.weight} kg
+                </p>
               </div>
             )}
-            {userProfile.bodyMeasurements?.bodyFat !== null && userProfile.bodyMeasurements?.bodyFat !== undefined && (
-              <div>
-                <p className="text-sm text-muted-foreground">Body Fat</p>
-                <p className="text-2xl font-bold">{userProfile.bodyMeasurements.bodyFat}%</p>
-              </div>
-            )}
+            {userProfile.bodyMeasurements?.bodyFat !== null &&
+              userProfile.bodyMeasurements?.bodyFat !== undefined && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Body Fat</p>
+                  <p className="text-2xl font-bold">
+                    {userProfile.bodyMeasurements.bodyFat}%
+                  </p>
+                </div>
+              )}
             {userProfile.bodyMeasurements?.chest && (
               <div>
                 <p className="text-sm text-muted-foreground">Chest</p>
-                <p className="text-2xl font-bold">{userProfile.bodyMeasurements.chest} cm</p>
+                <p className="text-2xl font-bold">
+                  {userProfile.bodyMeasurements.chest} cm
+                </p>
               </div>
             )}
             {userProfile.bodyMeasurements?.waist && (
               <div>
                 <p className="text-sm text-muted-foreground">Waist</p>
-                <p className="text-2xl font-bold">{userProfile.bodyMeasurements.waist} cm</p>
+                <p className="text-2xl font-bold">
+                  {userProfile.bodyMeasurements.waist} cm
+                </p>
               </div>
             )}
             {userProfile.bodyMeasurements?.biceps && (
               <div>
                 <p className="text-sm text-muted-foreground">Biceps</p>
-                <p className="text-2xl font-bold">{userProfile.bodyMeasurements.biceps} cm</p>
+                <p className="text-2xl font-bold">
+                  {userProfile.bodyMeasurements.biceps} cm
+                </p>
               </div>
             )}
             {userProfile.bodyMeasurements?.leg && (
               <div>
                 <p className="text-sm text-muted-foreground">Leg</p>
-                <p className="text-2xl font-bold">{userProfile.bodyMeasurements.leg} cm</p>
+                <p className="text-2xl font-bold">
+                  {userProfile.bodyMeasurements.leg} cm
+                </p>
               </div>
             )}
           </div>
           {userProfile.bodyMeasurements?.measuredBy && (
             <p className="text-sm text-muted-foreground mt-4">
-              Measured by: {getTrainerName(userProfile.bodyMeasurements.measuredBy)}
+              Measured by:{" "}
+              {getTrainerName(userProfile.bodyMeasurements.measuredBy)}
             </p>
           )}
         </div>
@@ -211,13 +224,34 @@ export default function MeasurementsPage() {
               <TableBody>
                 {measurementHistory.map((measurement, index) => {
                   const prevMeasurement = measurementHistory[index + 1];
-                  const heightTrend = getTrend(measurement.height, prevMeasurement?.height);
-                  const weightTrend = getTrend(measurement.weight, prevMeasurement?.weight);
-                  const bodyFatTrend = getTrend(measurement.bodyFat, prevMeasurement?.bodyFat);
-                  const chestTrend = getTrend(measurement.chest, prevMeasurement?.chest);
-                  const waistTrend = getTrend(measurement.waist, prevMeasurement?.waist);
-                  const bicepsTrend = getTrend(measurement.biceps, prevMeasurement?.biceps);
-                  const legTrend = getTrend(measurement.leg, prevMeasurement?.leg);
+                  const heightTrend = getTrend(
+                    measurement.height,
+                    prevMeasurement?.height,
+                  );
+                  const weightTrend = getTrend(
+                    measurement.weight,
+                    prevMeasurement?.weight,
+                  );
+                  const bodyFatTrend = getTrend(
+                    measurement.bodyFat,
+                    prevMeasurement?.bodyFat,
+                  );
+                  const chestTrend = getTrend(
+                    measurement.chest,
+                    prevMeasurement?.chest,
+                  );
+                  const waistTrend = getTrend(
+                    measurement.waist,
+                    prevMeasurement?.waist,
+                  );
+                  const bicepsTrend = getTrend(
+                    measurement.biceps,
+                    prevMeasurement?.biceps,
+                  );
+                  const legTrend = getTrend(
+                    measurement.leg,
+                    prevMeasurement?.leg,
+                  );
 
                   return (
                     <TableRow key={index}>
@@ -248,7 +282,8 @@ export default function MeasurementsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          {measurement.bodyFat !== null && measurement.bodyFat !== undefined
+                          {measurement.bodyFat !== null &&
+                          measurement.bodyFat !== undefined
                             ? measurement.bodyFat
                             : "-"}
                           {bodyFatTrend === "up" && (
@@ -316,17 +351,19 @@ export default function MeasurementsPage() {
       </div>
 
       {/* Assigned Trainer Info */}
-      {userProfile?.assignedTrainer && typeof userProfile.assignedTrainer === "object" && (
-        <div className="rounded-lg border bg-card p-4">
-          <p className="text-sm text-muted-foreground">
-            Assigned Trainer:{" "}
-            <span className="font-medium text-foreground">
-              {userProfile.assignedTrainer.name || "Unknown"} 
-              {userProfile.assignedTrainer.email && ` (${userProfile.assignedTrainer.email})`}
-            </span>
-          </p>
-        </div>
-      )}
+      {userProfile?.assignedTrainer &&
+        typeof userProfile.assignedTrainer === "object" && (
+          <div className="rounded-lg border bg-card p-4">
+            <p className="text-sm text-muted-foreground">
+              Assigned Trainer:{" "}
+              <span className="font-medium text-foreground">
+                {userProfile.assignedTrainer.name || "Unknown"}
+                {userProfile.assignedTrainer.email &&
+                  ` (${userProfile.assignedTrainer.email})`}
+              </span>
+            </p>
+          </div>
+        )}
     </div>
   );
 }

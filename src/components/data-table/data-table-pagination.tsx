@@ -60,10 +60,10 @@ export function DataTablePagination({
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => onPageChange(1)}
+            onClick={() => onPageChange(Math.max(1, page - 5))}
             disabled={page === 1 || isLoading}
           >
-            <span className="sr-only">Go to first page</span>
+            <span className="sr-only">Go back 5 pages</span>
             <ChevronsLeft className="h-4 w-4" />
           </Button>
           <Button
@@ -87,10 +87,10 @@ export function DataTablePagination({
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => onPageChange(totalPages)}
+            onClick={() => onPageChange(Math.min(totalPages, page + 5))}
             disabled={page === totalPages || isLoading}
           >
-            <span className="sr-only">Go to last page</span>
+            <span className="sr-only">Go forward 5 pages</span>
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>
