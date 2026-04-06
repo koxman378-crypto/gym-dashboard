@@ -42,7 +42,6 @@ export default function AttendancePage() {
   const [page, setPage] = useState(1);
   const limit = 30;
 
-  const currentUser = useAppSelector((state) => state.auth.user);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   // Fetch active attendance
@@ -82,8 +81,6 @@ export default function AttendancePage() {
       }, 1000);
 
       return () => clearInterval(interval);
-    } else {
-      setCurrentDuration(0);
     }
   }, [activeAttendance]);
 
@@ -91,8 +88,16 @@ export default function AttendancePage() {
     try {
       await checkIn({ autoCloseAfter }).unwrap();
       refetchActive();
-    } catch (error) {
-      alert("Failed to check in. Please try again.");
+    } catch (error: unknown) {
+      const message =
+        typeof error === "object" &&
+        error !== null &&
+        "data" in error &&
+        typeof (error as { data?: { message?: string } }).data?.message ===
+          "string"
+          ? (error as { data?: { message?: string } }).data?.message
+          : "Failed to check in. Please try again.";
+      alert(message);
     }
   };
 
@@ -100,7 +105,7 @@ export default function AttendancePage() {
     try {
       await checkOut().unwrap();
       refetchActive();
-    } catch (error) {
+    } catch {
       alert("Failed to check out. Please try again.");
     }
   };
@@ -119,6 +124,17 @@ export default function AttendancePage() {
   };
 
   const isActive = activeAttendance?.status === AttendanceStatus.ACTIVE;
+  const recentCheckInCount = (() => {
+    const since24Hours = Date.now() - 24 * 60 * 60 * 1000;
+    const records = historyData?.data ?? [];
+    return records.filter((record) => {
+      if (!record?.checkInTime) return false;
+      const checkInTime = new Date(record.checkInTime).getTime();
+      return Number.isFinite(checkInTime) && checkInTime >= since24Hours;
+    }).length;
+  })();
+  const canCheckIn = !isActive && recentCheckInCount < 2;
+  const remainingCheckIns = Math.max(2 - recentCheckInCount, 0);
 
   const columns = createAttendanceColumns();
 
@@ -248,13 +264,29 @@ export default function AttendancePage() {
 
                   <Button
                     onClick={handleCheckIn}
-                    disabled={isCheckingIn}
+                    disabled={isCheckingIn || !canCheckIn}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-lg font-semibold"
                     size="lg"
                   >
                     <PlayCircle className="h-6 w-6 mr-2" />
-                    {isCheckingIn ? "Checking In..." : "Check In"}
+                    {isCheckingIn
+                      ? "Checking In..."
+                      : !canCheckIn
+                        ? "Limit Reached"
+                        : "Check In"}
                   </Button>
+                  {!canCheckIn && (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+                      You have reached the maximum of 2 check-ins in the last 24
+                      hours.
+                    </div>
+                  )}
+                  {canCheckIn && (
+                    <p className="text-xs text-muted-foreground">
+                      Remaining check-ins in the current 24-hour window:{" "}
+                      {remainingCheckIns}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

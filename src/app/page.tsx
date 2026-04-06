@@ -11,15 +11,18 @@ export default function Home() {
     (state) => state.auth,
   );
 
+  const getLandingPath = (role?: Role) => {
+    if (role === Role.CUSTOMER) return "/attendance";
+    if (role === Role.CASHIER) return "/subscriptions";
+    if (role === Role.TRAINER) return "/users";
+    if (role === Role.OWNER) return "/users";
+    return "/attendance";
+  };
+
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated && user) {
-        // Redirect based on user role
-        if (user.role === Role.CUSTOMER) {
-          router.push("/attendance");
-        } else {
-          router.push("/users");
-        }
+        router.push(getLandingPath(user.role));
       } else {
         // Redirect unauthenticated users to login
         router.push("/auth/login");

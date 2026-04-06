@@ -17,7 +17,6 @@ import { TooltipProvider } from "@/src/components/ui/tooltip";
 import Link from "next/link";
 import {
   Users,
-  CreditCard,
   Calendar,
   LogOut,
   User,
@@ -25,9 +24,9 @@ import {
   TrendingUp,
   DollarSign,
   Package,
-  FileText,
   UserCheck,
   Settings,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { useAppSelector } from "@/src/store/hooks";
@@ -48,7 +47,13 @@ const menuItems = [
     title: "Users",
     href: "/users",
     icon: Users,
-    roles: [Role.OWNER, Role.CASHIER, Role.TRAINER],
+    roles: [Role.OWNER, Role.TRAINER],
+  },
+  {
+    title: "Gym Profile",
+    href: "/profile",
+    icon: Building2,
+    roles: [Role.OWNER],
   },
   {
     title: "Gym Prices",
@@ -99,6 +104,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   // Auth pages that shouldn't show the sidebar
   const authPages = ["/login", "/register", "/forgot-password", "/auth"];
   const isAuthPage = authPages.some((page) => pathname?.startsWith(page));
+  const trainerSubscriptionHref =
+    user?.role === Role.TRAINER && user?._id
+      ? `/subscriptions?trainerId=${user._id}`
+      : null;
+  const footerProfileHref =
+    user?.role === Role.OWNER ? "/profile" : "/my-profile";
+  const footerProfileLabel =
+    user?.role === Role.OWNER ? "Gym Profile" : "Profile Settings";
 
   useEffect(() => {
     if (!isAuthenticated && !isAuthPage) {
@@ -126,6 +139,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated) {
     return null;
   }
+
+  const subscriptionsMenuHref =
+    user?.role === Role.TRAINER
+      ? trainerSubscriptionHref ?? "/subscriptions"
+      : "/subscriptions";
 
   // For authenticated pages, show sidebar layout
   return (
@@ -172,6 +190,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+              {user?.role === Role.TRAINER && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/subscriptions"}
+                    tooltip="My Subscriptions"
+                    className="px-3 py-2.5 hover:bg-slate-700 data-[active=true]:bg-white/10 data-[active=true]:text-white"
+                  >
+                    <Link
+                      href={subscriptionsMenuHref}
+                      className="flex items-center gap-3"
+                    >
+                      <Calendar className="h-5 w-5" />
+                      <span className="group-data-[collapsible=icon]:hidden font-medium">
+                        My Subscriptions
+                      </span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter className="border-t border-slate-700 mt-auto">
@@ -214,9 +252,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/profile" className="cursor-pointer">
+                      <Link href={footerProfileHref} className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
-                        <span>Profile Settings</span>
+                        <span>{footerProfileLabel}</span>
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

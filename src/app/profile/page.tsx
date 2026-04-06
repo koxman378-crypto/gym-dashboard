@@ -1,50 +1,144 @@
 "use client";
 
 import * as React from "react";
-import { useAppSelector } from "@/src/store/hooks";
-import {
-  useGetMyProfileQuery,
-  useUpdateMyProfileMutation,
-  useGeneratePresignedUrlMutation,
-} from "@/src/store/services/usersApi";
-import { useLogoutMutation } from "@/src/store/services/authApi";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
-import { User, Camera, LogOut, Save, X } from "lucide-react";
-import { setUser } from "@/src/store/slices/authSlice";
-import { useDispatch } from "react-redux";
+import { Building2, Camera, LogOut, Save, X } from "lucide-react";
+import { useLogoutMutation } from "@/src/store/services/authApi";
+import { useGeneratePresignedUrlMutation } from "@/src/store/services/usersApi";
+import {
+  useGetGymProfileQuery,
+  useUpdateGymProfileMutation,
+} from "@/src/store/services/gymProfileApi";
+import type { GymProfile } from "@/src/types/type";
 
-export default function ProfilePage() {
+type GymProfileFormState = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  logo: string;
+  latitude: string;
+  longitude: string;
+  locationLabel: string;
+  googleMapsUrl: string;
+  description: string;
+  coverImage: string;
+  facebook: string;
+  instagram: string;
+  tiktok: string;
+  isActive: boolean;
+  isEditing: boolean;
+  uploadingImage: boolean;
+  uploadError: string | null;
+  successMessage: string | null;
+};
+
+type GymProfileAction =
+  | { type: "hydrate"; payload?: GymProfile }
+  | {
+      type: "set_field";
+      field: keyof Omit<
+        GymProfileFormState,
+        "isEditing" | "uploadingImage" | "uploadError" | "successMessage"
+      >;
+      value: string | boolean;
+    }
+  | { type: "set_editing"; value: boolean }
+  | { type: "set_uploading"; value: boolean }
+  | { type: "set_error"; value: string | null }
+  | { type: "set_success"; value: string | null }
+  | { type: "reset"; payload?: GymProfile };
+
+const emptyFormState = {
+  name: "",
+  email: "",
+  phone: "",
+  address: "",
+  logo: "",
+  latitude: "",
+  longitude: "",
+  locationLabel: "",
+  googleMapsUrl: "",
+  description: "",
+  coverImage: "",
+  facebook: "",
+  instagram: "",
+  tiktok: "",
+  isActive: true,
+  isEditing: false,
+  uploadingImage: false,
+  uploadError: null,
+  successMessage: null,
+};
+
+function gymProfileReducer(
+  state: GymProfileFormState,
+  action: GymProfileAction,
+): GymProfileFormState {
+  switch (action.type) {
+    case "hydrate":
+    case "reset":
+      return {
+        ...emptyFormState,
+        name: action.payload?.name || "",
+        email: action.payload?.email || "",
+        phone: action.payload?.phone || "",
+        address: action.payload?.address || "",
+        logo: action.payload?.logo || "",
+        coverImage: action.payload?.coverImage || "",
+        latitude:
+          action.payload?.latitude === null ||
+          action.payload?.latitude === undefined
+            ? ""
+            : String(action.payload.latitude),
+        longitude:
+          action.payload?.longitude === null ||
+          action.payload?.longitude === undefined
+            ? ""
+            : String(action.payload.longitude),
+        locationLabel: action.payload?.locationLabel || "",
+        googleMapsUrl: action.payload?.googleMapsUrl || "",
+        description: action.payload?.description || "",
+        facebook: action.payload?.facebook || "",
+        instagram: action.payload?.instagram || "",
+        tiktok: action.payload?.tiktok || "",
+        isActive: action.payload?.isActive ?? true,
+      };
+    case "set_field":
+      return { ...state, [action.field]: action.value };
+    case "set_editing":
+      return { ...state, isEditing: action.value };
+    case "set_uploading":
+      return { ...state, uploadingImage: action.value };
+    case "set_error":
+      return { ...state, uploadError: action.value };
+    case "set_success":
+      return { ...state, successMessage: action.value };
+    default:
+      return state;
+  }
+}
+
+export default function GymProfilePage() {
   const router = useRouter();
-  const dispatch = useDispatch();
-  const { user: authUser } = useAppSelector((state) => state.auth);
   const { data: profileData, isLoading: profileLoading } =
-    useGetMyProfileQuery();
-
-  const [updateProfile, { isLoading: isUpdating }] =
-    useUpdateMyProfileMutation();
+    useGetGymProfileQuery();
+  const [updateGymProfile, { isLoading: isUpdating }] =
+    useUpdateGymProfileMutation();
   const [generatePresignedUrl] = useGeneratePresignedUrlMutation();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
-  const [nickname, setNickname] = React.useState("");
-  const [avatar, setAvatar] = React.useState("");
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [uploadingImage, setUploadingImage] = React.useState(false);
-  const [uploadError, setUploadError] = React.useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(
-    null,
+  const [state, dispatch] = React.useReducer(
+    gymProfileReducer,
+    emptyFormState,
   );
-
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Initialize form with profile data
   React.useEffect(() => {
-    if (profileData) {
-      setNickname(profileData.nickname || "");
-      setAvatar(profileData.avatar || "");
-    }
+    dispatch({ type: "hydrate", payload: profileData });
   }, [profileData]);
 
   const handleLogout = async () => {
@@ -62,43 +156,33 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
-      setUploadError("Please select an image file");
+      dispatch({ type: "set_error", value: "Please select an image file" });
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError("Image size must be less than 5MB");
+      dispatch({
+        type: "set_error",
+        value: "Image size must be less than 5MB",
+      });
       return;
     }
 
-    setUploadingImage(true);
-    setUploadError(null);
+    dispatch({ type: "set_uploading", value: true });
+    dispatch({ type: "set_error", value: null });
 
     try {
-      // Step 1: Get presigned URL from backend
       const response = await generatePresignedUrl({
         fileName: file.name,
         contentType: file.type,
       }).unwrap();
 
-      // Validate response
-      if (!response.uploadUrl) {
-        throw new Error("Backend didn't return upload URL");
+      if (!response.uploadUrl || !response.publicUrl) {
+        throw new Error("Backend didn't return upload information");
       }
 
-      if (!response.publicUrl) {
-        throw new Error(
-          "Backend didn't return public URL. Check S3Service configuration.",
-        );
-      }
-
-      const { uploadUrl, publicUrl } = response;
-
-      // Step 2: Upload directly to S3 using presigned URL
-      const uploadResponse = await fetch(uploadUrl, {
+      const uploadResponse = await fetch(response.uploadUrl, {
         method: "PUT",
         body: file,
         headers: {
@@ -113,34 +197,33 @@ export default function ProfilePage() {
         );
       }
 
-      // Step 3: Set the avatar URL (this will trigger edit mode)
-      setAvatar(publicUrl);
-      setIsEditing(true);
-      setSuccessMessage(
-        "Image uploaded! Click 'Save Changes' to update your profile.",
-      );
-
-      // Auto-dismiss success message after 5 seconds
-      setTimeout(() => {
-        if (isEditing) {
-          setSuccessMessage(null);
-        }
-      }, 5000);
+      dispatch({ type: "set_field", field: "logo", value: response.publicUrl });
+      dispatch({ type: "set_editing", value: true });
+      dispatch({
+        type: "set_success",
+        value: "Logo uploaded! Click 'Save Changes' to update the gym profile.",
+      });
     } catch (error: any) {
       if (error?.status === 404) {
-        setUploadError(
-          "Upload endpoint not found. Please restart the backend server.",
-        );
+        dispatch({
+          type: "set_error",
+          value: "Upload endpoint not found. Please restart the backend server.",
+        });
       } else if (error?.data?.message) {
-        setUploadError(`Upload failed: ${error.data.message}`);
+        dispatch({
+          type: "set_error",
+          value: `Upload failed: ${error.data.message}`,
+        });
       } else if (error?.message) {
-        setUploadError(`Upload failed: ${error.message}`);
+        dispatch({ type: "set_error", value: `Upload failed: ${error.message}` });
       } else {
-        setUploadError("Failed to upload image. Please try again.");
+        dispatch({
+          type: "set_error",
+          value: "Failed to upload image. Please try again.",
+        });
       }
     } finally {
-      setUploadingImage(false);
-      // Reset file input so same file can be uploaded again
+      dispatch({ type: "set_uploading", value: false });
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -149,98 +232,173 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      setUploadError(null);
+      dispatch({ type: "set_error", value: null });
 
-      // Build update payload - only send changed fields
-      const updateData: {
-        name?: string;
-        nickname?: string;
-        phone?: string;
-        address?: string;
-        avatar?: string;
-      } = {};
+      const name = state.name.trim();
+      const email = state.email.trim();
+      const phone = state.phone.trim();
+      const address = state.address.trim();
+      const latitude = state.latitude.trim();
+      const longitude = state.longitude.trim();
 
-      // Only include nickname if it has a value
-      if (nickname && nickname.trim()) {
-        updateData.nickname = nickname.trim();
+      if (!name) {
+        dispatch({ type: "set_error", value: "Gym name is required" });
+        return;
       }
-
-      // Only include avatar if it has a value
-      if (avatar) {
-        updateData.avatar = avatar;
+      if (!email) {
+        dispatch({ type: "set_error", value: "Email is required" });
+        return;
       }
-
-      // If no changes, just exit edit mode
-      if (Object.keys(updateData).length === 0) {
-        setIsEditing(false);
-        setSuccessMessage("No changes to save");
-        setTimeout(() => setSuccessMessage(null), 2000);
+      if (!phone) {
+        dispatch({ type: "set_error", value: "Phone is required" });
+        return;
+      }
+      if (!/^\d{9,11}$/.test(phone)) {
+        dispatch({
+          type: "set_error",
+          value: "Phone must contain 9 to 11 digits only",
+        });
+        return;
+      }
+      if (!address) {
+        dispatch({ type: "set_error", value: "Address is required" });
+        return;
+      }
+      if (!latitude) {
+        dispatch({ type: "set_error", value: "Latitude is required" });
+        return;
+      }
+      if (!longitude) {
+        dispatch({ type: "set_error", value: "Longitude is required" });
         return;
       }
 
-      // Call the update API
-      const updatedUser = await updateProfile(updateData).unwrap();
+      const parsedLatitude = Number(latitude);
+      if (Number.isNaN(parsedLatitude)) {
+        dispatch({
+          type: "set_error",
+          value: "Latitude must be a valid number",
+        });
+        return;
+      }
 
-      // Update Redux state with new user data
-      dispatch(
-        setUser({
-          id: updatedUser._id,
-          _id: updatedUser._id,
-          email: updatedUser.email,
-          name: updatedUser.name,
-          nickname: updatedUser.nickname || undefined,
-          role: updatedUser.role,
-          avatar: updatedUser.avatar || undefined,
-          isActive: updatedUser.isActive,
-        }),
-      );
+      const parsedLongitude = Number(longitude);
+      if (Number.isNaN(parsedLongitude)) {
+        dispatch({
+          type: "set_error",
+          value: "Longitude must be a valid number",
+        });
+        return;
+      }
 
-      setIsEditing(false);
-      setSuccessMessage("Profile updated successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000);
+      const updateData = {
+        name,
+        email,
+        phone,
+        address,
+        latitude: parsedLatitude,
+        longitude: parsedLongitude,
+        isActive: state.isActive,
+        ...(state.logo ? { logo: state.logo } : {}),
+        ...(state.locationLabel.trim()
+          ? { locationLabel: state.locationLabel.trim() }
+          : {}),
+        ...(state.googleMapsUrl.trim()
+          ? { googleMapsUrl: state.googleMapsUrl.trim() }
+          : {}),
+        ...(state.description.trim()
+          ? { description: state.description.trim() }
+          : {}),
+        ...(state.coverImage ? { coverImage: state.coverImage } : {}),
+        ...(state.facebook.trim() ? { facebook: state.facebook.trim() } : {}),
+        ...(state.instagram.trim()
+          ? { instagram: state.instagram.trim() }
+          : {}),
+        ...(state.tiktok.trim() ? { tiktok: state.tiktok.trim() } : {}),
+      };
+
+      const updatedProfile = await updateGymProfile(updateData).unwrap();
+
+      if (updatedProfile?.logo) {
+        dispatch({ type: "set_field", field: "logo", value: updatedProfile.logo });
+      }
+      if (updatedProfile?.coverImage) {
+        dispatch({
+          type: "set_field",
+          field: "coverImage",
+          value: updatedProfile.coverImage,
+        });
+      }
+      if (updatedProfile?.latitude !== undefined && updatedProfile?.latitude !== null) {
+        dispatch({
+          type: "set_field",
+          field: "latitude",
+          value: String(updatedProfile.latitude),
+        });
+      }
+      if (updatedProfile?.longitude !== undefined && updatedProfile?.longitude !== null) {
+        dispatch({
+          type: "set_field",
+          field: "longitude",
+          value: String(updatedProfile.longitude),
+        });
+      }
+
+      dispatch({ type: "set_editing", value: false });
+      dispatch({ type: "set_success", value: "Gym profile updated successfully!" });
+      setTimeout(() => dispatch({ type: "set_success", value: null }), 3000);
     } catch (error: any) {
-      // Handle error messages
       if (error?.data?.message) {
         const errorMsg = Array.isArray(error.data.message)
           ? error.data.message.join(", ")
           : error.data.message;
-        setUploadError(`Update failed: ${errorMsg}`);
+        dispatch({ type: "set_error", value: `Update failed: ${errorMsg}` });
       } else {
-        setUploadError("Failed to update profile. Please try again.");
+        dispatch({
+          type: "set_error",
+          value: "Failed to update gym profile. Please try again.",
+        });
       }
     }
   };
 
   const handleCancel = () => {
-    // Reset to original values
-    if (profileData) {
-      setNickname(profileData.nickname || "");
-      setAvatar(profileData.avatar || "");
-    }
-    setIsEditing(false);
-    setUploadError(null);
-    setSuccessMessage(null);
+    dispatch({ type: "reset", payload: profileData });
+    dispatch({ type: "set_error", value: null });
+    dispatch({ type: "set_success", value: null });
+  };
+
+  const setField = (
+    field: keyof Omit<
+      GymProfileFormState,
+      "isEditing" | "uploadingImage" | "uploadError" | "successMessage"
+    >,
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: "set_field", field, value: e.target.value });
+    dispatch({ type: "set_editing", value: true });
   };
 
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-[#0F172B] flex items-center justify-center">
-        <div className="text-slate-400">Loading profile...</div>
+        <div className="text-slate-400">Loading gym profile...</div>
       </div>
     );
   }
-
-  const currentUser = profileData || authUser;
 
   return (
     <div className="min-h-screen bg-[#0F172B]">
       <div className="p-6 max-w-4xl mx-auto">
         <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 p-6">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-white">
-              Profile Settings
-            </h2>
+            <div>
+              <h2 className="text-2xl font-semibold text-white">
+                Gym Profile
+              </h2>
+                <p className="text-sm text-slate-400 mt-1">
+                Owner-only gym information and branding
+              </p>
+            </div>
             <Button
               variant="destructive"
               onClick={handleLogout}
@@ -252,41 +410,38 @@ export default function ProfilePage() {
             </Button>
           </div>
 
-          {/* Success Message */}
-          {successMessage && (
+          {state.successMessage && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-700">{successMessage}</p>
+              <p className="text-sm text-green-700">{state.successMessage}</p>
             </div>
           )}
 
-          {/* Error Message */}
-          {uploadError && (
+          {state.uploadError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-700">{uploadError}</p>
+              <p className="text-sm text-red-700">{state.uploadError}</p>
             </div>
           )}
 
-          {/* Avatar Section */}
-          <div className="mb-6">
-            <Label className="text-sm font-medium text-slate-300 mb-2 block">
-              Profile Picture
+            <div className="mb-6">
+              <Label className="text-sm font-medium text-slate-300 mb-2 block">
+                Gym Logo
             </Label>
             <div className="flex items-center gap-4">
               <div className="relative">
-                {avatar ? (
+                {state.logo ? (
                   <img
-                    src={avatar}
-                    alt="Profile"
+                    src={state.logo}
+                    alt="Gym logo"
                     className="h-24 w-24 rounded-full object-cover border-2 border-slate-700"
                   />
                 ) : (
                   <div className="h-24 w-24 rounded-full bg-slate-600 flex items-center justify-center">
-                    <User className="h-12 w-12 text-slate-400" />
+                    <Building2 className="h-12 w-12 text-slate-400" />
                   </div>
                 )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingImage}
+                  disabled={state.uploadingImage}
                   className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 transition-colors"
                 >
                   <Camera className="h-4 w-4" />
@@ -297,17 +452,17 @@ export default function ProfilePage() {
                   accept="image/*"
                   className="hidden"
                   onChange={handleImageUpload}
-                  disabled={uploadingImage}
+                  disabled={state.uploadingImage}
                 />
               </div>
               <div className="flex-1">
                 <p className="text-sm text-slate-400">
-                  Click the camera icon to upload a new profile picture
+                  Click the camera icon to upload a new gym logo
                 </p>
                 <p className="text-xs text-slate-400 mt-1">
                   JPG, PNG or GIF. Max size 5MB.
                 </p>
-                {uploadingImage && (
+                {state.uploadingImage && (
                   <p className="text-sm text-blue-600 mt-2">
                     Uploading image...
                   </p>
@@ -316,72 +471,189 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* User Information */}
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="text-sm font-medium text-slate-300">Name</Label>
+              <Label className="text-sm font-medium text-slate-300">
+                Gym Name
+              </Label>
               <Input
-                value={currentUser?.name || ""}
-                disabled
-                className="mt-1 bg-[#0F172B]"
+                value={state.name}
+                onChange={setField("name")}
+                placeholder="Enter gym name"
+                className="mt-1"
               />
-              <p className="text-xs text-slate-400 mt-1">
-                Name cannot be changed
-              </p>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">Email</Label>
+              <Input
+                value={state.email}
+                onChange={setField("email")}
+                placeholder="Enter gym email"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">Phone</Label>
+              <Input
+                value={state.phone}
+                onChange={setField("phone")}
+                placeholder="Enter gym phone"
+                className="mt-1"
+              />
             </div>
 
             <div>
               <Label className="text-sm font-medium text-slate-300">
-                Email
+                Location Label
               </Label>
               <Input
-                value={currentUser?.email || ""}
-                disabled
-                className="mt-1 bg-[#0F172B]"
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                Email cannot be changed
-              </p>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">Role</Label>
-              <Input
-                value={currentUser?.role || ""}
-                disabled
-                className="mt-1 bg-[#0F172B] capitalize"
-              />
-            </div>
-
-            <div>
-              <Label
-                htmlFor="nickname"
-                className="text-sm font-medium text-slate-300"
-              >
-                Nickname (Optional)
-              </Label>
-              <Input
-                id="nickname"
-                value={nickname}
-                onChange={(e) => {
-                  setNickname(e.target.value);
-                  setIsEditing(true);
-                }}
-                placeholder="Enter your nickname"
+                value={state.locationLabel}
+                onChange={setField("locationLabel")}
+                placeholder="Downtown Branch"
                 className="mt-1"
               />
-              <p className="text-xs text-slate-400 mt-1">
-                This is how others will see you in the app
-              </p>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                Google Maps URL
+              </Label>
+              <Input
+                value={state.googleMapsUrl}
+                onChange={setField("googleMapsUrl")}
+                placeholder="https://maps.google.com/?q=..."
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                Description
+              </Label>
+              <Input
+                value={state.description}
+                onChange={setField("description")}
+                placeholder="Open daily 6AM - 10PM"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                Latitude
+              </Label>
+              <Input
+                value={state.latitude}
+                onChange={setField("latitude")}
+                placeholder="16.825808"
+                className="mt-1"
+                inputMode="decimal"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                Longitude
+              </Label>
+              <Input
+                value={state.longitude}
+                onChange={setField("longitude")}
+                placeholder="96.123456"
+                className="mt-1"
+                inputMode="decimal"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                Cover Image URL
+              </Label>
+              <Input
+                value={state.coverImage}
+                onChange={setField("coverImage")}
+                placeholder="https://cdn.example.com/gym-cover.jpg"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                Facebook
+              </Label>
+              <Input
+                value={state.facebook}
+                onChange={setField("facebook")}
+                placeholder="https://facebook.com/..."
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                Instagram
+              </Label>
+              <Input
+                value={state.instagram}
+                onChange={setField("instagram")}
+                placeholder="https://instagram.com/..."
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-slate-300">
+                TikTok
+              </Label>
+              <Input
+                value={state.tiktok}
+                onChange={setField("tiktok")}
+                placeholder="https://tiktok.com/@..."
+                className="mt-1"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <Label className="text-sm font-medium text-slate-300">
+                Address
+              </Label>
+              <Input
+                value={state.address}
+                onChange={setField("address")}
+                placeholder="Enter gym address"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="md:col-span-2 flex items-center justify-between rounded-lg border border-slate-700 bg-[#0F172B] px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-slate-200">Active</p>
+                <p className="text-xs text-slate-400">
+                  Toggle gym profile visibility
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={state.isActive}
+                onChange={(e) => {
+                  dispatch({
+                    type: "set_field",
+                    field: "isActive",
+                    value: e.target.checked,
+                  });
+                  dispatch({ type: "set_editing", value: true });
+                }}
+                className="h-4 w-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
+              />
             </div>
           </div>
 
-          {/* Action Buttons */}
-          {isEditing && (
+          {state.isEditing && (
             <div className="flex gap-3 mt-6 pt-6 border-t border-slate-700">
               <Button
                 onClick={handleSave}
-                disabled={isUpdating || uploadingImage}
+                disabled={isUpdating || state.uploadingImage}
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
@@ -390,7 +662,7 @@ export default function ProfilePage() {
               <Button
                 variant="outline"
                 onClick={handleCancel}
-                disabled={isUpdating || uploadingImage}
+                disabled={isUpdating || state.uploadingImage}
                 className="flex items-center gap-2"
               >
                 <X className="h-4 w-4" />

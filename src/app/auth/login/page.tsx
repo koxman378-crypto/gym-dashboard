@@ -16,14 +16,18 @@ export default function LoginPage() {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const [login, { isLoading, error }] = useLoginMutation();
 
+  const getLandingPath = (role?: Role) => {
+    if (role === Role.CUSTOMER) return "/attendance";
+    if (role === Role.CASHIER) return "/subscriptions";
+    if (role === Role.TRAINER) return "/users";
+    if (role === Role.OWNER) return "/users";
+    return "/attendance";
+  };
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === Role.CUSTOMER) {
-        router.push("/attendance");
-      } else {
-        router.push("/users");
-      }
+      router.push(getLandingPath(user.role));
     }
   }, [isAuthenticated, user, router]);
 
@@ -65,12 +69,7 @@ export default function LoginPage() {
 
     try {
       const response = await login(formData).unwrap();
-      // Redirect based on user role
-      if (response.user.role === Role.CUSTOMER) {
-        router.push("/attendance");
-      } else {
-        router.push("/users");
-      }
+      router.push(getLandingPath(response.user.role));
     } catch (err: any) {}
   };
 

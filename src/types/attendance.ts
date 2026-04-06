@@ -35,6 +35,14 @@ export interface AttendanceHistoryResponse {
   };
 }
 
+export interface CheckInLimitStatus {
+  limit: number;
+  checkInCount: number;
+  remainingCheckIns: number;
+  canCheckIn: boolean;
+  nextAllowedCheckInAt?: string | null;
+}
+
 export interface MonthlyStats {
   year: number;
   month: number;

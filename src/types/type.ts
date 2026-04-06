@@ -144,6 +144,45 @@ export interface UserStatistics {
   newUsersThisMonth: number;
 }
 
+export interface GymProfile {
+  _id?: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  logo?: string | null;
+  coverImage?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationLabel?: string | null;
+  googleMapsUrl?: string | null;
+  description?: string | null;
+  facebook?: string | null;
+  instagram?: string | null;
+  tiktok?: string | null;
+  isActive?: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface UpdateGymProfileDto {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  logo?: string;
+  latitude?: number;
+  longitude?: number;
+  locationLabel?: string;
+  googleMapsUrl?: string;
+  description?: string;
+  coverImage?: string;
+  facebook?: string;
+  instagram?: string;
+  tiktok?: string;
+  isActive?: boolean;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

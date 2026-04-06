@@ -21,477 +21,224 @@ import {
   SelectValue,
 } from "@/src/components/ui/select";
 import {
-  useGetAllGymPriceGroupsQuery,
-  useCreateGymPriceGroupMutation,
-  useUpdateGymPriceGroupMutation,
-  useDeleteGymPriceGroupMutation,
-  useToggleGymPriceGroupMutation,
-  useToggleGymPriceItemMutation,
+  useCreateGymFeeRecordMutation,
+  useDeleteGymFeeRecordMutation,
+  useGetAllGymFeeRecordsQuery,
+  useUpdateGymFeeRecordMutation,
 } from "@/src/store/services/customFeesApi";
 import type {
-  GymPriceGroup,
-  GymPriceItem,
-  CreateGymPriceDto,
+  GymFeeRecord,
+  CreateGymFeeRecordDto,
   DurationUnit,
   PromotionType,
 } from "@/src/types/extended-types";
 
+type GymFeeFormState = {
+  name: string;
+  amount: number;
+  duration: number;
+  durationUnit: DurationUnit;
+  promotionType: Exclude<PromotionType, null> | "none";
+  promotionValue: number | "";
+  isActive: boolean;
+};
+
+const emptyFormState: GymFeeFormState = {
+  name: "",
+  amount: 0,
+  duration: 1,
+  durationUnit: "months",
+  promotionType: "none",
+  promotionValue: "",
+  isActive: true,
+};
+
 export default function GymPricesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<GymPriceGroup | null>(
-    null,
-  );
-  const [formData, setFormData] = useState<CreateGymPriceDto>({
-    name: "",
-    prices: [],
-    isActive: false,
+  const [selectedFee, setSelectedFee] = useState<GymFeeRecord | null>(null);
+  const [formData, setFormData] = useState<GymFeeFormState>(emptyFormState);
+
+  const { data: gymFees = [], isLoading } = useGetAllGymFeeRecordsQuery({
+    active: undefined,
   });
+  const [createFee] = useCreateGymFeeRecordMutation();
+  const [updateFee] = useUpdateGymFeeRecordMutation();
+  const [deleteFee] = useDeleteGymFeeRecordMutation();
 
-  const { data: gymPriceGroups = [], isLoading } = useGetAllGymPriceGroupsQuery(
-    {},
-  );
-  const [createGroup] = useCreateGymPriceGroupMutation();
-  const [updateGroup] = useUpdateGymPriceGroupMutation();
-  const [deleteGroup] = useDeleteGymPriceGroupMutation();
-  const [toggleGroup] = useToggleGymPriceGroupMutation();
-  const [toggleItem] = useToggleGymPriceItemMutation();
-
-  const calculateFinalPrice = (item: Omit<GymPriceItem, "_id">) => {
-    if (!item.promotionType || !item.promotionValue) return item.amount;
-    if (item.promotionType === "percentage") {
-      return item.amount - (item.amount * item.promotionValue) / 100;
-    }
-    return item.amount - item.promotionValue;
-  };
-
-  const addPriceRow = () => {
-    setFormData({
-      ...formData,
-      prices: [
-        ...formData.prices,
-        {
-          duration: 1,
-          durationUnit: "months" as DurationUnit,
-          amount: 0,
-          promotionType: null,
-          promotionValue: null,
-          isActive: true,
-        },
-      ],
-    });
-  };
-
-  const updatePriceRow = (
-    index: number,
-    field: keyof GymPriceItem,
-    value: any,
-  ) => {
-    const newPrices = [...formData.prices];
-    newPrices[index] = { ...newPrices[index], [field]: value };
-    setFormData({ ...formData, prices: newPrices });
-  };
-
-  const removePriceRow = (index: number) => {
-    setFormData({
-      ...formData,
-      prices: formData.prices.filter((_, i) => i !== index),
-    });
+  const resetForm = () => {
+    setFormData(emptyFormState);
+    setSelectedFee(null);
   };
 
   const handleCreate = async () => {
     try {
-      await createGroup(formData).unwrap();
+      const payload: CreateGymFeeRecordDto = {
+        name: formData.name.trim(),
+        amount: formData.amount,
+        duration: formData.duration,
+        durationUnit: formData.durationUnit,
+        promotionType:
+          formData.promotionType === "none" ? undefined : formData.promotionType,
+        promotionValue:
+          formData.promotionValue === "" ? undefined : formData.promotionValue,
+        isActive: formData.isActive,
+      };
+
+      await createFee(payload).unwrap();
       setIsCreateDialogOpen(false);
       resetForm();
-    } catch (error) {}
+    } catch (error: any) {
+      alert(error?.data?.message || "Failed to create gym fee");
+    }
   };
 
-  const handleEdit = (group: GymPriceGroup) => {
-    if (!group._id) {
-      alert("Cannot edit group - ID is missing");
-      return;
-    }
-
-    setSelectedGroup(group);
+  const handleEdit = (fee: GymFeeRecord) => {
+    setSelectedFee(fee);
     setFormData({
-      name: group.name,
-      prices: group.prices.map((p) => ({
-        duration: p.duration,
-        durationUnit: p.durationUnit,
-        amount: p.amount,
-        promotionType: p.promotionType,
-        promotionValue: p.promotionValue,
-        isActive: p.isActive,
-      })),
-      isActive: group.isActive,
+      name: fee.name,
+      amount: fee.amount,
+      duration: fee.duration,
+      durationUnit: fee.durationUnit,
+      promotionType: fee.promotionType ?? "none",
+      promotionValue: fee.promotionValue ?? "",
+      isActive: fee.isActive,
     });
     setIsEditDialogOpen(true);
   };
 
   const handleUpdate = async () => {
-    if (!selectedGroup) {
-      return;
-    }
-
-    if (!selectedGroup._id) {
-      alert("Cannot update group - ID is missing");
-      return;
-    }
+    if (!selectedFee?._id) return;
 
     try {
-      await updateGroup({ id: selectedGroup._id, data: formData }).unwrap();
+      await updateFee({
+        id: selectedFee._id,
+        data: {
+          name: formData.name.trim(),
+          amount: formData.amount,
+          duration: formData.duration,
+          durationUnit: formData.durationUnit,
+          promotionType:
+            formData.promotionType === "none"
+              ? undefined
+              : formData.promotionType,
+          promotionValue:
+            formData.promotionValue === "" ? undefined : formData.promotionValue,
+          isActive: formData.isActive,
+        },
+      }).unwrap();
       setIsEditDialogOpen(false);
       resetForm();
     } catch (error: any) {
-      alert(error?.data?.message || "Failed to update gym price group");
+      alert(error?.data?.message || "Failed to update gym fee");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this group?")) return;
+  const handleDelete = async (fee: GymFeeRecord) => {
+    if (!fee._id) return;
+    if (!confirm(`Delete ${fee.name}?`)) return;
     try {
-      await deleteGroup(id).unwrap();
-    } catch (error) {}
-  };
-
-  const handleToggleGroup = async (group: GymPriceGroup) => {
-    if (!group?._id) {
-      alert("Invalid gym price group - ID is missing");
-      return;
-    }
-
-    // If trying to activate this group, check if another is already active
-    if (!group.isActive) {
-      const activeGroup = gymPriceGroups.find(
-        (g) => g._id !== group._id && g.isActive,
-      );
-      if (activeGroup) {
-        const confirmActivate = confirm(
-          `Only one gym price group can be active at a time.\n\nCurrently active: "${activeGroup.name}"\n\nDo you want to deactivate "${activeGroup.name}" and activate "${group.name}" instead?`,
-        );
-        if (!confirmActivate) {
-          return;
-        }
-        // Deactivate the current active group first
-        try {
-          await toggleGroup(activeGroup._id).unwrap();
-        } catch (error: any) {
-          alert(
-            error?.data?.message ||
-              "Failed to deactivate current active group. Please try again.",
-          );
-          return;
-        }
-      }
-    }
-
-    try {
-      await toggleGroup(group._id).unwrap();
+      await deleteFee(fee._id).unwrap();
     } catch (error: any) {
-      alert(error?.data?.message || "Failed to toggle gym price group");
+      alert(error?.data?.message || "Failed to delete gym fee");
     }
   };
 
-  const handleToggleItem = async (groupId: string, itemId: string) => {
-    if (!groupId || !itemId) {
-      alert("Invalid price item");
-      return;
-    }
-
+  const handleToggle = async (fee: GymFeeRecord) => {
+    if (!fee._id) return;
     try {
-      await toggleItem({ groupId, itemId }).unwrap();
+      await updateFee({
+        id: fee._id,
+        data: { isActive: !fee.isActive },
+      }).unwrap();
     } catch (error: any) {
-      alert(error?.data?.message || "Failed to toggle gym price item");
+      alert(error?.data?.message || "Failed to update gym fee");
     }
   };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      prices: [],
-      isActive: false,
-    });
-    setSelectedGroup(null);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0F172B] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto"></div>
-          <p className="mt-4 text-slate-400">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Sort groups: active ones first, then by creation date
-  const sortedGymPriceGroups = [...gymPriceGroups].sort((a, b) => {
-    // Active groups come first
-    if (a.isActive && !b.isActive) return -1;
-    if (!a.isActive && b.isActive) return 1;
-    // Then sort by creation date (newest first)
-    return (
-      new Date(b.createdAt || 0).getTime() -
-      new Date(a.createdAt || 0).getTime()
-    );
-  });
 
   return (
-    <div className="min-h-screen bg-[#0F172B]">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header Section */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-8 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">
-                Gym Pricing Plans
-              </h1>
-              <p className="text-slate-400 mt-2 text-base">
-                Configure membership pricing tiers and promotions
-              </p>
-            </div>
-            <Button
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="bg-slate-100 text-slate-900 hover:bg-white shadow-sm font-semibold px-6 py-6"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Create Group
-            </Button>
-          </div>
+    <div className="min-h-screen bg-[#0F172B] p-6 text-white">
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-700 bg-slate-800 p-6">
+        <div>
+          <h1 className="text-3xl font-bold">Gym Prices</h1>
+          <p className="mt-1 text-slate-400">
+            Create flat gym fee items with amount, duration and promotion.
+          </p>
         </div>
-
-        {/* Price Groups Grid */}
-        <div className="grid gap-6">
-          {sortedGymPriceGroups.length === 0 ? (
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-12 text-center">
-              <div className="max-w-md mx-auto">
-                <div className="rounded-full bg-slate-700 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Plus className="h-8 w-8 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  No Price Groups Yet
-                </h3>
-                <p className="text-slate-400 mb-6">
-                  Create your first gym pricing group to get started
-                </p>
-                <Button
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-slate-100 text-slate-900 hover:bg-white"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create First Group
-                </Button>
-              </div>
-            </div>
-          ) : (
-            sortedGymPriceGroups.map((group) => (
-              <div
-                key={group._id}
-                className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-              >
-                {/* Group Header */}
-                <div className="bg-[#0F172B] border-b border-slate-700 p-6">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h2 className="text-xl font-bold text-white">
-                          {group.name}
-                        </h2>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                            group.isActive
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-slate-600 text-slate-300"
-                          }`}
-                        >
-                          {group.isActive ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-400">
-                        {group.prices.length} pricing tier
-                        {group.prices.length !== 1 ? "s" : ""} configured
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleGroup(group)}
-                        disabled={!group._id}
-                        className={
-                          group.isActive
-                            ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
-                            : "border-slate-600 hover:bg-slate-700 text-slate-400"
-                        }
-                      >
-                        {group.isActive ? (
-                          <>
-                            <ToggleRight className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">
-                              Active
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <ToggleLeft className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">
-                              Activate
-                            </span>
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(group)}
-                        className="border-slate-600 bg-slate-700 hover:bg-slate-600 text-slate-300"
-                      >
-                        <Edit className="h-4 w-4 mr-1.5" />
-                        <span className="text-xs font-semibold">Edit</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(group._id)}
-                        className="border-red-800 bg-red-950/50 hover:bg-red-950 text-red-400"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1.5" />
-                        <span className="text-xs font-semibold">Delete</span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pricing Table */}
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-slate-700">
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                            Duration
-                          </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                            Base Amount
-                          </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                            Promotion
-                          </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                            Final Price
-                          </th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                            Status
-                          </th>
-                          <th className="text-center py-3 px-4 text-sm font-semibold text-slate-300">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {group.prices.map((price, index) => {
-                          const finalPrice = calculateFinalPrice(price);
-                          const hasPromotion =
-                            price.promotionType && price.promotionValue;
-                          return (
-                            <tr
-                              key={price._id}
-                              className={`border-b border-slate-700 hover:bg-slate-700/40 transition-colors ${
-                                index === group.prices.length - 1
-                                  ? "border-b-0"
-                                  : ""
-                              }`}
-                            >
-                              <td className="py-4 px-4">
-                                <span className="font-medium text-white">
-                                  {price.duration} {price.durationUnit}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4">
-                                <span
-                                  className={`text-slate-300 ${
-                                    hasPromotion ? "line-through text-sm" : ""
-                                  }`}
-                                >
-                                  {price.amount.toLocaleString()} MMK
-                                </span>
-                              </td>
-                              <td className="py-4 px-4">
-                                {hasPromotion ? (
-                                  <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-900/40 text-amber-300 text-xs font-semibold">
-                                    -{price.promotionValue}
-                                    {price.promotionType === "percentage"
-                                      ? "%"
-                                      : " MMK"}
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-400 text-sm">
-                                    No promotion
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-4 px-4">
-                                <span className="text-lg font-bold text-white">
-                                  {finalPrice.toLocaleString()} MMK
-                                </span>
-                              </td>
-                              <td className="py-4 px-4">
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                    price.isActive
-                                      ? "bg-emerald-900/40 text-emerald-300"
-                                      : "bg-slate-600 text-slate-300"
-                                  }`}
-                                >
-                                  {price.isActive ? "Active" : "Inactive"}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 text-center">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleToggleItem(group._id, price._id)
-                                  }
-                                  className={
-                                    price.isActive
-                                      ? "border-emerald-700 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400"
-                                      : "border-slate-600 hover:bg-slate-700 text-slate-400"
-                                  }
-                                >
-                                  {price.isActive ? (
-                                    <>
-                                      <ToggleRight className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">
-                                        Active
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <ToggleLeft className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">
-                                        Inactive
-                                      </span>
-                                    </>
-                                  )}
-                                </Button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Fee
+        </Button>
       </div>
 
-      {/* Create/Edit Dialog */}
+      <div className="rounded-2xl border border-slate-700 bg-slate-800">
+        {isLoading ? (
+          <div className="p-6 text-center text-slate-300">Loading...</div>
+        ) : gymFees.length === 0 ? (
+          <div className="p-6 text-center text-slate-300">No gym fees found</div>
+        ) : (
+          <div className="divide-y divide-slate-700">
+            {gymFees.map((fee) => (
+              <div
+                key={fee._id}
+                className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between"
+              >
+                <div>
+                  <div className="font-semibold">{fee.name}</div>
+                  <div className="text-sm text-slate-400">
+                    {fee.amount.toLocaleString()} MMK per {fee.duration}{" "}
+                    {fee.durationUnit}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {fee.promotionType && fee.promotionValue !== null
+                      ? fee.promotionType === "percentage"
+                        ? `${fee.promotionValue}% promotion`
+                        : `${Number(fee.promotionValue).toLocaleString()} MMK promotion`
+                      : "No promotion"}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleToggle(fee)}
+                  >
+                    {fee.isActive ? (
+                      <ToggleRight className="h-4 w-4" />
+                    ) : (
+                      <ToggleLeft className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(fee)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(fee)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      fee.isActive
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-slate-600 text-slate-300"
+                    }`}
+                  >
+                    {fee.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <Dialog
         open={isCreateDialogOpen || isEditDialogOpen}
         onOpenChange={(open) => {
@@ -502,254 +249,143 @@ export default function GymPricesPage() {
           }
         }}
       >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              {isEditDialogOpen ? "Edit" : "Create"} Gym Price Group
+            <DialogTitle>
+              {isEditDialogOpen ? "Edit Gym Fee" : "Add Gym Fee"}
             </DialogTitle>
-            <DialogDescription className="text-base">
-              Configure your gym pricing tiers and promotional offers
+            <DialogDescription>
+              {isEditDialogOpen
+                ? "Update the gym fee item."
+                : "Create a gym fee item with amount, duration and optional promotion."}
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Group Name *</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
+                id="name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="e.g., Standard Pricing 2026"
-                className="border-slate-600"
               />
             </div>
-
-            <div className="flex items-center gap-3 p-4 bg-[#0F172B] rounded-lg border border-slate-700">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                min="0"
+                value={formData.amount}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: Number(e.target.value) })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  min="1"
+                  value={formData.duration}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      duration: Number(e.target.value) || 1,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Duration Unit</Label>
+                <Select
+                  value={formData.durationUnit}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      durationUnit: value as DurationUnit,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="days">Days</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                    <SelectItem value="years">Years</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Promotion Type</Label>
+                <Select
+                  value={formData.promotionType}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      promotionType: value as GymFeeFormState["promotionType"],
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No promotion" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="mmk">MMK</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="promotionValue">Promotion Value</Label>
+                <Input
+                  id="promotionValue"
+                  type="number"
+                  min="0"
+                  value={formData.promotionValue}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      promotionValue:
+                        e.target.value === ""
+                          ? ""
+                          : Number(e.target.value),
+                    })
+                  }
+                  placeholder="10"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-slate-700 bg-[#0F172B] px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-slate-200">Active</p>
+                <p className="text-xs text-slate-400">
+                  Toggle gym fee visibility
+                </p>
+              </div>
               <input
                 type="checkbox"
-                id="isActive"
                 checked={formData.isActive}
                 onChange={(e) =>
                   setFormData({ ...formData, isActive: e.target.checked })
                 }
-                className="w-4 h-4 text-white border-slate-600 rounded focus:ring-slate-500"
+                className="h-4 w-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
               />
-              <Label
-                htmlFor="isActive"
-                className="font-semibold cursor-pointer"
-              >
-                Set as Active Group
-              </Label>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label className="text-sm font-semibold">
-                  Price Tiers ({formData.prices.length})
-                </Label>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={addPriceRow}
-                  className="bg-slate-100 text-slate-900 hover:bg-white"
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add Tier
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {formData.prices.map((price, index) => (
-                  <div
-                    key={index}
-                    className="border border-slate-700 rounded-xl p-5 space-y-4 bg-[#0F172B]"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold text-slate-300">
-                        Tier {index + 1}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removePriceRow(index)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-950/50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-400">
-                          Duration *
-                        </Label>
-                        <Input
-                          type="number"
-                          value={price.duration}
-                          onChange={(e) =>
-                            updatePriceRow(
-                              index,
-                              "duration",
-                              parseInt(e.target.value),
-                            )
-                          }
-                          className="border-slate-600"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-400">
-                          Unit *
-                        </Label>
-                        <Select
-                          value={price.durationUnit}
-                          onValueChange={(value: DurationUnit) =>
-                            updatePriceRow(index, "durationUnit", value)
-                          }
-                        >
-                          <SelectTrigger className="border-slate-600">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="days">Days</SelectItem>
-                            <SelectItem value="months">Months</SelectItem>
-                            <SelectItem value="years">Years</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-slate-400">
-                        Amount (MMK) *
-                      </Label>
-                      <Input
-                        type="number"
-                        value={price.amount}
-                        onChange={(e) =>
-                          updatePriceRow(
-                            index,
-                            "amount",
-                            parseFloat(e.target.value),
-                          )
-                        }
-                        placeholder="50000"
-                        className="border-slate-600"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-400">
-                          Promotion Type
-                        </Label>
-                        <Select
-                          value={price.promotionType || "none"}
-                          onValueChange={(value) =>
-                            updatePriceRow(
-                              index,
-                              "promotionType",
-                              value === "none"
-                                ? null
-                                : (value as PromotionType),
-                            )
-                          }
-                        >
-                          <SelectTrigger className="border-slate-600">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No Promotion</SelectItem>
-                            <SelectItem value="percentage">
-                              Percentage (%)
-                            </SelectItem>
-                            <SelectItem value="mmk">
-                              Fixed Amount (MMK)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-400">
-                          Discount Value
-                        </Label>
-                        <Input
-                          type="number"
-                          value={price.promotionValue || ""}
-                          onChange={(e) =>
-                            updatePriceRow(
-                              index,
-                              "promotionValue",
-                              parseFloat(e.target.value) || null,
-                            )
-                          }
-                          placeholder={
-                            price.promotionType === "percentage" ? "10" : "5000"
-                          }
-                          disabled={!price.promotionType}
-                          className="border-slate-600"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-700">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id={`active-${index}`}
-                          checked={price.isActive}
-                          onChange={(e) =>
-                            updatePriceRow(index, "isActive", e.target.checked)
-                          }
-                          className="w-4 h-4 text-white border-slate-600 rounded focus:ring-slate-500"
-                        />
-                        <Label
-                          htmlFor={`active-${index}`}
-                          className="text-sm font-medium cursor-pointer"
-                        >
-                          Active
-                        </Label>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs text-slate-400 mb-1">
-                          Final Price
-                        </div>
-                        <div className="text-lg font-bold text-white">
-                          {calculateFinalPrice(price).toLocaleString()} MMK
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {formData.prices.length === 0 && (
-                <div className="text-center py-8 text-slate-400">
-                  <p>No pricing tiers added yet. Click "Add Tier" to start.</p>
-                </div>
-              )}
             </div>
           </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setIsCreateDialogOpen(false);
-                setIsEditDialogOpen(false);
-                resetForm();
-              }}
-            >
-              Cancel
-            </Button>
+          <DialogFooter>
             <Button
               type="button"
               onClick={isEditDialogOpen ? handleUpdate : handleCreate}
-              disabled={!formData.name || formData.prices.length === 0}
-              className="bg-slate-100 text-slate-900 hover:bg-white"
             >
-              {isEditDialogOpen ? "Update Group" : "Create Group"}
+              {isEditDialogOpen ? "Save Changes" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

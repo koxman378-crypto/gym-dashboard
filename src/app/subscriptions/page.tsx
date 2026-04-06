@@ -3,11 +3,8 @@
 import { useState, useMemo } from "react";
 import { Filter, Plus, Calendar, History, List } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  calculateGymFinalPrice,
-  calculateServiceFinalPrice,
-} from "@/src/lib/priceCalculations";
+import { useRouter, useSearchParams } from "next/navigation";
+import { calculateGymFinalPrice } from "@/src/lib/priceCalculations";
 import { DataTable } from "@/src/components/data-table/table-data";
 import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
 import { createSubscriptionColumns } from "./columns";
@@ -41,8 +38,8 @@ import {
   useDeleteSubscriptionMutation,
 } from "@/src/store/services/subscriptionsApi";
 import {
-  useGetAllGymPriceGroupsQuery,
-  useGetAllOtherServiceGroupsQuery,
+  useGetAllGymFeeRecordsQuery,
+  useGetAllOtherServiceItemsQuery,
 } from "@/src/store/services/customFeesApi";
 import {
   useGetAllCustomersQuery,
@@ -52,14 +49,16 @@ import { useAppSelector } from "@/src/store/hooks";
 import {
   Subscription,
   CreateSubscriptionDto,
-  GymPriceGroup,
-  OtherServiceGroup,
+  OtherServiceItem,
+  DurationUnit,
+  PromotionType,
 } from "@/src/types/extended-types";
 import { Role } from "@/src/types/type";
 
 // Remove mock data
 export default function SubscriptionsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -77,20 +76,32 @@ export default function SubscriptionsPage() {
     paidAmount: 0,
     trainerId: undefined as string | undefined,
     trainerFeeRowId: undefined as string | undefined,
+    trainerDuration: 1,
+    trainerDurationUnit: "months" as DurationUnit,
+    trainerPromotionType: "none" as Exclude<PromotionType, null> | "none",
+    trainerPromotionValue: "" as number | "",
     notes: undefined as string | undefined,
   });
-  const [selectedGymPriceGroupId, setSelectedGymPriceGroupId] =
-    useState<string>("");
-  const [selectedGymPriceRowId, setSelectedGymPriceRowId] =
-    useState<string>("");
-  const [selectedServiceRows, setSelectedServiceRows] = useState<{
-    [groupId: string]: string[];
-  }>({});
+  const [selectedGymFeeId, setSelectedGymFeeId] = useState<string>("");
+  const [selectedServices, setSelectedServices] = useState<
+    Record<
+      string,
+      {
+        duration: number;
+        durationUnit: DurationUnit;
+        promotionType: Exclude<PromotionType, null> | "none";
+        promotionValue: number | "";
+      }
+    >
+  >({});
 
   const currentUser = useAppSelector((state) => state.auth.user);
   const { isAuthenticated, accessToken } = useAppSelector(
     (state) => state.auth,
   );
+  const trainerIdFilter =
+    searchParams.get("trainerId") ||
+    (currentUser?.role === Role.TRAINER ? currentUser._id : undefined);
 
   // Fetch subscriptions with filters
   const {
@@ -101,6 +112,7 @@ export default function SubscriptionsPage() {
     status: statusFilter !== "all" ? statusFilter : undefined,
     page,
     limit,
+    trainerId: trainerIdFilter || undefined,
   });
   const subscriptions = subscriptionsData?.data ?? [];
   const paginationMeta = {
@@ -123,16 +135,16 @@ export default function SubscriptionsPage() {
   );
   const customers = customersData_?.data ?? [];
 
-  // Fetch active gym price groups
-  const { data: gymPriceGroups = [] } = useGetAllGymPriceGroupsQuery(
+  // Fetch active gym fees
+  const { data: gymFees = [] } = useGetAllGymFeeRecordsQuery(
     { active: true },
     {
       skip: !isAuthenticated || !accessToken || !isCreateDialogOpen,
     },
   );
 
-  // Fetch active service groups
-  const { data: serviceGroups = [] } = useGetAllOtherServiceGroupsQuery(
+  // Fetch active service items
+  const { data: serviceItems = [] } = useGetAllOtherServiceItemsQuery(
     { active: true },
     {
       skip: !isAuthenticated || !accessToken || !isCreateDialogOpen,
@@ -155,32 +167,30 @@ export default function SubscriptionsPage() {
     let otherServiceTotal = 0;
     let trainerFeeTotal = 0;
 
-    // Calculate gym price total
-    if (selectedGymPriceGroupId && selectedGymPriceRowId) {
-      const selectedGroup = gymPriceGroups.find(
-        (g) => g._id === selectedGymPriceGroupId,
-      );
-      if (selectedGroup) {
-        const selectedPrice = selectedGroup.prices.find(
-          (p) => p._id === selectedGymPriceRowId,
-        );
-        if (selectedPrice) {
-          gymPriceTotal = calculateGymFinalPrice(selectedPrice);
-        }
+    // Calculate gym fee total
+    if (selectedGymFeeId) {
+      const selectedFee = gymFees.find((fee) => fee._id === selectedGymFeeId);
+      if (selectedFee) {
+        gymPriceTotal = calculateGymFinalPrice(selectedFee);
       }
     }
 
     // Calculate other services total
-    Object.entries(selectedServiceRows).forEach(([groupId, serviceIds]) => {
-      const group = serviceGroups.find((g) => g._id === groupId);
-      if (group) {
-        serviceIds.forEach((serviceId) => {
-          const service = group.services.find((s) => s._id === serviceId);
-          if (service) {
-            otherServiceTotal += calculateServiceFinalPrice(service);
-          }
-        });
+    Object.entries(selectedServices).forEach(([serviceId, values]) => {
+      const service = serviceItems.find((item) => item._id === serviceId);
+      if (!service) return;
+      const baseTotal = service.amount * values.duration;
+      let finalPrice = baseTotal;
+      if (values.promotionType && values.promotionValue !== "") {
+        if (values.promotionType === "percentage") {
+          finalPrice = Math.round(
+            baseTotal - (baseTotal * Number(values.promotionValue)) / 100,
+          );
+        } else if (values.promotionType === "mmk") {
+          finalPrice = Math.max(0, baseTotal - Number(values.promotionValue));
+        }
       }
+      otherServiceTotal += finalPrice;
     });
 
     // Calculate trainer fee
@@ -193,18 +203,21 @@ export default function SubscriptionsPage() {
           (f) => f._id === formData.trainerFeeRowId,
         );
         if (selectedFee) {
-          // Calculate final price with promotion if applicable
-          let finalPrice = selectedFee.amount;
-          if (selectedFee.promotionType && selectedFee.promotionValue) {
-            if (selectedFee.promotionType === "percentage") {
+          const baseTotal = selectedFee.amount * formData.trainerDuration;
+          let finalPrice = baseTotal;
+          if (
+            formData.trainerPromotionType &&
+            formData.trainerPromotionValue !== ""
+          ) {
+            if (formData.trainerPromotionType === "percentage") {
               finalPrice = Math.round(
-                selectedFee.amount -
-                  (selectedFee.amount * selectedFee.promotionValue) / 100,
+                baseTotal -
+                  (baseTotal * Number(formData.trainerPromotionValue)) / 100,
               );
-            } else if (selectedFee.promotionType === "mmk") {
+            } else if (formData.trainerPromotionType === "mmk") {
               finalPrice = Math.max(
                 0,
-                selectedFee.amount - selectedFee.promotionValue,
+                baseTotal - Number(formData.trainerPromotionValue),
               );
             }
           }
@@ -224,14 +237,17 @@ export default function SubscriptionsPage() {
       remainingAmount,
     };
   }, [
-    selectedGymPriceGroupId,
-    selectedGymPriceRowId,
-    selectedServiceRows,
+    selectedGymFeeId,
+    selectedServices,
     formData.trainerId,
     formData.trainerFeeRowId,
+    formData.trainerDuration,
+    formData.trainerDurationUnit,
+    formData.trainerPromotionType,
+    formData.trainerPromotionValue,
     formData.paidAmount,
-    gymPriceGroups,
-    serviceGroups,
+    gymFees,
+    serviceItems,
     trainers,
   ]);
 
@@ -266,69 +282,64 @@ export default function SubscriptionsPage() {
           paidAmount: 0,
           trainerId: undefined,
           trainerFeeRowId: undefined,
+          trainerDuration: 1,
+          trainerDurationUnit: "months",
+          trainerPromotionType: "none",
+          trainerPromotionValue: "",
           notes: undefined,
         });
       } else {
         // Create new subscription
-        // Calculate end date based on selected gym price duration
-        let endDate = new Date(formData.startDate);
-
-        if (selectedGymPriceGroupId && selectedGymPriceRowId) {
-          // Find the selected gym price to get duration
-          const selectedGroup = gymPriceGroups.find(
-            (g) => g._id === selectedGymPriceGroupId,
-          );
-          const selectedPrice = selectedGroup?.prices.find(
-            (p) => p._id === selectedGymPriceRowId,
-          );
-
-          if (selectedPrice) {
-            if (selectedPrice.durationUnit === "days") {
-              endDate.setDate(endDate.getDate() + selectedPrice.duration);
-            } else if (selectedPrice.durationUnit === "months") {
-              endDate.setMonth(endDate.getMonth() + selectedPrice.duration);
-            } else if (selectedPrice.durationUnit === "years") {
-              endDate.setFullYear(
-                endDate.getFullYear() + selectedPrice.duration,
-              );
-            }
-          }
-        } else {
-          // Default to 1 month if no gym price selected
-          endDate.setMonth(endDate.getMonth() + 1);
-        }
-
         const dto: CreateSubscriptionDto = {
           customer: formData.customer,
           startDate: formData.startDate,
-          endDate: endDate.toISOString().split("T")[0],
           paymentStatus: formData.paymentStatus as any,
           paidAmount: formData.paidAmount,
           notes: formData.notes,
         };
 
-        // Add gym price group selection if any
-        if (selectedGymPriceGroupId && selectedGymPriceRowId) {
-          dto.gymPrice = {
-            groupId: selectedGymPriceGroupId,
-            priceRowId: selectedGymPriceRowId,
+        // Add gym fee selection if any
+        if (selectedGymFeeId) {
+          dto.gymFee = {
+            feeId: selectedGymFeeId,
           };
         }
 
         // Add service selections if any
-        if (Object.keys(selectedServiceRows).length > 0) {
-          dto.otherServices = Object.entries(selectedServiceRows).map(
-            ([groupId, serviceRowIds]) => ({
-              groupId,
-              serviceRowIds,
+        if (Object.keys(selectedServices).length > 0) {
+          dto.services = Object.entries(selectedServices).map(
+            ([serviceId, values]) => ({
+              serviceId,
+              duration: values.duration,
+              durationUnit: values.durationUnit,
+              promotionType:
+                values.promotionType === "none"
+                  ? undefined
+                  : values.promotionType,
+              promotionValue:
+                values.promotionValue === ""
+                  ? undefined
+                  : values.promotionValue,
             }),
           );
         }
 
         // Add trainer if selected
         if (formData.trainerId && formData.trainerFeeRowId) {
-          dto.trainerId = formData.trainerId;
-          dto.trainerFeeRowId = formData.trainerFeeRowId;
+          dto.trainer = {
+            trainerId: formData.trainerId,
+            trainerFeeId: formData.trainerFeeRowId,
+            duration: formData.trainerDuration,
+            durationUnit: formData.trainerDurationUnit,
+            promotionType:
+              formData.trainerPromotionType === "none"
+                ? undefined
+                : formData.trainerPromotionType,
+            promotionValue:
+              formData.trainerPromotionValue === ""
+                ? undefined
+                : formData.trainerPromotionValue,
+          };
         }
 
         const result = await createSubscription(dto).unwrap();
@@ -348,11 +359,14 @@ export default function SubscriptionsPage() {
           paidAmount: 0,
           trainerId: undefined,
           trainerFeeRowId: undefined,
+          trainerDuration: 1,
+          trainerDurationUnit: "months",
+          trainerPromotionType: "none",
+          trainerPromotionValue: "",
           notes: undefined,
         });
-        setSelectedGymPriceGroupId("");
-        setSelectedGymPriceRowId("");
-        setSelectedServiceRows({});
+        setSelectedGymFeeId("");
+        setSelectedServices({});
       }
     } catch (error: any) {
       const errorMessage =
@@ -363,32 +377,30 @@ export default function SubscriptionsPage() {
     }
   };
 
-  // Handle service row selection
-  const handleServiceRowToggle = (groupId: string, serviceRowId: string) => {
-    setSelectedServiceRows((prev) => {
-      const currentSelections = prev[groupId] || [];
-      const isSelected = currentSelections.includes(serviceRowId);
-
-      if (isSelected) {
-        // Remove from selection
-        const newSelections = currentSelections.filter(
-          (id) => id !== serviceRowId,
-        );
-        if (newSelections.length === 0) {
-          const { [groupId]: _, ...rest } = prev;
-          return rest;
-        }
-        return { ...prev, [groupId]: newSelections };
-      } else {
-        // Add to selection
-        return { ...prev, [groupId]: [...currentSelections, serviceRowId] };
+  const handleServiceToggle = (serviceId: string) => {
+    setSelectedServices((prev) => {
+      if (prev[serviceId]) {
+        const next = { ...prev };
+        delete next[serviceId];
+        return next;
       }
+
+      return {
+        ...prev,
+        [serviceId]: {
+          duration: 1,
+          durationUnit: "months",
+          promotionType: "none",
+          promotionValue: "",
+        },
+      };
     });
   };
 
   const canCreateSubscription =
     currentUser &&
     (currentUser.role === Role.OWNER || currentUser.role === Role.CASHIER);
+  const isTrainerView = currentUser?.role === Role.TRAINER;
 
   const handleCancelSubscription = async (subscription: Subscription) => {
     const customerName =
@@ -453,6 +465,23 @@ export default function SubscriptionsPage() {
           : undefined
         : undefined,
       trainerFeeRowId: undefined, // Not editable in update mode
+      trainerDuration:
+        subscription.trainer && typeof subscription.trainer === "object"
+          ? subscription.trainer.duration ?? 1
+          : 1,
+      trainerDurationUnit:
+        subscription.trainer && typeof subscription.trainer === "object"
+          ? (subscription.trainer.durationUnit as DurationUnit) ?? "months"
+          : "months",
+      trainerPromotionType:
+        subscription.trainer && typeof subscription.trainer === "object"
+          ? ((subscription.trainer.promotionType as PromotionType) ??
+              "none")
+          : "none",
+      trainerPromotionValue:
+        subscription.trainer && typeof subscription.trainer === "object"
+          ? (subscription.trainer.promotionValue ?? "")
+          : "",
       notes: subscription.notes || undefined,
     });
     // Note: We cannot change gym price, services, dates, or customer in update mode
@@ -523,7 +552,9 @@ export default function SubscriptionsPage() {
                 </h1>
               </div>
               <p className="text-slate-400 mt-1.5 text-base">
-                Manage member subscriptions and renewals
+                {isTrainerView
+                  ? "View subscriptions linked to your trainer account"
+                  : "Manage member subscriptions and renewals"}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -604,165 +635,195 @@ export default function SubscriptionsPage() {
                         </Select>
                       </div>
 
-                      {/* GYM PRICE PACKAGE SELECTION - Only in create mode */}
-                      {!isEditMode && gymPriceGroups.length > 0 && (
+                      {/* GYM FEE SELECTION - Only in create mode */}
+                      {!isEditMode && gymFees.length > 0 && (
                         <div className="space-y-3">
-                          {gymPriceGroups.map((group: GymPriceGroup) => (
-                            <div
-                              key={group._id}
-                              className="border rounded-lg p-3 space-y-2"
-                            >
-                              <div className="font-medium text-sm">
-                                {group.name}
-                              </div>
-                              <div className="space-y-2">
-                                {group.prices
-                                  .filter((p) => p.isActive)
-                                  .map((priceItem) => (
-                                    <div
-                                      key={priceItem._id}
-                                      className="flex items-center space-x-2"
-                                    >
-                                      <input
-                                        type="radio"
-                                        id={`price-${priceItem._id}`}
-                                        name="gymPrice"
-                                        checked={
-                                          selectedGymPriceGroupId ===
-                                            group._id &&
-                                          selectedGymPriceRowId ===
-                                            priceItem._id
-                                        }
-                                        onChange={() => {
-                                          setSelectedGymPriceGroupId(group._id);
-                                          setSelectedGymPriceRowId(
-                                            priceItem._id,
-                                          );
-                                        }}
-                                        className="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
-                                      />
-                                      <label
-                                        htmlFor={`price-${priceItem._id}`}
-                                        className="text-sm flex-1 cursor-pointer"
-                                      >
-                                        <div className="flex flex-col">
-                                          <span>
-                                            {priceItem.duration}{" "}
-                                            {priceItem.durationUnit} -{" "}
-                                            {priceItem.amount.toLocaleString()}{" "}
-                                            MMK/
-                                            {priceItem.durationUnit === "months"
-                                              ? "month"
-                                              : priceItem.durationUnit ===
-                                                  "days"
-                                                ? "day"
-                                                : "year"}
-                                          </span>
-                                          <span className="font-semibold text-emerald-600">
-                                            Total:{" "}
-                                            {calculateGymFinalPrice(
-                                              priceItem,
-                                            ).toLocaleString()}{" "}
-                                            MMK
-                                          </span>
-                                          {priceItem.promotionType &&
-                                            priceItem.promotionValue && (
-                                              <span className="text-green-600 text-xs">
-                                                (Promo:{" "}
-                                                {priceItem.promotionType ===
-                                                "percentage"
-                                                  ? `${priceItem.promotionValue}%`
-                                                  : `${priceItem.promotionValue} MMK`}{" "}
-                                                off)
-                                              </span>
-                                            )}
-                                        </div>
-                                      </label>
-                                    </div>
-                                  ))}
-                              </div>
+                          <Label>Gym Fee</Label>
+                          <Select
+                            value={selectedGymFeeId}
+                            onValueChange={setSelectedGymFeeId}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a gym fee" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {gymFees.map((fee) => (
+                                <SelectItem key={fee._id} value={fee._id}>
+                                  {fee.name} - {fee.amount.toLocaleString()} MMK
+                                  /{fee.duration} {fee.durationUnit}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {selectedGymFeeId && (
+                            <div className="rounded-lg border border-slate-700 bg-[#0F172B] p-3 text-sm text-slate-300">
+                              Selected fee will run for the configured duration
+                              and promotion in the backend.
                             </div>
-                          ))}
+                          )}
                         </div>
                       )}
 
                       {/* OTHER SERVICES SELECTION - Only in create mode */}
-                      {!isEditMode && serviceGroups.length > 0 && (
+                      {!isEditMode && serviceItems.length > 0 && (
                         <div className="space-y-3">
                           <Label>Additional Services (Optional)</Label>
-                          {serviceGroups.map((group: OtherServiceGroup) => (
-                            <div
-                              key={group._id}
-                              className="border rounded-lg p-3 space-y-2"
-                            >
-                              <div className="font-medium text-sm">
-                                {group.name}
-                              </div>
-                              <div className="space-y-2">
-                                {group.services
-                                  .filter((s) => s.isActive)
-                                  .map((service) => (
-                                    <div
-                                      key={service._id}
-                                      className="flex items-center space-x-2"
-                                    >
+                          <div className="space-y-2">
+                            {serviceItems
+                              .filter((service) => service.isActive)
+                              .map((service: OtherServiceItem) => {
+                                const selected = selectedServices[service._id];
+                                const total = selected
+                                  ? (() => {
+                                      const baseTotal =
+                                        service.amount * selected.duration;
+                                      if (
+                                        !selected.promotionType ||
+                                        selected.promotionValue === ""
+                                      ) {
+                                        return baseTotal;
+                                      }
+                                      if (selected.promotionType === "percentage") {
+                                        return Math.round(
+                                          baseTotal -
+                                            (baseTotal *
+                                              Number(selected.promotionValue)) /
+                                              100,
+                                        );
+                                      }
+                                      return Math.max(
+                                        0,
+                                        baseTotal - Number(selected.promotionValue),
+                                      );
+                                    })()
+                                  : 0;
+
+                                return (
+                                  <div
+                                    key={service._id}
+                                    className="rounded-lg border border-slate-700 p-4 space-y-3"
+                                  >
+                                    <div className="flex items-center gap-2">
                                       <input
                                         type="checkbox"
                                         id={`service-${service._id}`}
-                                        checked={
-                                          selectedServiceRows[
-                                            group._id
-                                          ]?.includes(service._id!) || false
-                                        }
+                                        checked={!!selected}
                                         onChange={() =>
-                                          handleServiceRowToggle(
-                                            group._id,
-                                            service._id!,
-                                          )
+                                          handleServiceToggle(service._id)
                                         }
                                         className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                                       />
                                       <label
                                         htmlFor={`service-${service._id}`}
-                                        className="text-sm flex-1 cursor-pointer"
+                                        className="text-sm font-medium cursor-pointer"
                                       >
-                                        <div className="flex flex-col">
-                                          <span>
-                                            {service.name} - {service.duration}{" "}
-                                            {service.durationUnit} -{" "}
-                                            {service.price.toLocaleString()}{" "}
-                                            MMK/
-                                            {service.durationUnit === "months"
-                                              ? "month"
-                                              : service.durationUnit === "days"
-                                                ? "day"
-                                                : "year"}
-                                          </span>
-                                          <span className="font-semibold text-emerald-600">
-                                            Total:{" "}
-                                            {calculateServiceFinalPrice(
-                                              service,
-                                            ).toLocaleString()}{" "}
-                                            MMK
-                                          </span>
-                                          {service.promotionType &&
-                                            service.promotionValue && (
-                                              <span className="text-green-600 text-xs">
-                                                (Promo:{" "}
-                                                {service.promotionType ===
-                                                "percentage"
-                                                  ? `${service.promotionValue}%`
-                                                  : `${service.promotionValue} MMK`}{" "}
-                                                off)
-                                              </span>
-                                            )}
-                                        </div>
+                                        {service.name} - {Number(service.amount ?? 0).toLocaleString()} MMK
                                       </label>
                                     </div>
-                                  ))}
-                              </div>
-                            </div>
-                          ))}
+
+                                    {selected && (
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-2">
+                                          <Label>Duration</Label>
+                                          <Input
+                                            type="number"
+                                            min="1"
+                                            value={selected.duration}
+                                            onChange={(e) =>
+                                              setSelectedServices((prev) => ({
+                                                ...prev,
+                                                [service._id]: {
+                                                  ...prev[service._id],
+                                                  duration: Number(e.target.value),
+                                                },
+                                              }))
+                                            }
+                                          />
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label>Duration Unit</Label>
+                                          <Select
+                                            value={selected.durationUnit}
+                                            onValueChange={(value: DurationUnit) =>
+                                              setSelectedServices((prev) => ({
+                                                ...prev,
+                                                [service._id]: {
+                                                  ...prev[service._id],
+                                                  durationUnit: value,
+                                                },
+                                              }))
+                                            }
+                                          >
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="days">Days</SelectItem>
+                                              <SelectItem value="months">Months</SelectItem>
+                                              <SelectItem value="years">Years</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label>Discount Type</Label>
+                                          <Select
+                                            value={selected.promotionType || "none"}
+                                            onValueChange={(value: string) =>
+                                              setSelectedServices((prev) => ({
+                                                ...prev,
+                                                [service._id]: {
+                                                  ...prev[service._id],
+                                                  promotionType: value as
+                                                    | Exclude<
+                                                        PromotionType,
+                                                        null
+                                                      >
+                                                    | "none",
+                                                  promotionValue: "",
+                                                },
+                                              }))
+                                            }
+                                          >
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="none">No Discount</SelectItem>
+                                              <SelectItem value="percentage">Percentage</SelectItem>
+                                              <SelectItem value="mmk">MMK</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                          <Label>Discount Value</Label>
+                                          <Input
+                                            type="number"
+                                            min="0"
+                                            disabled={selected.promotionType === "none"}
+                                            value={selected.promotionValue}
+                                            onChange={(e) =>
+                                              setSelectedServices((prev) => ({
+                                                ...prev,
+                                                [service._id]: {
+                                                  ...prev[service._id],
+                                                  promotionValue: e.target.value === "" ? "" : Number(e.target.value),
+                                                },
+                                              }))
+                                            }
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {selected && (
+                                      <div className="text-sm text-emerald-400 font-semibold">
+                                        Total: {total.toLocaleString()} MMK
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
                         </div>
                       )}
 
@@ -775,7 +836,11 @@ export default function SubscriptionsPage() {
                             setFormData({
                               ...formData,
                               trainerId: value === "none" ? undefined : value,
-                              trainerFeeRowId: undefined, // Reset fee tier when trainer changes
+                              trainerFeeRowId: undefined, // Reset trainer fee item when trainer changes
+                              trainerDuration: 1,
+                              trainerDurationUnit: "months",
+                              trainerPromotionType: "none",
+                              trainerPromotionValue: "",
                             })
                           }
                         >
@@ -825,7 +890,7 @@ export default function SubscriptionsPage() {
                           })()}
                       </div>
 
-                      {/* TRAINER FEE TIER SELECTION - Show when trainer is selected */}
+                      {/* TRAINER FEE ITEM SELECTION - Show when trainer is selected */}
                       {formData.trainerId &&
                         (() => {
                           const selectedTrainer = trainers.find(
@@ -840,7 +905,7 @@ export default function SubscriptionsPage() {
                             return (
                               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                                 <p className="text-sm text-amber-800">
-                                  ⚠️ This trainer has no active fee tiers
+                                  ⚠️ This trainer has no active fee items
                                   configured. Please configure trainer fees
                                   first.
                                 </p>
@@ -849,63 +914,146 @@ export default function SubscriptionsPage() {
                           }
 
                           return (
-                            <div className="space-y-2">
-                              <Label htmlFor="trainerFeeRowId">
-                                Trainer Fee Tier *
-                              </Label>
-                              <Select
-                                value={formData.trainerFeeRowId || ""}
-                                onValueChange={(value) =>
-                                  setFormData({
-                                    ...formData,
-                                    trainerFeeRowId: value,
-                                  })
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a fee tier" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {trainerFees.map((fee) => {
-                                    let finalPrice = fee.amount;
-                                    if (
-                                      fee.promotionType &&
-                                      fee.promotionValue
-                                    ) {
-                                      if (fee.promotionType === "percentage") {
-                                        finalPrice = Math.round(
-                                          fee.amount -
-                                            (fee.amount * fee.promotionValue) /
-                                              100,
-                                        );
-                                      } else if (fee.promotionType === "mmk") {
-                                        finalPrice = Math.max(
-                                          0,
-                                          fee.amount - fee.promotionValue,
-                                        );
-                                      }
-                                    }
-
-                                    return (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="trainerFeeRowId">
+                                  Trainer Fee Item *
+                                </Label>
+                                <Select
+                                  value={formData.trainerFeeRowId || ""}
+                                  onValueChange={(value) =>
+                                    setFormData({
+                                      ...formData,
+                                      trainerFeeRowId: value,
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a fee item" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {trainerFees.map((fee) => (
                                       <SelectItem key={fee._id} value={fee._id}>
-                                        {fee.duration} {fee.durationUnit} -{" "}
-                                        {finalPrice.toLocaleString()} MMK
-                                        {fee.promotionType &&
-                                          fee.promotionValue && (
-                                            <span className="text-green-600 ml-2">
-                                              (Promotion:{" "}
-                                              {fee.promotionType ===
-                                              "percentage"
-                                                ? `${fee.promotionValue}%`
-                                                : `${fee.promotionValue.toLocaleString()} MMK`}
-                                              )
-                                            </span>
-                                          )}
+                                        {fee.amount.toLocaleString()} MMK
                                       </SelectItem>
-                                    );
-                                  })}
-                                </SelectContent>
-                              </Select>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="trainerDuration">
+                                    Duration *
+                                  </Label>
+                                  <Input
+                                    id="trainerDuration"
+                                    type="number"
+                                    min={1}
+                                    value={formData.trainerDuration}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        trainerDuration:
+                                          Number(e.target.value) || 1,
+                                      })
+                                    }
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="trainerDurationUnit">
+                                    Duration Unit *
+                                  </Label>
+                                  <Select
+                                    value={formData.trainerDurationUnit}
+                                    onValueChange={(value: DurationUnit) =>
+                                      setFormData({
+                                        ...formData,
+                                        trainerDurationUnit: value,
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="days">Days</SelectItem>
+                                      <SelectItem value="months">
+                                        Months
+                                      </SelectItem>
+                                      <SelectItem value="years">
+                                        Years
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="trainerPromotionType">
+                                    Discount Type
+                                  </Label>
+                                  <Select
+                                    value={formData.trainerPromotionType}
+                                    onValueChange={(value) =>
+                                      setFormData({
+                                        ...formData,
+                                        trainerPromotionType:
+                                          value as
+                                          Exclude<PromotionType, null> | "none",
+                                        trainerPromotionValue: "",
+                                      })
+                                    }
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">
+                                        No Discount
+                                      </SelectItem>
+                                      <SelectItem value="percentage">
+                                        Percentage (%)
+                                      </SelectItem>
+                                      <SelectItem value="mmk">
+                                        Fixed Amount (MMK)
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="trainerPromotionValue">
+                                    Discount Value
+                                  </Label>
+                                  <Input
+                                    id="trainerPromotionValue"
+                                    type="number"
+                                    min={0}
+                                    disabled={
+                                      formData.trainerPromotionType === "none"
+                                    }
+                                    value={formData.trainerPromotionValue}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        trainerPromotionValue:
+                                          e.target.value === ""
+                                            ? ""
+                                            : Number(e.target.value),
+                                      })
+                                    }
+                                    placeholder={
+                                      formData.trainerPromotionType ===
+                                      "percentage"
+                                        ? "10"
+                                        : "5000"
+                                    }
+                                  />
+                                </div>
+                              </div>
                             </div>
                           );
                         })()}

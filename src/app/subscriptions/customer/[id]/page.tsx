@@ -137,7 +137,7 @@ const SubscriptionCard = ({
             </div>
             <div className="bg-[#0F172B] p-3 rounded-md">
               <div className="text-sm text-emerald-600 font-semibold">
-                {subscription.otherServiceTotal.toLocaleString()} MMK
+                {Number(subscription.otherServiceTotal ?? 0).toLocaleString()} MMK
               </div>
             </div>
           </div>
@@ -156,7 +156,7 @@ const SubscriptionCard = ({
                   {subscription.trainer.trainerName}
                 </div>
                 <div className="text-sm font-semibold text-emerald-600">
-                  {subscription.trainer.finalPrice.toLocaleString()} MMK
+                  {Number(subscription.trainer.finalPrice ?? 0).toLocaleString()} MMK
                 </div>
               </div>
             </div>
@@ -187,13 +187,13 @@ const SubscriptionCard = ({
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Grand Total:</span>
             <span className="text-lg font-bold text-green-600">
-              {subscription.grandTotal.toLocaleString()} MMK
+              {Number(subscription.grandTotal ?? 0).toLocaleString()} MMK
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Paid Amount:</span>
             <span className="text-sm font-semibold">
-              {subscription.paidAmount.toLocaleString()} MMK
+              {Number(subscription.paidAmount ?? 0).toLocaleString()} MMK
             </span>
           </div>
           {subscription.paidAmount < subscription.grandTotal && (
@@ -201,7 +201,8 @@ const SubscriptionCard = ({
               <span className="text-sm font-medium">Outstanding:</span>
               <span className="text-sm font-semibold">
                 {(
-                  subscription.grandTotal - subscription.paidAmount
+                  Number(subscription.grandTotal ?? 0) -
+                  Number(subscription.paidAmount ?? 0)
                 ).toLocaleString()}{" "}
                 MMK
               </span>

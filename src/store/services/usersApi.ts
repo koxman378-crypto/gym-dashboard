@@ -22,11 +22,7 @@ const transformUser = (user: any): User => {
   // Transform trainerFees if present
   const trainerFees = user?.trainerFees?.map((fee: any) => ({
     _id: fee._id,
-    duration: fee.duration,
-    durationUnit: fee.durationUnit,
     amount: fee.amount,
-    promotionType: fee.promotionType ?? null,
-    promotionValue: fee.promotionValue ?? null,
     isActive: fee.isActive,
   }));
 
@@ -274,11 +270,7 @@ export const usersApi = api.injectEndpoints({
       {
         trainerId: string;
         feeData: {
-          duration: number;
-          durationUnit: string;
           amount: number;
-          promotionType?: string | null;
-          promotionValue?: number | null;
           isActive?: boolean;
         };
       }
@@ -302,11 +294,7 @@ export const usersApi = api.injectEndpoints({
         trainerId: string;
         feeId: string;
         feeData: {
-          duration: number;
-          durationUnit: string;
           amount: number;
-          promotionType?: string | null;
-          promotionValue?: number | null;
           isActive?: boolean;
         };
       }
@@ -361,14 +349,7 @@ export const usersApi = api.injectEndpoints({
       User,
       {
         trainerId: string;
-        trainerFees: Array<{
-          duration: number;
-          durationUnit: string;
-          amount: number;
-          promotionType?: string | null;
-          promotionValue?: number | null;
-          isActive?: boolean;
-        }>;
+        trainerFees: Array<{ amount: number; isActive?: boolean }>;
       }
     >({
       query: ({ trainerId, trainerFees }) => ({

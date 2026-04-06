@@ -66,7 +66,16 @@ export default function GymPricesPage() {
   const [toggleGroup] = useToggleGymPriceGroupMutation();
   const [toggleItem] = useToggleGymPriceItemMutation();
 
-  const calculateFinalPrice = (item: Omit<GymPriceItem, "_id">) => {
+  const calculateFinalPrice = (
+    item: {
+      duration: number;
+      durationUnit: DurationUnit;
+      amount: number;
+      promotionType?: PromotionType;
+      promotionValue?: number | null;
+      isActive?: boolean;
+    },
+  ) => {
     return calculateGymFinalPrice(item);
   };
 

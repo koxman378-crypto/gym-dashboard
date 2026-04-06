@@ -30,35 +30,15 @@ import {
 import {
   useGetAllTrainersQuery,
   useUpdateTrainerFeesMutation,
-  useToggleTrainerFeeItemMutation,
 } from "@/src/store/services/usersApi";
 import type { User } from "@/src/types/type";
-import type {
-  DurationUnit,
-  PromotionType,
-  TrainerFeeItem,
-} from "@/src/types/extended-types";
+import type { TrainerFeeItem } from "@/src/types/extended-types";
 
 interface FeeFormItem {
   _id?: string;
-  duration: number;
-  durationUnit: DurationUnit;
   amount: number;
-  promotionType?: PromotionType | null;
-  promotionValue?: number | null;
   isActive: boolean;
 }
-
-const calculateFinalPrice = (item: FeeFormItem): number => {
-  if (!item.promotionType || !item.promotionValue) return item.amount;
-  if (item.promotionType === "percentage") {
-    return Math.round(item.amount - (item.amount * item.promotionValue) / 100);
-  }
-  if (item.promotionType === "mmk") {
-    return Math.max(0, item.amount - item.promotionValue);
-  }
-  return item.amount;
-};
 
 export default function TrainerFeesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -67,17 +47,12 @@ export default function TrainerFeesPage() {
 
   const { data: trainers = [], isLoading } = useGetAllTrainersQuery();
   const [updateTrainerFees] = useUpdateTrainerFeesMutation();
-  const [toggleItem] = useToggleTrainerFeeItemMutation();
 
   const addFeeRow = () => {
     setFormData([
       ...formData,
       {
-        duration: 1,
-        durationUnit: "months",
         amount: 0,
-        promotionType: null,
-        promotionValue: null,
         isActive: true,
       },
     ]);
@@ -103,22 +78,14 @@ export default function TrainerFeesPage() {
       setFormData(
         trainer.trainerFees.map((fee: TrainerFeeItem) => ({
           _id: fee._id,
-          duration: fee.duration,
-          durationUnit: fee.durationUnit as DurationUnit,
           amount: fee.amount,
-          promotionType: (fee.promotionType as PromotionType) ?? null,
-          promotionValue: fee.promotionValue ?? null,
           isActive: fee.isActive,
         })),
       );
     } else {
       setFormData([
         {
-          duration: 1,
-          durationUnit: "months",
           amount: 0,
-          promotionType: null,
-          promotionValue: null,
           isActive: true,
         },
       ]);
@@ -132,11 +99,7 @@ export default function TrainerFeesPage() {
       await updateTrainerFees({
         trainerId: selectedTrainer._id,
         trainerFees: formData.map((fee) => ({
-          duration: fee.duration,
-          durationUnit: fee.durationUnit,
           amount: fee.amount,
-          promotionType: fee.promotionType ?? null,
-          promotionValue: fee.promotionValue ?? null,
           isActive: fee.isActive,
         })),
       }).unwrap();
@@ -149,7 +112,23 @@ export default function TrainerFeesPage() {
 
   const handleToggleItem = async (trainerId: string, feeId: string) => {
     try {
-      await toggleItem({ trainerId, feeId }).unwrap();
+      const trainer = trainers.find((t) => t._id === trainerId);
+      if (!trainer || !trainer.trainerFees) {
+        alert("Trainer fees not found");
+        return;
+      }
+
+      const nextFees = trainer.trainerFees.map((fee) =>
+        fee._id === feeId ? { ...fee, isActive: !fee.isActive } : fee,
+      );
+
+      await updateTrainerFees({
+        trainerId,
+        trainerFees: nextFees.map((fee) => ({
+          amount: fee.amount,
+          isActive: fee.isActive,
+        })),
+      }).unwrap();
     } catch (error: any) {
       alert(error?.data?.message || "Failed to toggle fee item");
     }
@@ -181,7 +160,7 @@ export default function TrainerFeesPage() {
               Trainer Fees Management
             </h1>
             <p className="text-slate-400 mt-2 text-base">
-              Manage fee tiers and promotional pricing for each trainer
+              Manage trainer fee items for each trainer
             </p>
           </div>
         </div>
@@ -235,10 +214,8 @@ export default function TrainerFeesPage() {
                                 : "bg-slate-600 text-slate-300"
                             }`}
                           >
-                            {trainer.trainerFees?.length ?? 0} tier
-                            {(trainer.trainerFees?.length ?? 0) !== 1
-                              ? "s"
-                              : ""}
+                            {trainer.trainerFees?.length ?? 0} fee
+                            {(trainer.trainerFees?.length ?? 0) !== 1 ? "s" : ""}
                           </span>
                         </div>
                         <p className="text-sm text-slate-400">
@@ -272,16 +249,7 @@ export default function TrainerFeesPage() {
                         <thead>
                           <tr className="border-b border-slate-700">
                             <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                              Duration
-                            </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                              Base Amount
-                            </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                              Promotion
-                            </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                              Final Price
+                              Amount
                             </th>
                             <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
                               Status
@@ -292,108 +260,71 @@ export default function TrainerFeesPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {trainer.trainerFees.map((fee, index) => {
-                            const finalPrice = calculateFinalPrice(
-                              fee as FeeFormItem,
-                            );
-                            const hasPromotion =
-                              fee.promotionType && fee.promotionValue;
-                            return (
-                              <tr
-                                key={fee._id}
-                                className={`border-b border-slate-100 hover:bg-slate-800 transition-colors ${
-                                  index === trainer.trainerFees!.length - 1
-                                    ? "border-b-0"
-                                    : ""
-                                }`}
-                              >
-                                <td className="py-4 px-4">
-                                  <span className="font-medium text-white">
-                                    {fee.duration} {fee.durationUnit}
-                                  </span>
-                                </td>
-                                <td className="py-4 px-4">
-                                  <span
-                                    className={`text-slate-300 ${
-                                      hasPromotion
-                                        ? "line-through text-sm"
-                                        : "font-semibold"
-                                    }`}
-                                  >
-                                    {fee.amount.toLocaleString()} MMK
-                                  </span>
-                                </td>
-                                <td className="py-4 px-4">
-                                  {hasPromotion ? (
-                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 text-xs font-semibold">
-                                      -{fee.promotionValue}
-                                      {fee.promotionType === "percentage"
-                                        ? "%"
-                                        : " MMK"}
-                                    </span>
+                          {trainer.trainerFees.map((fee, index) => (
+                            <tr
+                              key={fee._id}
+                              className={`border-b border-slate-100 hover:bg-slate-800 transition-colors ${
+                                index === trainer.trainerFees!.length - 1
+                                  ? "border-b-0"
+                                  : ""
+                              }`}
+                            >
+                              <td className="py-4 px-4">
+                                <span className="font-semibold text-white">
+                                  {fee.amount.toLocaleString()} MMK
+                                </span>
+                              </td>
+                              <td className="py-4 px-4">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                    fee.isActive
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-slate-600 text-slate-300"
+                                  }`}
+                                >
+                                  {fee.isActive ? "Active" : "Inactive"}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleToggleItem(trainer._id, fee._id!)
+                                  }
+                                  disabled={!fee._id}
+                                  className={
+                                    fee.isActive
+                                      ? "border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700"
+                                      : "border-slate-600 hover:bg-slate-700 text-slate-400"
+                                  }
+                                >
+                                  {fee.isActive ? (
+                                    <>
+                                      <ToggleRight className="h-4 w-4 mr-1.5" />
+                                      <span className="text-xs font-semibold">
+                                        Active
+                                      </span>
+                                    </>
                                   ) : (
-                                    <span className="text-slate-400 text-sm">
-                                      No promotion
-                                    </span>
+                                    <>
+                                      <ToggleLeft className="h-4 w-4 mr-1.5" />
+                                      <span className="text-xs font-semibold">
+                                        Inactive
+                                      </span>
+                                    </>
                                   )}
-                                </td>
-                                <td className="py-4 px-4">
-                                  <span className="text-lg font-bold text-white">
-                                    {finalPrice.toLocaleString()} MMK
-                                  </span>
-                                </td>
-                                <td className="py-4 px-4">
-                                  <span
-                                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                      fee.isActive
-                                        ? "bg-blue-100 text-blue-800"
-                                        : "bg-slate-600 text-slate-300"
-                                    }`}
-                                  >
-                                    {fee.isActive ? "Active" : "Inactive"}
-                                  </span>
-                                </td>
-                                <td className="py-4 px-4 text-center">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleToggleItem(trainer._id, fee._id!)
-                                    }
-                                    disabled={!fee._id}
-                                    className={
-                                      fee.isActive
-                                        ? "border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700"
-                                        : "border-slate-600 hover:bg-slate-700 text-slate-400"
-                                    }
-                                  >
-                                    {fee.isActive ? (
-                                      <>
-                                        <ToggleRight className="h-4 w-4 mr-1.5" />
-                                        <span className="text-xs font-semibold">
-                                          Active
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <ToggleLeft className="h-4 w-4 mr-1.5" />
-                                        <span className="text-xs font-semibold">
-                                          Inactive
-                                        </span>
-                                      </>
-                                    )}
-                                  </Button>
-                                </td>
-                              </tr>
-                            );
-                          })}
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
                     <div className="text-center py-8 border border-dashed border-slate-600 rounded-xl">
                       <p className="text-slate-400 mb-3">
-                        No fee tiers configured yet.
+                        No fee items configured yet.
                       </p>
                       <Button
                         variant="outline"
@@ -430,7 +361,7 @@ export default function TrainerFeesPage() {
                 : "Edit Trainer Fees"}
             </DialogTitle>
             <DialogDescription className="text-base">
-              Configure fee tiers and promotional offers for this trainer
+              Configure amount-only fee items for this trainer
             </DialogDescription>
           </DialogHeader>
 
@@ -438,7 +369,7 @@ export default function TrainerFeesPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <Label className="text-sm font-semibold">
-                  Fee Tiers ({formData.length})
+                  Fee Items ({formData.length})
                 </Label>
                 <Button
                   type="button"
@@ -446,23 +377,19 @@ export default function TrainerFeesPage() {
                   onClick={addFeeRow}
                   className="bg-slate-100 text-slate-900 hover:bg-white"
                 >
-                  <Plus className="h-4 w-4 mr-1" /> Add Tier
+                  <Plus className="h-4 w-4 mr-1" /> Add Item
                 </Button>
               </div>
 
               <div className="space-y-3">
-                {formData.map((fee, index) => {
-                  const finalPrice = calculateFinalPrice(fee);
-                  const hasPromotion = fee.promotionType && fee.promotionValue;
-
-                  return (
+                {formData.map((fee, index) => (
                     <div
                       key={index}
                       className="border border-slate-700 rounded-xl p-5 space-y-4 bg-[#0F172B]"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm font-semibold text-slate-300">
-                          Tier {index + 1}
+                          Item {index + 1}
                         </span>
                         <Button
                           type="button"
@@ -473,47 +400,6 @@ export default function TrainerFeesPage() {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-400">
-                            Duration *
-                          </Label>
-                          <Input
-                            type="number"
-                            value={fee.duration}
-                            onChange={(e) =>
-                              updateFeeRow(
-                                index,
-                                "duration",
-                                parseInt(e.target.value) || 1,
-                              )
-                            }
-                            min={1}
-                            className="border-slate-600"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-400">
-                            Unit *
-                          </Label>
-                          <Select
-                            value={fee.durationUnit}
-                            onValueChange={(value: DurationUnit) =>
-                              updateFeeRow(index, "durationUnit", value)
-                            }
-                          >
-                            <SelectTrigger className="border-slate-600">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="days">Days</SelectItem>
-                              <SelectItem value="months">Months</SelectItem>
-                              <SelectItem value="years">Years</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
                       </div>
 
                       <div className="space-y-2">
@@ -536,61 +422,6 @@ export default function TrainerFeesPage() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-400">
-                            Promotion Type
-                          </Label>
-                          <Select
-                            value={fee.promotionType || "none"}
-                            onValueChange={(value) =>
-                              updateFeeRow(
-                                index,
-                                "promotionType",
-                                value === "none"
-                                  ? null
-                                  : (value as PromotionType),
-                              )
-                            }
-                          >
-                            <SelectTrigger className="border-slate-600">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">No Promotion</SelectItem>
-                              <SelectItem value="percentage">
-                                Percentage (%)
-                              </SelectItem>
-                              <SelectItem value="mmk">
-                                Fixed Amount (MMK)
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-400">
-                            Discount Value
-                          </Label>
-                          <Input
-                            type="number"
-                            value={fee.promotionValue || ""}
-                            onChange={(e) =>
-                              updateFeeRow(
-                                index,
-                                "promotionValue",
-                                parseFloat(e.target.value) || null,
-                              )
-                            }
-                            placeholder={
-                              fee.promotionType === "percentage" ? "10" : "5000"
-                            }
-                            disabled={!fee.promotionType}
-                            min={0}
-                            className="border-slate-600"
-                          />
-                        </div>
-                      </div>
-
                       <div className="flex items-center justify-between pt-3 border-t border-slate-700">
                         <div className="flex items-center gap-2">
                           <input
@@ -606,29 +437,18 @@ export default function TrainerFeesPage() {
                             htmlFor={`active-${index}`}
                             className="font-semibold cursor-pointer"
                           >
-                            Set as Active Tier
+                            Set as Active Item
                           </Label>
                         </div>
-                        {hasPromotion && (
-                          <div className="text-right">
-                            <div className="text-xs text-slate-400">
-                              Final Price
-                            </div>
-                            <div className="text-lg font-bold text-emerald-600">
-                              {finalPrice.toLocaleString()} MMK
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
-                  );
-                })}
+                ))}
               </div>
 
               {formData.length === 0 && (
                 <div className="text-center py-8 border border-dashed border-slate-600 rounded-xl">
                   <p className="text-slate-400 mb-3">
-                    No fee tiers configured. Click "Add Tier" to start.
+                    No fee items configured. Click "Add Item" to start.
                   </p>
                 </div>
               )}

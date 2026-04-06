@@ -40,52 +40,119 @@ export interface GymPriceGroup {
   updatedAt?: Date | string;
 }
 
-export interface CreateGymPriceDto {
-  name: string;
-  prices: Omit<GymPriceItem, "_id">[];
-  isActive?: boolean;
-}
+export type GymFee = GymPriceGroup;
 
-export interface UpdateGymPriceDto {
-  name?: string;
-  prices?: Omit<GymPriceItem, "_id">[];
-  isActive?: boolean;
-}
-
-// ===== OTHER SERVICE GROUPS =====
-export interface OtherServiceItem {
+// ===== GYM FEE RECORDS (flat backend model) =====
+export interface GymFeeRecord {
   _id: string;
   name: string;
+  amount: number;
   duration: number;
   durationUnit: DurationUnit;
-  price: number;
   promotionType?: PromotionType;
   promotionValue?: number | null;
-  isActive: boolean;
-}
-
-export interface OtherServiceGroup {
-  _id: string;
-  name: string;
-  services: OtherServiceItem[];
   isActive: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
 
+export interface CreateGymFeeRecordDto {
+  name: string;
+  amount: number;
+  duration: number;
+  durationUnit: DurationUnit;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  isActive?: boolean;
+}
+
+export interface UpdateGymFeeRecordDto {
+  name?: string;
+  amount?: number;
+  duration?: number;
+  durationUnit?: DurationUnit;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  isActive?: boolean;
+}
+
+export interface CreateGymPriceDto {
+  name: string;
+  prices: Array<{
+    duration: number;
+    durationUnit: DurationUnit;
+    amount: number;
+    promotionType?: PromotionType;
+    promotionValue?: number | null;
+    isActive?: boolean;
+  }>;
+  isActive?: boolean;
+}
+
+export interface UpdateGymPriceDto {
+  name?: string;
+  prices?: Array<{
+    duration: number;
+    durationUnit: DurationUnit;
+    amount: number;
+    promotionType?: PromotionType;
+    promotionValue?: number | null;
+    isActive?: boolean;
+  }>;
+  isActive?: boolean;
+}
+
+export type CreateGymFeeDto = CreateGymPriceDto;
+export type UpdateGymFeeDto = UpdateGymPriceDto;
+
+// ===== OTHER SERVICE ITEMS =====
+export interface OtherServiceItem {
+  _id: string;
+  name: string;
+  amount: number;
+  duration?: number;
+  durationUnit?: DurationUnit;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  isActive: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export type ServiceItem = OtherServiceItem;
+
 export interface CreateOtherServiceDto {
   name: string;
-  services: Omit<OtherServiceItem, "_id">[];
+  amount: number;
   isActive?: boolean;
 }
 
 export interface UpdateOtherServiceDto {
   name?: string;
-  services?: Omit<OtherServiceItem, "_id">[];
+  amount?: number;
   isActive?: boolean;
 }
 
-// ===== SUBSCRIPTION SNAPSHOTS =====
+export type CreateServiceItemDto = CreateOtherServiceDto;
+export type UpdateServiceItemDto = UpdateOtherServiceDto;
+
+// ===== SUBSCRIPTION SNAPSHOTS (matching backend schema) =====
+export interface GymFeeSnapshot {
+  feeId: string;
+  name: string;
+  amount: number;
+  duration: number;
+  durationUnit: DurationUnit;
+  totalAmount: number;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  discountAmount: number;
+  finalAmount: number;
+  endDate: Date | string;
+  priceRowId?: string;
+  finalPrice: number;
+}
+
 export interface GymPriceRowSnapshot {
   priceRowId: string;
   duration: number;
@@ -100,6 +167,23 @@ export interface GymPriceGroupSnapshot {
   groupId: string;
   groupName: string;
   selectedPrice: GymPriceRowSnapshot;
+}
+
+export interface ServiceSnapshot {
+  serviceId: string;
+  name: string;
+  amount: number;
+  duration: number;
+  durationUnit: DurationUnit;
+  totalAmount: number;
+  promotionType?: PromotionType;
+  promotionValue?: number | null;
+  discountAmount: number;
+  finalAmount: number;
+  endDate: Date | string;
+  serviceRowId?: string;
+  price?: number;
+  finalPrice: number;
 }
 
 export interface OtherServiceRowSnapshot {
@@ -122,20 +206,12 @@ export interface OtherServiceGroupSnapshot {
 // ===== TRAINER FEE SYSTEM =====
 export interface TrainerFeeItem {
   _id: string;
-  duration: number;
-  durationUnit: DurationUnit;
   amount: number;
-  promotionType?: PromotionType;
-  promotionValue?: number | null;
   isActive: boolean;
 }
 
 export interface CreateTrainerFeeItemDto {
-  duration: number;
-  durationUnit: DurationUnit;
   amount: number;
-  promotionType?: PromotionType;
-  promotionValue?: number | null;
   isActive?: boolean;
 }
 
@@ -146,54 +222,68 @@ export interface UpdateTrainerFeesDto {
 export interface TrainerSnapshot {
   trainerId: string;
   trainerName: string;
+  // enriched client-side from trainers list
   trainerEmail?: string;
   trainerAvatar?: string | null;
-  feeRowId: string;
+  feeId: string;
   duration: number;
   durationUnit: DurationUnit;
   amount: number;
+  totalAmount: number;
   promotionType?: PromotionType;
   promotionValue?: number | null;
+  discountAmount: number;
+  finalAmount: number;
+  endDate: Date | string;
+  feeRowId?: string;
   finalPrice: number;
 }
 
-// ===== SUBSCRIPTION STRUCTURE (Custom Fees System) =====
+// ===== SUBSCRIPTION STRUCTURE (matching backend schema) =====
 export interface Subscription {
   _id: string;
-  trainerFeeRowId?: string;
   customer: any; // User object or ObjectId
-  gymPriceGroup: GymPriceGroupSnapshot | null;
-  otherServiceGroups: OtherServiceGroupSnapshot[];
-  trainer: TrainerSnapshot | null;
-  gymPriceTotal: number;
-  otherServiceTotal: number;
-  trainerFeeTotal: number;
-  grandTotal: number;
   startDate: Date | string;
+  gymFee: GymFeeSnapshot | null;
+  services: ServiceSnapshot[];
+  trainer: TrainerSnapshot | null;
+  subtotal: number;
+  discountAmount: number;
+  grandTotal: number;
   endDate: Date | string;
   status: "active" | "expired" | "cancelled";
   paymentStatus: "paid" | "pending" | "partial";
   paidAmount: number;
   notes?: string | null;
-  createdBy: any; // User object or ObjectId
+  createdBy?: any; // User object or ObjectId
   createdAt?: Date | string;
   updatedAt?: Date | string;
+  gymPriceGroup?: GymPriceGroupSnapshot | null;
+  otherServiceGroups?: OtherServiceGroupSnapshot[];
+  gymPriceTotal: number;
+  otherServiceTotal: number;
+  trainerFeeTotal: number;
 }
 
 export interface CreateSubscriptionDto {
   customer: string;
-  gymPrice?: {
-    groupId: string;
-    priceRowId: string;
-  };
-  otherServices?: Array<{
-    groupId: string;
-    serviceRowIds: string[];
-  }>;
-  trainerId?: string;
-  trainerFeeRowId?: string;
   startDate: string | Date;
-  endDate: string | Date;
+  services?: Array<{
+    serviceId: string;
+    duration: number;
+    durationUnit: string;
+    promotionType?: string | null;
+    promotionValue?: number | null;
+  }>;
+  gymFee?: { feeId: string };
+  trainer?: {
+    trainerId: string;
+    trainerFeeId?: string;
+    duration: number;
+    durationUnit: string;
+    promotionType?: string | null;
+    promotionValue?: number | null;
+  };
   paymentStatus?: "paid" | "pending" | "partial";
   paidAmount?: number;
   notes?: string;

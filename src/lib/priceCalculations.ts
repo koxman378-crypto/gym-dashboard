@@ -1,6 +1,7 @@
 import type {
   GymPriceItem,
   OtherServiceItem,
+  DurationUnit,
   PromotionType,
 } from "@/src/types/extended-types";
 
@@ -9,7 +10,14 @@ import type {
  * Formula: (amount * duration) - discount
  */
 export function calculateGymFinalPrice(
-  item: Omit<GymPriceItem, "_id"> | GymPriceItem
+  item: {
+    duration: number;
+    durationUnit: DurationUnit;
+    amount: number;
+    promotionType?: PromotionType;
+    promotionValue?: number | null;
+    isActive?: boolean;
+  },
 ): number {
   // Calculate base total (amount * duration)
   const baseTotal = item.amount * item.duration;
@@ -35,7 +43,7 @@ export function calculateServiceFinalPrice(
   item: Omit<OtherServiceItem, "_id"> | OtherServiceItem
 ): number {
   // Calculate base total (price * duration)
-  const baseTotal = item.price * item.duration;
+  const baseTotal = item.amount * (item.duration ?? 1);
 
   // Apply promotions if any
   if (!item.promotionType || !item.promotionValue) {

@@ -21,6 +21,7 @@ import {
   useGetAllCustomersQuery,
   useGetAllStaffQuery,
   useGetAllTrainersQuery,
+  useGetStatisticsQuery,
   useCreateCustomerMutation,
   useCreateStaffMutation,
   useUpdateUserMutation,
@@ -150,6 +151,14 @@ export default function UsersPage() {
     useGetAllTrainersQuery(undefined, {
       skip: !isAuthenticated || !accessToken, // All roles need trainers list for dropdown
     });
+  const shouldLoadStatistics =
+    !!isAuthenticated &&
+    !!accessToken &&
+    (currentUser?.role === Role.OWNER || currentUser?.role === Role.CASHIER);
+  const { data: statistics, isLoading: statisticsLoading } =
+    useGetStatisticsQuery(undefined, {
+      skip: !shouldLoadStatistics,
+    });
 
   // Mutations
   const [createCustomer] = useCreateCustomerMutation();
@@ -182,6 +191,50 @@ export default function UsersPage() {
   }, [customers, staff, trainers, currentUser]);
 
   const isLoading = customersLoading || staffLoading || trainersLoading;
+  const isStatisticsLoading = statisticsLoading && shouldLoadStatistics;
+
+  const dashboardStatistics = useMemo(() => {
+    if (statistics) {
+      const staffCount =
+        currentUser?.role === Role.CASHIER
+          ? statistics.byRole?.[Role.TRAINER] ?? 0
+          : (statistics.byRole?.[Role.CASHIER] ?? 0) +
+            (statistics.byRole?.[Role.TRAINER] ?? 0);
+
+      return {
+        totalUsers: statistics.totalUsers,
+        activeUsers: statistics.activeUsers,
+        customers: statistics.byRole?.[Role.CUSTOMER] ?? customersMeta.total,
+        staff: staffCount,
+      };
+    }
+
+    const fallbackCustomers =
+      currentUser?.role === Role.TRAINER
+        ? customersMeta.total
+        : customersMeta.total || customers.length;
+    const fallbackStaff =
+      currentUser?.role === Role.CASHIER ? trainers.length : staff.length;
+    const fallbackTotal =
+      currentUser?.role === Role.TRAINER
+        ? fallbackCustomers
+        : fallbackCustomers + fallbackStaff;
+
+    return {
+      totalUsers: fallbackTotal,
+      activeUsers: allUsers.filter((u) => u.isActive).length,
+      customers: fallbackCustomers,
+      staff: fallbackStaff,
+    };
+  }, [
+    allUsers,
+    currentUser?.role,
+    customers,
+    customersMeta.total,
+    staff.length,
+    statistics,
+    trainers.length,
+  ]);
 
   // Filter users by search and role
   const filteredUsers = useMemo(() => {
@@ -1078,14 +1131,16 @@ export default function UsersPage() {
             <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
               Total Users
             </p>
-            <p className="text-3xl font-bold text-white">{allUsers.length}</p>
+            <p className="text-3xl font-bold text-white">
+              {isStatisticsLoading ? "--" : dashboardStatistics.totalUsers}
+            </p>
           </div>
           <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
             <p className="text-sm text-slate-400 font-semibold uppercase tracking-wide mb-1">
               Active Users
             </p>
             <p className="text-3xl font-bold text-white">
-              {allUsers.filter((u) => u.isActive).length}
+              {isStatisticsLoading ? "--" : dashboardStatistics.activeUsers}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -1093,7 +1148,7 @@ export default function UsersPage() {
               Customers
             </p>
             <p className="text-3xl font-bold text-white">
-              {customersMeta.total || customers.length}
+              {isStatisticsLoading ? "--" : dashboardStatistics.customers}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-700 bg-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -1101,9 +1156,7 @@ export default function UsersPage() {
               {currentUser?.role === Role.CASHIER ? "Trainers" : "Staff"}
             </p>
             <p className="text-3xl font-bold text-white">
-              {currentUser?.role === Role.CASHIER
-                ? trainers.length
-                : staff.length}
+              {isStatisticsLoading ? "--" : dashboardStatistics.staff}
             </p>
           </div>
         </div>
