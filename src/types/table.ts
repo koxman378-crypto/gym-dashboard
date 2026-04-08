@@ -24,6 +24,7 @@ export interface DataTablePaginationProps {
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   isLoading?: boolean;
+  tone?: "default" | "light";
 }
 
 export interface DataTableProps<TData> {
@@ -49,4 +50,8 @@ export interface DataTableProps<TData> {
   showColumnVisibility?: boolean;
   // Toolbar slot for extra controls (search inputs, buttons, etc.)
   toolbar?: React.ReactNode;
+  tableWrapperClassName?: string;
+  tableContainerClassName?: string;
+  tableHeaderClassName?: string;
+  paginationTone?: "default" | "light";
 }

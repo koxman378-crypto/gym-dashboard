@@ -75,37 +75,56 @@ export function UserActionsDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className="h-8 w-8 p-0">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="h-8 w-8 rounded-md border border-black/10 bg-white p-0 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+        >
           <span className="sr-only">Open menu</span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent
+        align="end"
+        className="border-black/15 bg-white text-slate-900 shadow-xl ring-black/10"
+      >
         <DropdownMenuSeparator />
 
         {canEdit && onEdit && (
-          <DropdownMenuItem onClick={() => onEdit(user)}>
+          <DropdownMenuItem
+            onClick={() => onEdit(user)}
+            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
+          >
             <Pencil className="mr-2 h-4 w-4" />
             Edit User
           </DropdownMenuItem>
         )}
 
         {canViewBodyMeasurements && onViewMeasurements && (
-          <DropdownMenuItem onClick={() => onViewMeasurements(user._id)}>
+          <DropdownMenuItem
+            onClick={() => onViewMeasurements(user._id)}
+            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
+          >
             <Activity className="mr-2 h-4 w-4" />
             Body Measurements
           </DropdownMenuItem>
         )}
 
         {canViewHistory && onViewHistory && (
-          <DropdownMenuItem onClick={() => onViewHistory(user)}>
+          <DropdownMenuItem
+            onClick={() => onViewHistory(user)}
+            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
+          >
             <History className="mr-2 h-4 w-4" />
             Subscription History
           </DropdownMenuItem>
         )}
 
         {canToggleActive && onToggleActive && (
-          <DropdownMenuItem onClick={() => onToggleActive(user)}>
+          <DropdownMenuItem
+            onClick={() => onToggleActive(user)}
+            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
+          >
             {user.isActive ? (
               <>
                 <UserX className="mr-2 h-4 w-4" />
@@ -125,7 +144,7 @@ export function UserActionsDropdown({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(user._id)}
-              className="text-destructive focus:text-destructive"
+              className="text-red-600 focus:bg-red-50 hover:bg-red-50 focus:text-red-700"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete User

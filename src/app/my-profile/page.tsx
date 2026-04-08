@@ -10,11 +10,11 @@ import {
 import { useLogoutMutation } from "@/src/store/services/authApi";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
-import { User, Camera, LogOut, Save, X } from "lucide-react";
+import { LogOut, Save, X } from "lucide-react";
 import { setUser } from "@/src/store/slices/authSlice";
 import { useDispatch } from "react-redux";
+import { ProfileAvatarUpload } from "@/src/components/my-profile/ProfileAvatarUpload";
+import { ProfileFormFields } from "@/src/components/my-profile/ProfileFormFields";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -240,113 +240,23 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="mb-6">
-            <Label className="text-sm font-medium text-slate-300 mb-2 block">
-              Profile Picture
-            </Label>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                {avatar ? (
-                  <img
-                    src={avatar}
-                    alt="Profile"
-                    className="h-24 w-24 rounded-full object-cover border-2 border-slate-700"
-                  />
-                ) : (
-                  <div className="h-24 w-24 rounded-full bg-slate-600 flex items-center justify-center">
-                    <User className="h-12 w-12 text-slate-400" />
-                  </div>
-                )}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingImage}
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 transition-colors"
-                >
-                  <Camera className="h-4 w-4" />
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled={uploadingImage}
-                />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-slate-400">
-                  Click the camera icon to upload a new profile picture
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  JPG, PNG or GIF. Max size 5MB.
-                </p>
-                {uploadingImage && (
-                  <p className="text-sm text-blue-600 mt-2">
-                    Uploading image...
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+          <ProfileAvatarUpload
+            avatar={avatar}
+            uploadingImage={uploadingImage}
+            fileInputRef={fileInputRef}
+            onFileChange={handleImageUpload}
+          />
 
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium text-slate-300">Name</Label>
-              <Input
-                value={currentUser?.name || ""}
-                disabled
-                className="mt-1 bg-[#0F172B]"
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                Name cannot be changed
-              </p>
-            </div>
-
-            <div>
-              <Label
-                htmlFor="nickname"
-                className="text-sm font-medium text-slate-300"
-              >
-                Nickname (Optional)
-              </Label>
-              <Input
-                id="nickname"
-                value={nickname}
-                onChange={(e) => {
-                  setNickname(e.target.value);
-                  setIsEditing(true);
-                }}
-                placeholder="Enter your nickname"
-                className="mt-1"
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                This is how others will see you in the app
-              </p>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Email
-              </Label>
-              <Input
-                value={currentUser?.email || ""}
-                disabled
-                className="mt-1 bg-[#0F172B]"
-              />
-              <p className="text-xs text-slate-400 mt-1">
-                Email cannot be changed
-              </p>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">Role</Label>
-              <Input
-                value={currentUser?.role || ""}
-                disabled
-                className="mt-1 bg-[#0F172B] capitalize"
-              />
-            </div>
-          </div>
+          <ProfileFormFields
+            name={currentUser?.name || ""}
+            nickname={nickname}
+            email={currentUser?.email || ""}
+            role={currentUser?.role || ""}
+            onNicknameChange={(val) => {
+              setNickname(val);
+              setIsEditing(true);
+            }}
+          />
 
           {isEditing && (
             <div className="flex gap-3 mt-6 pt-6 border-t border-slate-700">

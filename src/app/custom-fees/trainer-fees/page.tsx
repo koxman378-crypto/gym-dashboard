@@ -1,44 +1,22 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  ToggleLeft,
-  ToggleRight,
-  User as UserIcon,
-} from "lucide-react";
-import { Button } from "@/src/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/src/components/ui/dialog";
-import { Label } from "@/src/components/ui/label";
-import { Input } from "@/src/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
+import { User as UserIcon } from "lucide-react";
 import {
   useGetAllTrainersQuery,
   useUpdateTrainerFeesMutation,
+  useUpdateTrainerFeeItemMutation,
 } from "@/src/store/services/usersApi";
 import type { User } from "@/src/types/type";
 import type { TrainerFeeItem } from "@/src/types/extended-types";
+import { TrainerCard } from "@/src/components/custom-fees/trainer-fees/TrainerCard";
+import {
+  TrainerFeeEditDialog,
+  type FeeFormItem,
+} from "@/src/components/custom-fees/trainer-fees/TrainerFeeEditDialog";
 
-interface FeeFormItem {
-  _id?: string;
-  amount: number;
-  isActive: boolean;
-}
+const lightSurfaceClassName =
+  "border border-black/15 bg-white text-slate-900 shadow-sm";
 
 export default function TrainerFeesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -47,15 +25,10 @@ export default function TrainerFeesPage() {
 
   const { data: trainers = [], isLoading } = useGetAllTrainersQuery();
   const [updateTrainerFees] = useUpdateTrainerFeesMutation();
+  const [updateTrainerFeeItem] = useUpdateTrainerFeeItemMutation();
 
   const addFeeRow = () => {
-    setFormData([
-      ...formData,
-      {
-        amount: 0,
-        isActive: true,
-      },
-    ]);
+    setFormData([...formData, { amount: 0, isActive: true }]);
   };
 
   const updateFeeRow = (
@@ -83,12 +56,7 @@ export default function TrainerFeesPage() {
         })),
       );
     } else {
-      setFormData([
-        {
-          amount: 0,
-          isActive: true,
-        },
-      ]);
+      setFormData([{ amount: 0, isActive: true }]);
     }
     setIsEditDialogOpen(true);
   };
@@ -110,24 +78,22 @@ export default function TrainerFeesPage() {
     }
   };
 
+  // Uses PUT /users/:id/trainer-fees/:feeId â€” the existing backend endpoint
   const handleToggleItem = async (trainerId: string, feeId: string) => {
     try {
       const trainer = trainers.find((t) => t._id === trainerId);
-      if (!trainer || !trainer.trainerFees) {
-        alert("Trainer fees not found");
-        return;
-      }
+      if (!trainer || !trainer.trainerFees) return;
 
-      const nextFees = trainer.trainerFees.map((fee) =>
-        fee._id === feeId ? { ...fee, isActive: !fee.isActive } : fee,
-      );
+      const fee = trainer.trainerFees.find((f) => f._id === feeId);
+      if (!fee) return;
 
-      await updateTrainerFees({
+      await updateTrainerFeeItem({
         trainerId,
-        trainerFees: nextFees.map((fee) => ({
+        feeId,
+        feeData: {
           amount: fee.amount,
-          isActive: fee.isActive,
-        })),
+          isActive: !fee.isActive,
+        },
       }).unwrap();
     } catch (error: any) {
       alert(error?.data?.message || "Failed to toggle fee item");
@@ -141,340 +107,72 @@ export default function TrainerFeesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0F172B]">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto"></div>
-          <p className="mt-4 text-slate-400">Loading...</p>
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-slate-900"></div>
+          <p className="mt-4 text-slate-500">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172B]">
+    <div className="min-h-screen bg-white text-slate-900">
       <div className="container mx-auto p-6 space-y-6">
-        {/* Header Section */}
-        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-8 shadow-sm">
-          <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">
-              Trainer Fees Management
-            </h1>
-            <p className="text-slate-400 mt-2 text-base">
-              Manage trainer fee items for each trainer
-            </p>
-          </div>
+        <div className={`rounded-2xl p-8 ${lightSurfaceClassName}`}>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            Trainer Fees Management
+          </h1>
+          <p className="mt-2 text-base text-slate-600">
+            Manage trainer fee items for each trainer
+          </p>
         </div>
 
-        {/* Trainers Grid */}
         <div className="grid gap-6">
           {trainers.length === 0 ? (
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-12 text-center">
+            <div
+              className={`rounded-2xl p-12 text-center ${lightSurfaceClassName}`}
+            >
               <div className="max-w-md mx-auto">
-                <div className="rounded-full bg-slate-700 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <UserIcon className="h-8 w-8 text-slate-400" />
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-black/10 bg-slate-100 p-4">
+                  <UserIcon className="h-8 w-8 text-slate-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">
+                <h3 className="mb-2 text-lg font-semibold text-slate-900">
                   No Trainers Found
                 </h3>
-                <p className="text-slate-400">
+                <p className="text-slate-600">
                   Create trainers in the staff management section first
                 </p>
               </div>
             </div>
           ) : (
             trainers.map((trainer) => (
-              <div
+              <TrainerCard
                 key={trainer._id}
-                className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
-              >
-                {/* Trainer Header */}
-                <div className="bg-[#0F172B] border-b border-slate-700 p-6">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      {trainer.avatar ? (
-                        <img
-                          src={trainer.avatar}
-                          alt={trainer.name}
-                          className="h-11 w-11 shrink-0 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-600 text-base font-semibold text-white uppercase select-none">
-                          {trainer.name.trim().charAt(0)}
-                        </div>
-                      )}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-xl font-bold text-white">
-                            {trainer.name}
-                          </h2>
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                              (trainer.trainerFees?.length ?? 0) > 0
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-slate-600 text-slate-300"
-                            }`}
-                          >
-                            {trainer.trainerFees?.length ?? 0} fee
-                            {(trainer.trainerFees?.length ?? 0) !== 1 ? "s" : ""}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-400">
-                          {trainer.email}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(trainer)}
-                        className="border-indigo-300 bg-indigo-50 hover:bg-indigo-100 text-indigo-700"
-                      >
-                        <Edit className="h-4 w-4 mr-1.5" />
-                        <span className="text-xs font-semibold">
-                          {(trainer.trainerFees?.length ?? 0) > 0
-                            ? "Edit Fees"
-                            : "Add Fees"}
-                        </span>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Fee Table */}
-                <div className="p-6">
-                  {trainer.trainerFees && trainer.trainerFees.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-slate-700">
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                              Amount
-                            </th>
-                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">
-                              Status
-                            </th>
-                            <th className="text-center py-3 px-4 text-sm font-semibold text-slate-300">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {trainer.trainerFees.map((fee, index) => (
-                            <tr
-                              key={fee._id}
-                              className={`border-b border-slate-100 hover:bg-slate-800 transition-colors ${
-                                index === trainer.trainerFees!.length - 1
-                                  ? "border-b-0"
-                                  : ""
-                              }`}
-                            >
-                              <td className="py-4 px-4">
-                                <span className="font-semibold text-white">
-                                  {fee.amount.toLocaleString()} MMK
-                                </span>
-                              </td>
-                              <td className="py-4 px-4">
-                                <span
-                                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                    fee.isActive
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-slate-600 text-slate-300"
-                                  }`}
-                                >
-                                  {fee.isActive ? "Active" : "Inactive"}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 text-center">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    handleToggleItem(trainer._id, fee._id!)
-                                  }
-                                  disabled={!fee._id}
-                                  className={
-                                    fee.isActive
-                                      ? "border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700"
-                                      : "border-slate-600 hover:bg-slate-700 text-slate-400"
-                                  }
-                                >
-                                  {fee.isActive ? (
-                                    <>
-                                      <ToggleRight className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">
-                                        Active
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <ToggleLeft className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">
-                                        Inactive
-                                      </span>
-                                    </>
-                                  )}
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 border border-dashed border-slate-600 rounded-xl">
-                      <p className="text-slate-400 mb-3">
-                        No fee items configured yet.
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(trainer)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Fees
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                trainer={trainer}
+                onEdit={handleEdit}
+                onToggleFee={handleToggleItem}
+              />
             ))
           )}
         </div>
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog
+      <TrainerFeeEditDialog
         open={isEditDialogOpen}
+        selectedTrainer={selectedTrainer}
+        formData={formData}
         onOpenChange={(open) => {
           if (!open) {
             setIsEditDialogOpen(false);
             resetForm();
           }
         }}
-      >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
-              {selectedTrainer
-                ? `Edit Fees — ${selectedTrainer.name}`
-                : "Edit Trainer Fees"}
-            </DialogTitle>
-            <DialogDescription className="text-base">
-              Configure amount-only fee items for this trainer
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label className="text-sm font-semibold">
-                  Fee Items ({formData.length})
-                </Label>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={addFeeRow}
-                  className="bg-slate-100 text-slate-900 hover:bg-white"
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add Item
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {formData.map((fee, index) => (
-                    <div
-                      key={index}
-                      className="border border-slate-700 rounded-xl p-5 space-y-4 bg-[#0F172B]"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-semibold text-slate-300">
-                          Item {index + 1}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFeeRow(index)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-400">
-                          Amount (MMK) *
-                        </Label>
-                        <Input
-                          type="number"
-                          value={fee.amount}
-                          onChange={(e) =>
-                            updateFeeRow(
-                              index,
-                              "amount",
-                              parseFloat(e.target.value) || 0,
-                            )
-                          }
-                          placeholder="50000"
-                          min={0}
-                          className="border-slate-600"
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-700">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id={`active-${index}`}
-                            checked={fee.isActive}
-                            onChange={(e) =>
-                              updateFeeRow(index, "isActive", e.target.checked)
-                            }
-                            className="w-4 h-4 text-white border-slate-600 rounded focus:ring-slate-500"
-                          />
-                          <Label
-                            htmlFor={`active-${index}`}
-                            className="font-semibold cursor-pointer"
-                          >
-                            Set as Active Item
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
-                ))}
-              </div>
-
-              {formData.length === 0 && (
-                <div className="text-center py-8 border border-dashed border-slate-600 rounded-xl">
-                  <p className="text-slate-400 mb-3">
-                    No fee items configured. Click "Add Item" to start.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsEditDialogOpen(false);
-                resetForm();
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={formData.length === 0}
-              className="bg-slate-100 text-slate-900 hover:bg-white"
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onAddRow={addFeeRow}
+        onUpdateRow={updateFeeRow}
+        onRemoveRow={removeFeeRow}
+        onSave={handleSave}
+      />
     </div>
   );
 }

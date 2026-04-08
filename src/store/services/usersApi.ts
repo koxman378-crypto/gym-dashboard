@@ -23,7 +23,7 @@ const transformUser = (user: any): User => {
   const trainerFees = user?.trainerFees?.map((fee: any) => ({
     _id: fee._id,
     amount: fee.amount,
-    isActive: fee.isActive,
+    isActive: Boolean(fee.isActive ?? true),
   }));
 
   const transformedUser = {
@@ -134,6 +134,58 @@ export const usersApi = api.injectEndpoints({
       transformResponse: (response: any[]) => {
         const transformed = transformUserArray(response);
         return transformed;
+      },
+    }),
+
+    getManageableUsers: builder.query<
+      {
+        data: User[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      },
+      {
+        page?: number;
+        limit?: number;
+        name?: string;
+        email?: string;
+        role?: string;
+        isActive?: boolean;
+      }
+    >({
+      query: (params) => ({
+        url: "/users/manageable",
+        params,
+      }),
+      providesTags: ["User", "Staff", "Customer", "Trainer"],
+      transformResponse: (response: any, _meta, arg) => {
+        let data: User[] = [];
+        let total = 0;
+        const page = arg.page ?? 1;
+        const limit = arg.limit ?? 10;
+
+        if (Array.isArray(response)) {
+          data = response.map(transformUser);
+          total = response.length;
+        } else if (response?.results && Array.isArray(response.results)) {
+          data = response.results.map(transformUser);
+          total = response.totalResults ?? response.results.length;
+        } else if (response?.data && Array.isArray(response.data)) {
+          data = response.data.map(transformUser);
+          total = response.total ?? response.data.length;
+        }
+
+        return {
+          data,
+          total,
+          page: response?.page ?? page,
+          limit: response?.limit ?? limit,
+          totalPages:
+            response?.totalPages != null
+              ? response.totalPages
+              : Math.ceil(total / limit) || 1,
+        };
       },
     }),
 
@@ -382,6 +434,7 @@ export const {
   useCreateCustomerMutation,
   useGetAllCustomersQuery,
   useGetAllTrainersQuery,
+  useGetManageableUsersQuery,
   useGetUserByIdQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,

@@ -32,6 +32,10 @@ interface SubscriptionDetailsDialogProps {
   onClose: () => void;
 }
 
+const detailCardClassName =
+  "rounded-lg border border-black/10 bg-slate-50 p-4 text-slate-900";
+const detailMutedTextClassName = "text-sm text-slate-500";
+
 const formatDate = (dateString: string | Date) => {
   const date = new Date(dateString);
   return date.toLocaleDateString("en-US", {
@@ -94,7 +98,7 @@ export const SubscriptionDetailsDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border border-black/15 bg-white text-slate-900 shadow-2xl ring-black/10">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
@@ -128,18 +132,18 @@ export const SubscriptionDetailsDialog = ({
               <User className="h-4 w-4" />
               Customer Information
             </h3>
-            <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
+            <div className={`${detailCardClassName} space-y-1`}>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Name:</span>
+                <span className={detailMutedTextClassName}>Name:</span>
                 <span className="font-medium">{customer?.name || "N/A"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Email:</span>
+                <span className={detailMutedTextClassName}>Email:</span>
                 <span className="font-medium">{customer?.email || "N/A"}</span>
               </div>
               {customer?.phone && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Phone:</span>
+                  <span className={detailMutedTextClassName}>Phone:</span>
                   <span className="font-medium">{customer.phone}</span>
                 </div>
               )}
@@ -153,9 +157,9 @@ export const SubscriptionDetailsDialog = ({
                 <Package className="h-4 w-4" />
                 Gym Price Package
               </h3>
-              <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
+              <div className={`${detailCardClassName} space-y-1`}>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
+                  <span className={detailMutedTextClassName}>
                     Package Name:
                   </span>
                   <span className="font-medium">
@@ -163,18 +167,14 @@ export const SubscriptionDetailsDialog = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Duration:
-                  </span>
+                  <span className={detailMutedTextClassName}>Duration:</span>
                   <span className="font-medium">
                     {subscription.gymPriceGroup.selectedPrice.duration}{" "}
                     {subscription.gymPriceGroup.selectedPrice.durationUnit}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Base Amount:
-                  </span>
+                  <span className={detailMutedTextClassName}>Base Amount:</span>
                   <span className="font-medium">
                     {subscription.gymPriceGroup.selectedPrice.amount.toLocaleString()}{" "}
                     MMK
@@ -183,7 +183,7 @@ export const SubscriptionDetailsDialog = ({
                 {subscription.gymPriceGroup.selectedPrice.promotionType &&
                   subscription.gymPriceGroup.selectedPrice.promotionValue && (
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
+                      <span className={detailMutedTextClassName}>
                         Promotion:
                       </span>
                       <span className="font-medium text-green-600">
@@ -214,23 +214,20 @@ export const SubscriptionDetailsDialog = ({
                   Additional Services
                 </h3>
                 {subscription.otherServiceGroups.map((group, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-[#0F172B] p-4 rounded-lg space-y-2"
-                  >
-                    <div className="font-medium text-sm border-b pb-1">
+                  <div key={idx} className={`${detailCardClassName} space-y-2`}>
+                    <div className="border-b border-black/10 pb-1 text-sm font-medium">
                       {group.groupName}
                     </div>
                     {group.selectedServices.map((service, sIdx) => (
                       <div key={sIdx} className="ml-2 space-y-1 pb-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">
+                          <span className={detailMutedTextClassName}>
                             Service:
                           </span>
                           <span className="font-medium">{service.name}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">
+                          <span className={detailMutedTextClassName}>
                             Duration:
                           </span>
                           <span className="text-sm">
@@ -238,7 +235,7 @@ export const SubscriptionDetailsDialog = ({
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">
+                          <span className={detailMutedTextClassName}>
                             Base Price:
                           </span>
                           <span className="text-sm">
@@ -247,7 +244,7 @@ export const SubscriptionDetailsDialog = ({
                         </div>
                         {service.promotionType && service.promotionValue && (
                           <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">
+                            <span className={detailMutedTextClassName}>
                               Promotion:
                             </span>
                             <span className="text-sm text-green-600">
@@ -280,9 +277,9 @@ export const SubscriptionDetailsDialog = ({
                 <UserCheck className="h-4 w-4" />
                 Trainer Assignment
               </h3>
-              <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
+              <div className={`${detailCardClassName} space-y-1`}>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
+                  <span className={detailMutedTextClassName}>
                     Trainer Name:
                   </span>
                   <span className="font-medium">
@@ -290,9 +287,7 @@ export const SubscriptionDetailsDialog = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Duration:
-                  </span>
+                  <span className={detailMutedTextClassName}>Duration:</span>
                   <span className="font-medium">
                     {trainer.duration && trainer.durationUnit
                       ? `${trainer.duration} ${trainer.durationUnit}`
@@ -300,9 +295,7 @@ export const SubscriptionDetailsDialog = ({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Base Amount:
-                  </span>
+                  <span className={detailMutedTextClassName}>Base Amount:</span>
                   <span className="font-medium">
                     {typeof trainer.amount === "number"
                       ? `${trainer.amount.toLocaleString()} MMK`
@@ -311,9 +304,7 @@ export const SubscriptionDetailsDialog = ({
                 </div>
                 {trainer.promotionType && trainer.promotionValue && (
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Promotion:
-                    </span>
+                    <span className={detailMutedTextClassName}>Promotion:</span>
                     <span className="font-medium text-green-600">
                       {trainer.promotionType === "percentage"
                         ? `${trainer.promotionValue}% off`
@@ -339,25 +330,21 @@ export const SubscriptionDetailsDialog = ({
               <Calendar className="h-4 w-4" />
               Subscription Period
             </h3>
-            <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
+            <div className={`${detailCardClassName} space-y-1`}>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Start Date:
-                </span>
+                <span className={detailMutedTextClassName}>Start Date:</span>
                 <span className="font-medium">
                   {formatDate(subscription.startDate)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">End Date:</span>
+                <span className={detailMutedTextClassName}>End Date:</span>
                 <span className="font-medium">
                   {formatDate(subscription.endDate)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Created At:
-                </span>
+                <span className={detailMutedTextClassName}>Created At:</span>
                 <span className="font-medium text-sm">
                   {formatDateTime(subscription.createdAt)}
                 </span>
@@ -371,9 +358,9 @@ export const SubscriptionDetailsDialog = ({
               <Banknote className="h-4 w-4" />
               Fee Breakdown
             </h3>
-            <div className="bg-[#0F172B] p-4 rounded-lg space-y-2">
+            <div className={`${detailCardClassName} space-y-2`}>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
+                <span className={detailMutedTextClassName}>
                   Gym Package Total:
                 </span>
                 <span className="font-medium">
@@ -382,7 +369,7 @@ export const SubscriptionDetailsDialog = ({
               </div>
               {subscription.otherServiceTotal > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
+                  <span className={detailMutedTextClassName}>
                     Additional Services Total:
                   </span>
                   <span className="font-medium">
@@ -392,9 +379,7 @@ export const SubscriptionDetailsDialog = ({
               )}
               {subscription.trainerFeeTotal > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Trainer Fee:
-                  </span>
+                  <span className={detailMutedTextClassName}>Trainer Fee:</span>
                   <span className="font-medium">
                     {subscription.trainerFeeTotal.toLocaleString()} MMK
                   </span>
@@ -416,17 +401,15 @@ export const SubscriptionDetailsDialog = ({
               <CreditCard className="h-4 w-4" />
               Payment Information
             </h3>
-            <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
+            <div className={`${detailCardClassName} space-y-1`}>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
+                <span className={detailMutedTextClassName}>
                   Payment Status:
                 </span>
                 <PaymentBadge status={subscription.paymentStatus} />
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Paid Amount:
-                </span>
+                <span className={detailMutedTextClassName}>Paid Amount:</span>
                 <span className="font-medium">
                   {subscription.paidAmount.toLocaleString()} MMK
                 </span>
@@ -454,10 +437,10 @@ export const SubscriptionDetailsDialog = ({
                 <Activity className="h-4 w-4" />
                 Additional Information
               </h3>
-              <div className="bg-[#0F172B] p-4 rounded-lg space-y-1">
+              <div className={`${detailCardClassName} space-y-1`}>
                 {createdBy && (
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
+                    <span className={detailMutedTextClassName}>
                       Created By:
                     </span>
                     <span className="font-medium">
@@ -467,9 +450,7 @@ export const SubscriptionDetailsDialog = ({
                 )}
                 {subscription.notes && (
                   <div className="pt-2">
-                    <span className="text-sm text-muted-foreground">
-                      Notes:
-                    </span>
+                    <span className={detailMutedTextClassName}>Notes:</span>
                     <p className="text-sm mt-1 whitespace-pre-wrap">
                       {subscription.notes}
                     </p>
@@ -480,8 +461,12 @@ export const SubscriptionDetailsDialog = ({
           )}
         </div>
 
-        <DialogFooter>
-          <Button onClick={onClose} variant="outline">
+        <DialogFooter className="border-black/10 bg-slate-50">
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900"
+          >
             Close
           </Button>
         </DialogFooter>

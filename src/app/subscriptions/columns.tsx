@@ -3,31 +3,16 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Subscription } from "@/src/types/extended-types";
 import { Badge } from "@/src/components/ui/badge";
-import { Button } from "@/src/components/ui/button";
+import { SubscriptionActionsDropdown } from "@/src/components/subscriptions/SubscriptionActionsDropdown";
 import {
   Calendar,
-  X,
   User,
   DollarSign,
-  MoreHorizontal,
-  Trash2,
   Hash,
   CreditCard,
   Activity,
-  Eye,
-  Package,
-  Pencil,
-  ExternalLink,
   UserCheck,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/src/components/ui/dropdown-menu";
-import Link from "next/link";
 
 // Simple date formatter
 const formatDate = (dateString: string | Date) => {
@@ -56,7 +41,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "_id",
     header: () => (
       <div className="flex items-center gap-2">
-        <Hash className="h-4 w-4 text-slate-400" />
+        <Hash className="h-4 w-4 text-slate-500" />
         ID
       </div>
     ),
@@ -72,7 +57,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "customer",
     header: () => (
       <div className="flex items-center gap-2">
-        <User className="h-4 w-4 text-slate-400" />
+        <User className="h-4 w-4 text-slate-500" />
         Customer
       </div>
     ),
@@ -88,15 +73,15 @@ export const createSubscriptionColumns = ({
               className="h-9 w-9 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white uppercase select-none">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 bg-slate-100 text-sm font-semibold uppercase select-none text-slate-900">
               {(customerData?.name ?? "?").trim().charAt(0)}
             </div>
           )}
           <div className="min-w-0">
-            <p className="font-semibold leading-none truncate text-white">
+            <p className="truncate font-semibold leading-none text-slate-900">
               {customerData?.name || "Unknown"}
             </p>
-            <p className="text-xs text-slate-400 truncate mt-1">
+            <p className="mt-1 truncate text-xs text-slate-500">
               {customerData?.email || "-"}
             </p>
           </div>
@@ -108,7 +93,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "trainer",
     header: () => (
       <div className="flex items-center gap-2">
-        <UserCheck className="h-4 w-4 text-slate-400" />
+        <UserCheck className="h-4 w-4 text-slate-500" />
         Trainer
       </div>
     ),
@@ -128,15 +113,15 @@ export const createSubscriptionColumns = ({
               className="h-9 w-9 shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white uppercase select-none">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 bg-slate-100 text-sm font-semibold uppercase select-none text-slate-900">
               {(trainer.trainerName ?? "?").trim().charAt(0)}
             </div>
           )}
           <div className="min-w-0">
-            <p className="font-semibold leading-none truncate text-white">
+            <p className="truncate font-semibold leading-none text-slate-900">
               {trainer.trainerName || "Unknown"}
             </p>
-            <p className="text-xs text-slate-400 truncate mt-1">
+            <p className="mt-1 truncate text-xs text-slate-500">
               {trainer.trainerEmail || "-"}
             </p>
             <p className="text-xs text-emerald-400 font-semibold mt-1">
@@ -150,47 +135,10 @@ export const createSubscriptionColumns = ({
     },
   },
   {
-    accessorKey: "subscription",
-    header: () => (
-      <div className="flex items-center gap-2">
-        <Package className="h-4 w-4 text-slate-400" />
-        Subscription Details
-      </div>
-    ),
-    cell: ({ row }) => {
-      const sub = row.original;
-      const gymPrice = sub.gymPriceGroup;
-      const servicesCount =
-        sub.otherServiceGroups?.reduce(
-          (acc, group) => acc + (group.selectedServices?.length || 0),
-          0,
-        ) || 0;
-
-      return (
-        <div>
-          <div className="font-medium">
-            {gymPrice ? gymPrice.groupName : "No Gym Package"}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {gymPrice && (
-              <span>
-                {gymPrice.selectedPrice.duration}{" "}
-                {gymPrice.selectedPrice.durationUnit}
-              </span>
-            )}
-            {servicesCount > 0 && (
-              <span className="ml-2">+ {servicesCount} service(s)</span>
-            )}
-          </div>
-        </div>
-      );
-    },
-  },
-  {
     accessorKey: "grandTotal",
     header: () => (
       <div className="flex items-center gap-2">
-        <DollarSign className="h-4 w-4 text-slate-400" />
+        <DollarSign className="h-4 w-4 text-slate-500" />
         Total Amount
       </div>
     ),
@@ -212,7 +160,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "startDate",
     header: () => (
       <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-slate-400" />
+        <Calendar className="h-4 w-4 text-slate-500" />
         Start Date
       </div>
     ),
@@ -230,7 +178,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "endDate",
     header: () => (
       <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-slate-400" />
+        <Calendar className="h-4 w-4 text-slate-500" />
         End Date
       </div>
     ),
@@ -251,7 +199,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "paymentStatus",
     header: () => (
       <div className="flex items-center gap-2">
-        <CreditCard className="h-4 w-4 text-slate-400" />
+        <CreditCard className="h-4 w-4 text-slate-500" />
         Payment
       </div>
     ),
@@ -275,7 +223,7 @@ export const createSubscriptionColumns = ({
     accessorKey: "status",
     header: () => (
       <div className="flex items-center gap-2">
-        <Activity className="h-4 w-4 text-slate-400" />
+        <Activity className="h-4 w-4 text-slate-500" />
         Status
       </div>
     ),
@@ -299,53 +247,14 @@ export const createSubscriptionColumns = ({
     header: "Actions",
     cell: ({ row }) => {
       const subscription = row.original;
-      const isCancelled =
-        subscription.status === "cancelled" ||
-        subscription.status === "expired";
-
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {onViewDetails && (
-              <DropdownMenuItem onClick={() => onViewDetails(subscription)}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
-            )}
-            {onUpdate && !isCancelled && (
-              <DropdownMenuItem onClick={() => onUpdate(subscription)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Edit Subscription
-              </DropdownMenuItem>
-            )}
-            {(onViewDetails || onUpdate) && <DropdownMenuSeparator />}
-            {onCancel && !isCancelled && (
-              <DropdownMenuItem
-                onClick={() => onCancel(subscription)}
-                className="text-yellow-600 focus:text-yellow-600"
-              >
-                <X className="mr-2 h-4 w-4" />
-                Cancel Subscription
-              </DropdownMenuItem>
-            )}
-            {onCancel && !isCancelled && <DropdownMenuSeparator />}
-            {onDelete && (
-              <DropdownMenuItem
-                onClick={() => onDelete(subscription)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Subscription
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SubscriptionActionsDropdown
+          subscription={subscription}
+          onViewDetails={onViewDetails}
+          onUpdate={onUpdate}
+          onCancel={onCancel}
+          onDelete={onDelete}
+        />
       );
     },
   },

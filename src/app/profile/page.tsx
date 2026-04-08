@@ -1,11 +1,9 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
-import { Building2, Camera, LogOut, Save, X } from "lucide-react";
+import { LogOut, Pencil, Save } from "lucide-react";
 import { useLogoutMutation } from "@/src/store/services/authApi";
 import { useGeneratePresignedUrlMutation } from "@/src/store/services/usersApi";
 import {
@@ -13,6 +11,8 @@ import {
   useUpdateGymProfileMutation,
 } from "@/src/store/services/gymProfileApi";
 import type { GymProfile } from "@/src/types/type";
+import { GymLogoUpload } from "@/src/components/profile/GymLogoUpload";
+import { GymProfileFormFields } from "@/src/components/profile/GymProfileFormFields";
 
 type GymProfileFormState = {
   name: string;
@@ -131,11 +131,18 @@ export default function GymProfilePage() {
   const [generatePresignedUrl] = useGeneratePresignedUrlMutation();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
-  const [state, dispatch] = React.useReducer(
-    gymProfileReducer,
-    emptyFormState,
-  );
+  const [state, dispatch] = React.useReducer(gymProfileReducer, emptyFormState);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const lightSurfaceClassName =
+    "border border-black/15 bg-white text-slate-900 shadow-sm";
+  const lightInputClassName =
+    "mt-1 border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10 disabled:cursor-not-allowed disabled:border-black/10 disabled:bg-slate-100 disabled:text-slate-500 disabled:hover:border-black/10";
+  const lightButtonClassName =
+    "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  const primaryActionButtonClassName =
+    "border border-slate-900 bg-slate-900 text-white hover:bg-slate-800 hover:text-white shadow-sm";
+  const isFormLocked = !state.isEditing || isUpdating;
 
   React.useEffect(() => {
     dispatch({ type: "hydrate", payload: profileData });
@@ -207,7 +214,8 @@ export default function GymProfilePage() {
       if (error?.status === 404) {
         dispatch({
           type: "set_error",
-          value: "Upload endpoint not found. Please restart the backend server.",
+          value:
+            "Upload endpoint not found. Please restart the backend server.",
         });
       } else if (error?.data?.message) {
         dispatch({
@@ -215,7 +223,10 @@ export default function GymProfilePage() {
           value: `Upload failed: ${error.data.message}`,
         });
       } else if (error?.message) {
-        dispatch({ type: "set_error", value: `Upload failed: ${error.message}` });
+        dispatch({
+          type: "set_error",
+          value: `Upload failed: ${error.message}`,
+        });
       } else {
         dispatch({
           type: "set_error",
@@ -320,7 +331,11 @@ export default function GymProfilePage() {
       const updatedProfile = await updateGymProfile(updateData).unwrap();
 
       if (updatedProfile?.logo) {
-        dispatch({ type: "set_field", field: "logo", value: updatedProfile.logo });
+        dispatch({
+          type: "set_field",
+          field: "logo",
+          value: updatedProfile.logo,
+        });
       }
       if (updatedProfile?.coverImage) {
         dispatch({
@@ -329,14 +344,20 @@ export default function GymProfilePage() {
           value: updatedProfile.coverImage,
         });
       }
-      if (updatedProfile?.latitude !== undefined && updatedProfile?.latitude !== null) {
+      if (
+        updatedProfile?.latitude !== undefined &&
+        updatedProfile?.latitude !== null
+      ) {
         dispatch({
           type: "set_field",
           field: "latitude",
           value: String(updatedProfile.latitude),
         });
       }
-      if (updatedProfile?.longitude !== undefined && updatedProfile?.longitude !== null) {
+      if (
+        updatedProfile?.longitude !== undefined &&
+        updatedProfile?.longitude !== null
+      ) {
         dispatch({
           type: "set_field",
           field: "longitude",
@@ -345,7 +366,10 @@ export default function GymProfilePage() {
       }
 
       dispatch({ type: "set_editing", value: false });
-      dispatch({ type: "set_success", value: "Gym profile updated successfully!" });
+      dispatch({
+        type: "set_success",
+        value: "Gym profile updated successfully!",
+      });
       setTimeout(() => dispatch({ type: "set_success", value: null }), 3000);
     } catch (error: any) {
       if (error?.data?.message) {
@@ -362,52 +386,78 @@ export default function GymProfilePage() {
     }
   };
 
-  const handleCancel = () => {
-    dispatch({ type: "reset", payload: profileData });
+  const handleStartEditing = () => {
     dispatch({ type: "set_error", value: null });
     dispatch({ type: "set_success", value: null });
-  };
-
-  const setField = (
-    field: keyof Omit<
-      GymProfileFormState,
-      "isEditing" | "uploadingImage" | "uploadError" | "successMessage"
-    >,
-  ) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch({ type: "set_field", field, value: e.target.value });
     dispatch({ type: "set_editing", value: true });
   };
 
+  const setField =
+    (
+      field: keyof Omit<
+        GymProfileFormState,
+        "isEditing" | "uploadingImage" | "uploadError" | "successMessage"
+      >,
+    ) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch({ type: "set_field", field, value: e.target.value });
+      dispatch({ type: "set_editing", value: true });
+    };
+
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-[#0F172B] flex items-center justify-center">
-        <div className="text-slate-400">Loading gym profile...</div>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="text-slate-500">Loading gym profile...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172B]">
+    <div className="min-h-screen bg-white text-slate-900">
       <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 p-6">
+        <div className={`rounded-lg p-6 ${lightSurfaceClassName}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-semibold text-white">
+              <h2 className="text-2xl font-semibold text-slate-900">
                 Gym Profile
               </h2>
-                <p className="text-sm text-slate-400 mt-1">
+              <p className="mt-1 text-sm text-slate-600">
                 Owner-only gym information and branding
               </p>
             </div>
-            <Button
-              variant="destructive"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              {isLoggingOut ? "Logging out..." : "Logout"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                onClick={state.isEditing ? handleSave : handleStartEditing}
+                disabled={state.uploadingImage || isUpdating}
+                className={`flex items-center gap-2 cursor-pointer ${state.isEditing ? primaryActionButtonClassName : lightButtonClassName}`}
+              >
+                {state.isEditing ? (
+                  <Save className="h-4 w-4" />
+                ) : (
+                  <Pencil className="h-4 w-4" />
+                )}
+                {state.isEditing
+                  ? isUpdating
+                    ? "Saving..."
+                    : "Save Changes"
+                  : "Edit Profile"}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="flex cursor-pointer items-center gap-2 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+              >
+                <LogOut className="h-4 w-4" />
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            {state.isEditing
+              ? "Editing mode is enabled. Update the fields you want, then click Save Changes."
+              : "Click Edit Profile to unlock the form and make changes."}
           </div>
 
           {state.successMessage && (
@@ -422,254 +472,27 @@ export default function GymProfilePage() {
             </div>
           )}
 
-            <div className="mb-6">
-              <Label className="text-sm font-medium text-slate-300 mb-2 block">
-                Gym Logo
-            </Label>
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                {state.logo ? (
-                  <img
-                    src={state.logo}
-                    alt="Gym logo"
-                    className="h-24 w-24 rounded-full object-cover border-2 border-slate-700"
-                  />
-                ) : (
-                  <div className="h-24 w-24 rounded-full bg-slate-600 flex items-center justify-center">
-                    <Building2 className="h-12 w-12 text-slate-400" />
-                  </div>
-                )}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={state.uploadingImage}
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 transition-colors"
-                >
-                  <Camera className="h-4 w-4" />
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled={state.uploadingImage}
-                />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-slate-400">
-                  Click the camera icon to upload a new gym logo
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  JPG, PNG or GIF. Max size 5MB.
-                </p>
-                {state.uploadingImage && (
-                  <p className="text-sm text-blue-600 mt-2">
-                    Uploading image...
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+          <GymLogoUpload
+            logo={state.logo}
+            isEditing={state.isEditing}
+            uploadingImage={state.uploadingImage}
+            fileInputRef={fileInputRef}
+            onFileChange={handleImageUpload}
+          />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Gym Name
-              </Label>
-              <Input
-                value={state.name}
-                onChange={setField("name")}
-                placeholder="Enter gym name"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">Email</Label>
-              <Input
-                value={state.email}
-                onChange={setField("email")}
-                placeholder="Enter gym email"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">Phone</Label>
-              <Input
-                value={state.phone}
-                onChange={setField("phone")}
-                placeholder="Enter gym phone"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Location Label
-              </Label>
-              <Input
-                value={state.locationLabel}
-                onChange={setField("locationLabel")}
-                placeholder="Downtown Branch"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Google Maps URL
-              </Label>
-              <Input
-                value={state.googleMapsUrl}
-                onChange={setField("googleMapsUrl")}
-                placeholder="https://maps.google.com/?q=..."
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Description
-              </Label>
-              <Input
-                value={state.description}
-                onChange={setField("description")}
-                placeholder="Open daily 6AM - 10PM"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Latitude
-              </Label>
-              <Input
-                value={state.latitude}
-                onChange={setField("latitude")}
-                placeholder="16.825808"
-                className="mt-1"
-                inputMode="decimal"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Longitude
-              </Label>
-              <Input
-                value={state.longitude}
-                onChange={setField("longitude")}
-                placeholder="96.123456"
-                className="mt-1"
-                inputMode="decimal"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Cover Image URL
-              </Label>
-              <Input
-                value={state.coverImage}
-                onChange={setField("coverImage")}
-                placeholder="https://cdn.example.com/gym-cover.jpg"
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Facebook
-              </Label>
-              <Input
-                value={state.facebook}
-                onChange={setField("facebook")}
-                placeholder="https://facebook.com/..."
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                Instagram
-              </Label>
-              <Input
-                value={state.instagram}
-                onChange={setField("instagram")}
-                placeholder="https://instagram.com/..."
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-slate-300">
-                TikTok
-              </Label>
-              <Input
-                value={state.tiktok}
-                onChange={setField("tiktok")}
-                placeholder="https://tiktok.com/@..."
-                className="mt-1"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <Label className="text-sm font-medium text-slate-300">
-                Address
-              </Label>
-              <Input
-                value={state.address}
-                onChange={setField("address")}
-                placeholder="Enter gym address"
-                className="mt-1"
-              />
-            </div>
-
-            <div className="md:col-span-2 flex items-center justify-between rounded-lg border border-slate-700 bg-[#0F172B] px-4 py-3">
-              <div>
-                <p className="text-sm font-medium text-slate-200">Active</p>
-                <p className="text-xs text-slate-400">
-                  Toggle gym profile visibility
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={state.isActive}
-                onChange={(e) => {
-                  dispatch({
-                    type: "set_field",
-                    field: "isActive",
-                    value: e.target.checked,
-                  });
-                  dispatch({ type: "set_editing", value: true });
-                }}
-                className="h-4 w-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
-              />
-            </div>
-          </div>
-
-          {state.isEditing && (
-            <div className="flex gap-3 mt-6 pt-6 border-t border-slate-700">
-              <Button
-                onClick={handleSave}
-                disabled={isUpdating || state.uploadingImage}
-                className="flex items-center gap-2"
-              >
-                <Save className="h-4 w-4" />
-                {isUpdating ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isUpdating || state.uploadingImage}
-                className="flex items-center gap-2"
-              >
-                <X className="h-4 w-4" />
-                Cancel
-              </Button>
-            </div>
-          )}
+          <GymProfileFormFields
+            fields={state}
+            disabled={isFormLocked}
+            onFieldChange={setField}
+            onActiveChange={(e) => {
+              dispatch({
+                type: "set_field",
+                field: "isActive",
+                value: e.target.checked,
+              });
+              dispatch({ type: "set_editing", value: true });
+            }}
+          />
         </div>
       </div>
     </div>

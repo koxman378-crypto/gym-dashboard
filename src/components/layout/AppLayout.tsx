@@ -31,6 +31,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { useAppSelector } from "@/src/store/hooks";
 import { useLogoutMutation } from "@/src/store/services/authApi";
+import { useGetGymProfileQuery } from "@/src/store/services/gymProfileApi";
 import { useRouter } from "next/navigation";
 import { Role } from "@/src/types/type";
 import {
@@ -100,6 +101,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const { data: gymProfile } = useGetGymProfileQuery(undefined, {
+    skip: !isAuthenticated,
+  });
 
   // Auth pages that shouldn't show the sidebar
   const authPages = ["/login", "/register", "/forgot-password", "/auth"];
@@ -142,7 +146,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const subscriptionsMenuHref =
     user?.role === Role.TRAINER
-      ? trainerSubscriptionHref ?? "/subscriptions"
+      ? (trainerSubscriptionHref ?? "/subscriptions")
       : "/subscriptions";
 
   // For authenticated pages, show sidebar layout
@@ -151,16 +155,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <SidebarProvider>
         <Sidebar
           collapsible="icon"
-          className="border-r border-slate-700 bg-slate-900"
+          className="border-r border-border bg-background"
         >
-          <SidebarHeader className="border-b border-slate-700">
-            <div className="flex items-center gap-3 px-3 py-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600">
-                <span className="text-sm font-bold text-white">GM</span>
-              </div>
-              <h2 className="text-lg font-semibold text-white group-data-[collapsible=icon]:hidden">
-                Gym Manager
+          <SidebarHeader className="border-b border-border">
+            <div className="flex items-center gap-2 px-2 py-3">
+              <h2 className="text-sm font-semibold text-foreground group-data-[collapsible=icon]:hidden truncate">
+                {gymProfile?.name || "Gym Manager"}
               </h2>
+              {gymProfile?.logo ? (
+                <img
+                  src={gymProfile.logo}
+                  alt={gymProfile.name || "Gym"}
+                  className="h-10 w-10 rounded-md object-cover shrink-0"
+                />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-emerald-600">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+              )}
             </div>
           </SidebarHeader>
           <SidebarContent className="px-3 py-4">
@@ -176,7 +188,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       asChild
                       isActive={pathname === item.href}
                       tooltip={item.title}
-                      className="px-3 py-2.5 hover:bg-slate-700 data-[active=true]:bg-white/10 data-[active=true]:text-white"
+                      className="px-3 py-2.5 hover:bg-[hsl(215,25%,20%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
                     >
                       <Link
                         href={item.href}
@@ -196,7 +208,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     asChild
                     isActive={pathname === "/subscriptions"}
                     tooltip="My Subscriptions"
-                    className="px-3 py-2.5 hover:bg-slate-700 data-[active=true]:bg-white/10 data-[active=true]:text-white"
+                    className="px-3 py-2.5 hover:bg-sidebar-accent hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
                   >
                     <Link
                       href={subscriptionsMenuHref}
@@ -212,12 +224,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               )}
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="border-t border-slate-700 mt-auto">
+          <SidebarFooter className="border-t border-border mt-auto">
             {user && (
               <div className="px-2 py-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#0F172B] mb-2 w-full hover:bg-slate-700 transition-colors">
+                    <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted mb-2 w-full hover:bg-accent transition-colors">
                       {user.avatar ? (
                         <img
                           src={user.avatar}
@@ -225,15 +237,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                           className="h-9 w-9 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-600">
-                          <User className="h-4 w-4 text-slate-300" />
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                          <User className="h-4 w-4 text-muted-foreground" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0 text-left group-data-[collapsible=icon]:hidden">
-                        <p className="font-medium truncate text-white">
+                        <p className="font-medium truncate text-foreground">
                           {user.nickname || user.name}
                         </p>
-                        <p className="text-xs text-slate-400 truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           {user.email}
                         </p>
                       </div>
@@ -245,7 +257,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         <p className="text-sm font-medium leading-none">
                           {user.nickname || user.name}
                         </p>
-                        <p className="text-xs leading-none text-slate-400">
+                        <p className="text-xs leading-none text-muted-foreground">
                           {user.email}
                         </p>
                       </div>
@@ -272,13 +284,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-slate-700 bg-slate-900 px-6">
-            <h1 className="text-xl font-semibold text-white">Dashboard</h1>
-            {/* <div className="ml-auto">
-              <ThemeToggle />
-            </div> */}
+          <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-slate-200 bg-gray-100 px-6 shadow-sm backdrop-blur">
+            <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
           </header>
-          <main className="flex-1 bg-[#0F172B]">{children}</main>
+          <main className="flex-1 bg-background">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

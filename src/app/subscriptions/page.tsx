@@ -467,16 +467,15 @@ export default function SubscriptionsPage() {
       trainerFeeRowId: undefined, // Not editable in update mode
       trainerDuration:
         subscription.trainer && typeof subscription.trainer === "object"
-          ? subscription.trainer.duration ?? 1
+          ? (subscription.trainer.duration ?? 1)
           : 1,
       trainerDurationUnit:
         subscription.trainer && typeof subscription.trainer === "object"
-          ? (subscription.trainer.durationUnit as DurationUnit) ?? "months"
+          ? ((subscription.trainer.durationUnit as DurationUnit) ?? "months")
           : "months",
       trainerPromotionType:
         subscription.trainer && typeof subscription.trainer === "object"
-          ? ((subscription.trainer.promotionType as PromotionType) ??
-              "none")
+          ? ((subscription.trainer.promotionType as PromotionType) ?? "none")
           : "none",
       trainerPromotionValue:
         subscription.trainer && typeof subscription.trainer === "object"
@@ -536,22 +535,36 @@ export default function SubscriptionsPage() {
     });
   }, [subscriptions, trainers]);
 
+  const lightSurfaceClassName =
+    "border border-black/15 bg-white text-slate-900 shadow-sm";
+  const lightButtonClassName =
+    "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  const lightDialogContentClassName =
+    "max-h-[90vh] max-w-2xl overflow-y-auto border border-black/15 bg-white text-slate-900 shadow-2xl ring-black/10";
+  const lightDialogFooterClassName = "border-black/10 bg-slate-50";
+  const lightSelectTriggerClassName =
+    "border-black/20 bg-white text-slate-900 hover:border-black/40 focus:border-slate-900 focus:ring-black/10";
+  const lightSelectContentClassName =
+    "border-black/20 bg-white text-slate-900 shadow-xl ring-black/10";
+  const lightSelectItemClassName =
+    "text-slate-900 focus:bg-slate-100 hover:bg-slate-100";
+
   return (
-    <div className="min-h-screen bg-[#0F172B]">
+    <div className="min-h-screen bg-white text-slate-900">
       <div className="flex flex-col gap-6 p-6">
         {/* Header Section */}
-        <div className="rounded-2xl bg-slate-800 border border-slate-700 p-8 shadow-sm">
+        <div className={`rounded-2xl p-8 ${lightSurfaceClassName}`}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-slate-700 rounded-xl">
-                  <Calendar className="h-8 w-8 text-white" />
+                <div className="rounded-xl border border-black/10 bg-white p-2.5">
+                  <Calendar className="h-8 w-8 text-slate-900" />
                 </div>
-                <h1 className="text-3xl font-bold tracking-tight text-white">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
                   Subscriptions
                 </h1>
               </div>
-              <p className="text-slate-400 mt-1.5 text-base">
+              <p className="mt-1.5 text-base text-slate-600">
                 {isTrainerView
                   ? "View subscriptions linked to your trainer account"
                   : "Manage member subscriptions and renewals"}
@@ -572,7 +585,7 @@ export default function SubscriptionsPage() {
                 >
                   <DialogTrigger asChild>
                     <Button
-                      className="bg-slate-100 text-slate-900 hover:bg-white shadow-sm font-semibold px-6 py-6 text-base"
+                      className={`px-6 py-6 cursor-pointer text-base font-semibold ${lightButtonClassName}`}
                       onClick={() => {
                         setIsEditMode(false);
                         setSubscriptionToEdit(null);
@@ -582,7 +595,7 @@ export default function SubscriptionsPage() {
                       Create Subscription
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogContent className={lightDialogContentClassName}>
                     <DialogHeader>
                       <DialogTitle>
                         {isEditMode
@@ -597,7 +610,7 @@ export default function SubscriptionsPage() {
                     </DialogHeader>
                     <form
                       onSubmit={handleCreateSubscription}
-                      className="space-y-4"
+                      className="space-y-4 [&_label]:text-slate-900 **:data-[slot=input]:border-black/20 **:data-[slot=input]:bg-white **:data-[slot=input]:text-slate-900 **:data-[slot=input]:placeholder:text-slate-500 **:data-[slot=input]:hover:border-black/40 **:data-[slot=input]:focus-visible:border-slate-900 **:data-[slot=input]:focus-visible:ring-black/10 **:data-[slot=textarea]:border-black/20 **:data-[slot=textarea]:bg-white **:data-[slot=textarea]:text-slate-900 **:data-[slot=textarea]:placeholder:text-slate-500 **:data-[slot=textarea]:hover:border-black/40 **:data-[slot=textarea]:focus-visible:border-slate-900 **:data-[slot=textarea]:focus-visible:ring-black/10"
                     >
                       <div className="space-y-2">
                         <Label htmlFor="customer">Customer *</Label>
@@ -609,16 +622,28 @@ export default function SubscriptionsPage() {
                           required
                           disabled={isEditMode}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger
+                            className={lightSelectTriggerClassName}
+                          >
                             <SelectValue placeholder="Select a customer" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent
+                            className={lightSelectContentClassName}
+                          >
                             {isLoadingCustomers ? (
-                              <SelectItem value="loading" disabled>
+                              <SelectItem
+                                value="loading"
+                                disabled
+                                className={lightSelectItemClassName}
+                              >
                                 Loading customers...
                               </SelectItem>
                             ) : customers.length === 0 ? (
-                              <SelectItem value="empty" disabled>
+                              <SelectItem
+                                value="empty"
+                                disabled
+                                className={lightSelectItemClassName}
+                              >
                                 No customers found
                               </SelectItem>
                             ) : (
@@ -626,6 +651,7 @@ export default function SubscriptionsPage() {
                                 <SelectItem
                                   key={customer._id}
                                   value={customer._id}
+                                  className={lightSelectItemClassName}
                                 >
                                   {customer.name} ({customer.email})
                                 </SelectItem>
@@ -643,20 +669,47 @@ export default function SubscriptionsPage() {
                             value={selectedGymFeeId}
                             onValueChange={setSelectedGymFeeId}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger
+                              className={lightSelectTriggerClassName}
+                            >
                               <SelectValue placeholder="Select a gym fee" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent
+                              className={lightSelectContentClassName}
+                            >
                               {gymFees.map((fee) => (
-                                <SelectItem key={fee._id} value={fee._id}>
-                                  {fee.name} - {fee.amount.toLocaleString()} MMK
-                                  /{fee.duration} {fee.durationUnit}
+                                <SelectItem
+                                  key={fee._id}
+                                  value={fee._id}
+                                  className={`cursor-pointer ${lightSelectItemClassName}`}
+                                >
+                                  <span>{fee.name} - </span>
+                                  <span className="font-semibold text-emerald-600">
+                                    {fee.amount.toLocaleString()} MMK
+                                  </span>
+                                  <span>
+                                    {" "}
+                                    /{fee.duration} {fee.durationUnit}
+                                  </span>
+                                  {fee.promotionType === "percentage" ? (
+                                    <span className="ml-1 text-red-600">
+                                      ({fee.promotionValue}% off)
+                                    </span>
+                                  ) : fee.promotionType === "mmk" ? (
+                                    <span className="ml-1 text-red-600">
+                                      (
+                                      {Number(
+                                        fee.promotionValue ?? 0,
+                                      ).toLocaleString()}{" "}
+                                      MMK off)
+                                    </span>
+                                  ) : null}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           {selectedGymFeeId && (
-                            <div className="rounded-lg border border-slate-700 bg-[#0F172B] p-3 text-sm text-slate-300">
+                            <div className="rounded-lg border border-black/10 bg-slate-50 p-3 text-sm text-slate-600">
                               Selected fee will run for the configured duration
                               and promotion in the backend.
                             </div>
@@ -683,7 +736,9 @@ export default function SubscriptionsPage() {
                                       ) {
                                         return baseTotal;
                                       }
-                                      if (selected.promotionType === "percentage") {
+                                      if (
+                                        selected.promotionType === "percentage"
+                                      ) {
                                         return Math.round(
                                           baseTotal -
                                             (baseTotal *
@@ -693,7 +748,8 @@ export default function SubscriptionsPage() {
                                       }
                                       return Math.max(
                                         0,
-                                        baseTotal - Number(selected.promotionValue),
+                                        baseTotal -
+                                          Number(selected.promotionValue),
                                       );
                                     })()
                                   : 0;
@@ -701,7 +757,7 @@ export default function SubscriptionsPage() {
                                 return (
                                   <div
                                     key={service._id}
-                                    className="rounded-lg border border-slate-700 p-4 space-y-3"
+                                    className="space-y-3 rounded-lg border border-black/10 bg-slate-50 p-4"
                                   >
                                     <div className="flex items-center gap-2">
                                       <input
@@ -717,7 +773,11 @@ export default function SubscriptionsPage() {
                                         htmlFor={`service-${service._id}`}
                                         className="text-sm font-medium cursor-pointer"
                                       >
-                                        {service.name} - {Number(service.amount ?? 0).toLocaleString()} MMK
+                                        {service.name} -{" "}
+                                        {Number(
+                                          service.amount ?? 0,
+                                        ).toLocaleString()}{" "}
+                                        MMK
                                       </label>
                                     </div>
 
@@ -734,7 +794,9 @@ export default function SubscriptionsPage() {
                                                 ...prev,
                                                 [service._id]: {
                                                   ...prev[service._id],
-                                                  duration: Number(e.target.value),
+                                                  duration: Number(
+                                                    e.target.value,
+                                                  ),
                                                 },
                                               }))
                                             }
@@ -744,7 +806,9 @@ export default function SubscriptionsPage() {
                                           <Label>Duration Unit</Label>
                                           <Select
                                             value={selected.durationUnit}
-                                            onValueChange={(value: DurationUnit) =>
+                                            onValueChange={(
+                                              value: DurationUnit,
+                                            ) =>
                                               setSelectedServices((prev) => ({
                                                 ...prev,
                                                 [service._id]: {
@@ -754,20 +818,51 @@ export default function SubscriptionsPage() {
                                               }))
                                             }
                                           >
-                                            <SelectTrigger>
+                                            <SelectTrigger
+                                              className={
+                                                lightSelectTriggerClassName
+                                              }
+                                            >
                                               <SelectValue />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="days">Days</SelectItem>
-                                              <SelectItem value="months">Months</SelectItem>
-                                              <SelectItem value="years">Years</SelectItem>
+                                            <SelectContent
+                                              className={
+                                                lightSelectContentClassName
+                                              }
+                                            >
+                                              <SelectItem
+                                                value="days"
+                                                className={
+                                                  lightSelectItemClassName
+                                                }
+                                              >
+                                                Days
+                                              </SelectItem>
+                                              <SelectItem
+                                                value="months"
+                                                className={
+                                                  lightSelectItemClassName
+                                                }
+                                              >
+                                                Months
+                                              </SelectItem>
+                                              <SelectItem
+                                                value="years"
+                                                className={
+                                                  lightSelectItemClassName
+                                                }
+                                              >
+                                                Years
+                                              </SelectItem>
                                             </SelectContent>
                                           </Select>
                                         </div>
                                         <div className="space-y-2">
                                           <Label>Discount Type</Label>
                                           <Select
-                                            value={selected.promotionType || "none"}
+                                            value={
+                                              selected.promotionType || "none"
+                                            }
                                             onValueChange={(value: string) =>
                                               setSelectedServices((prev) => ({
                                                 ...prev,
@@ -784,13 +879,42 @@ export default function SubscriptionsPage() {
                                               }))
                                             }
                                           >
-                                            <SelectTrigger>
+                                            <SelectTrigger
+                                              className={
+                                                lightSelectTriggerClassName
+                                              }
+                                            >
                                               <SelectValue />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="none">No Discount</SelectItem>
-                                              <SelectItem value="percentage">Percentage</SelectItem>
-                                              <SelectItem value="mmk">MMK</SelectItem>
+                                            <SelectContent
+                                              className={
+                                                lightSelectContentClassName
+                                              }
+                                            >
+                                              <SelectItem
+                                                value="none"
+                                                className={
+                                                  lightSelectItemClassName
+                                                }
+                                              >
+                                                No Discount
+                                              </SelectItem>
+                                              <SelectItem
+                                                value="percentage"
+                                                className={
+                                                  lightSelectItemClassName
+                                                }
+                                              >
+                                                Percentage
+                                              </SelectItem>
+                                              <SelectItem
+                                                value="mmk"
+                                                className={
+                                                  lightSelectItemClassName
+                                                }
+                                              >
+                                                MMK
+                                              </SelectItem>
                                             </SelectContent>
                                           </Select>
                                         </div>
@@ -799,14 +923,19 @@ export default function SubscriptionsPage() {
                                           <Input
                                             type="number"
                                             min="0"
-                                            disabled={selected.promotionType === "none"}
+                                            disabled={
+                                              selected.promotionType === "none"
+                                            }
                                             value={selected.promotionValue}
                                             onChange={(e) =>
                                               setSelectedServices((prev) => ({
                                                 ...prev,
                                                 [service._id]: {
                                                   ...prev[service._id],
-                                                  promotionValue: e.target.value === "" ? "" : Number(e.target.value),
+                                                  promotionValue:
+                                                    e.target.value === ""
+                                                      ? ""
+                                                      : Number(e.target.value),
                                                 },
                                               }))
                                             }
@@ -844,13 +973,26 @@ export default function SubscriptionsPage() {
                             })
                           }
                         >
-                          <SelectTrigger>
+                          <SelectTrigger
+                            className={lightSelectTriggerClassName}
+                          >
                             <SelectValue placeholder="Select a trainer (optional)" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No Trainer</SelectItem>
+                          <SelectContent
+                            className={lightSelectContentClassName}
+                          >
+                            <SelectItem
+                              value="none"
+                              className={lightSelectItemClassName}
+                            >
+                              No Trainer
+                            </SelectItem>
                             {trainers.map((trainer) => (
-                              <SelectItem key={trainer._id} value={trainer._id}>
+                              <SelectItem
+                                key={trainer._id}
+                                value={trainer._id}
+                                className={lightSelectItemClassName}
+                              >
                                 {trainer.name} ({trainer.email})
                               </SelectItem>
                             ))}
@@ -865,7 +1007,7 @@ export default function SubscriptionsPage() {
                             );
                             if (!selectedTrainer) return null;
                             return (
-                              <div className="flex items-center gap-3 rounded-lg border border-slate-600 bg-slate-800/60 px-4 py-3">
+                              <div className="flex items-center gap-3 rounded-lg border border-black/10 bg-slate-50 px-4 py-3">
                                 {selectedTrainer.avatar ? (
                                   <img
                                     src={selectedTrainer.avatar}
@@ -873,15 +1015,15 @@ export default function SubscriptionsPage() {
                                     className="h-10 w-10 shrink-0 rounded-full object-cover"
                                   />
                                 ) : (
-                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-600 text-sm font-semibold text-white uppercase select-none">
+                                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-slate-100 text-sm font-semibold uppercase select-none text-slate-900">
                                     {selectedTrainer.name.trim().charAt(0)}
                                   </div>
                                 )}
                                 <div className="min-w-0">
-                                  <p className="font-semibold text-white leading-none truncate">
+                                  <p className="truncate font-semibold leading-none text-slate-900">
                                     {selectedTrainer.name}
                                   </p>
-                                  <p className="text-xs text-slate-400 truncate mt-0.5">
+                                  <p className="mt-0.5 truncate text-xs text-slate-500">
                                     {selectedTrainer.email}
                                   </p>
                                 </div>
@@ -928,12 +1070,20 @@ export default function SubscriptionsPage() {
                                     })
                                   }
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger
+                                    className={lightSelectTriggerClassName}
+                                  >
                                     <SelectValue placeholder="Select a fee item" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent
+                                    className={lightSelectContentClassName}
+                                  >
                                     {trainerFees.map((fee) => (
-                                      <SelectItem key={fee._id} value={fee._id}>
+                                      <SelectItem
+                                        key={fee._id}
+                                        value={fee._id}
+                                        className={lightSelectItemClassName}
+                                      >
                                         {fee.amount.toLocaleString()} MMK
                                       </SelectItem>
                                     ))}
@@ -974,15 +1124,30 @@ export default function SubscriptionsPage() {
                                       })
                                     }
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger
+                                      className={lightSelectTriggerClassName}
+                                    >
                                       <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="days">Days</SelectItem>
-                                      <SelectItem value="months">
+                                    <SelectContent
+                                      className={lightSelectContentClassName}
+                                    >
+                                      <SelectItem
+                                        value="days"
+                                        className={lightSelectItemClassName}
+                                      >
+                                        Days
+                                      </SelectItem>
+                                      <SelectItem
+                                        value="months"
+                                        className={lightSelectItemClassName}
+                                      >
                                         Months
                                       </SelectItem>
-                                      <SelectItem value="years">
+                                      <SelectItem
+                                        value="years"
+                                        className={lightSelectItemClassName}
+                                      >
                                         Years
                                       </SelectItem>
                                     </SelectContent>
@@ -1000,24 +1165,37 @@ export default function SubscriptionsPage() {
                                     onValueChange={(value) =>
                                       setFormData({
                                         ...formData,
-                                        trainerPromotionType:
-                                          value as
-                                          Exclude<PromotionType, null> | "none",
+                                        trainerPromotionType: value as
+                                          | Exclude<PromotionType, null>
+                                          | "none",
                                         trainerPromotionValue: "",
                                       })
                                     }
                                   >
-                                    <SelectTrigger>
+                                    <SelectTrigger
+                                      className={lightSelectTriggerClassName}
+                                    >
                                       <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="none">
+                                    <SelectContent
+                                      className={lightSelectContentClassName}
+                                    >
+                                      <SelectItem
+                                        value="none"
+                                        className={lightSelectItemClassName}
+                                      >
                                         No Discount
                                       </SelectItem>
-                                      <SelectItem value="percentage">
+                                      <SelectItem
+                                        value="percentage"
+                                        className={lightSelectItemClassName}
+                                      >
                                         Percentage (%)
                                       </SelectItem>
-                                      <SelectItem value="mmk">
+                                      <SelectItem
+                                        value="mmk"
+                                        className={lightSelectItemClassName}
+                                      >
                                         Fixed Amount (MMK)
                                       </SelectItem>
                                     </SelectContent>
@@ -1086,13 +1264,32 @@ export default function SubscriptionsPage() {
                               setFormData({ ...formData, paymentStatus: value })
                             }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger
+                              className={lightSelectTriggerClassName}
+                            >
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="paid">Paid</SelectItem>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="partial">Partial</SelectItem>
+                            <SelectContent
+                              className={lightSelectContentClassName}
+                            >
+                              <SelectItem
+                                value="paid"
+                                className={lightSelectItemClassName}
+                              >
+                                Paid
+                              </SelectItem>
+                              <SelectItem
+                                value="pending"
+                                className={lightSelectItemClassName}
+                              >
+                                Pending
+                              </SelectItem>
+                              <SelectItem
+                                value="partial"
+                                className={lightSelectItemClassName}
+                              >
+                                Partial
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1138,7 +1335,7 @@ export default function SubscriptionsPage() {
                                     paidAmount: calculatedTotals.grandTotal,
                                   })
                                 }
-                                className="whitespace-nowrap"
+                                className={`whitespace-nowrap ${lightButtonClassName}`}
                               >
                                 Pay Full
                               </Button>
@@ -1162,21 +1359,21 @@ export default function SubscriptionsPage() {
 
                       {/* TOTAL SUMMARY - Only show in create mode */}
                       {!isEditMode && calculatedTotals.grandTotal > 0 && (
-                        <div className="rounded-xl p-5 space-y-3 bg-slate-800/80 border border-slate-600">
+                        <div className="space-y-3 rounded-xl border border-black/10 bg-slate-50 p-5">
                           <div className="flex items-center gap-2 mb-3">
-                            <Calendar className="h-5 w-5 text-slate-300" />
-                            <h3 className="text-lg font-bold text-white">
+                            <Calendar className="h-5 w-5 text-slate-500" />
+                            <h3 className="text-lg font-bold text-slate-900">
                               Subscription Summary
                             </h3>
                           </div>
 
                           {/* Gym Price */}
                           {calculatedTotals.gymPriceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                              <span className="text-sm font-medium text-slate-300">
+                            <div className="flex items-center justify-between border-b border-black/10 py-2">
+                              <span className="text-sm font-medium text-slate-600">
                                 Gym Membership
                               </span>
-                              <span className="text-sm font-bold text-white">
+                              <span className="text-sm font-bold text-slate-900">
                                 {calculatedTotals.gymPriceTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -1185,11 +1382,11 @@ export default function SubscriptionsPage() {
 
                           {/* Other Services */}
                           {calculatedTotals.otherServiceTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                              <span className="text-sm font-medium text-slate-300">
+                            <div className="flex items-center justify-between border-b border-black/10 py-2">
+                              <span className="text-sm font-medium text-slate-600">
                                 Additional Services
                               </span>
-                              <span className="text-sm font-bold text-white">
+                              <span className="text-sm font-bold text-slate-900">
                                 {calculatedTotals.otherServiceTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -1198,11 +1395,11 @@ export default function SubscriptionsPage() {
 
                           {/* Trainer Fee */}
                           {calculatedTotals.trainerFeeTotal > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                              <span className="text-sm font-medium text-slate-300">
+                            <div className="flex items-center justify-between border-b border-black/10 py-2">
+                              <span className="text-sm font-medium text-slate-600">
                                 Trainer Fee
                               </span>
-                              <span className="text-sm font-bold text-white">
+                              <span className="text-sm font-bold text-slate-900">
                                 {calculatedTotals.trainerFeeTotal.toLocaleString()}{" "}
                                 MMK
                               </span>
@@ -1210,22 +1407,22 @@ export default function SubscriptionsPage() {
                           )}
 
                           {/* Grand Total */}
-                          <div className="flex justify-between items-center pt-3 border-t border-slate-500">
-                            <span className="text-base font-bold text-white">
+                          <div className="flex items-center justify-between border-t border-black/15 pt-3">
+                            <span className="text-base font-bold text-slate-900">
                               Total Amount
                             </span>
-                            <span className="text-xl font-bold text-white">
+                            <span className="text-xl font-bold text-slate-900">
                               {calculatedTotals.grandTotal.toLocaleString()} MMK
                             </span>
                           </div>
 
                           {/* Paid Amount */}
                           {formData.paidAmount > 0 && (
-                            <div className="flex justify-between items-center py-2 rounded-lg px-3 bg-slate-700/50 border border-slate-600">
-                              <span className="text-sm font-medium text-slate-300">
+                            <div className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-2">
+                              <span className="text-sm font-medium text-slate-600">
                                 Paid Amount
                               </span>
-                              <span className="text-sm font-bold text-white">
+                              <span className="text-sm font-bold text-slate-900">
                                 {formData.paidAmount.toLocaleString()} MMK
                               </span>
                             </div>
@@ -1305,13 +1502,20 @@ export default function SubscriptionsPage() {
                         </div>
                       )}
 
-                      <DialogFooter>
+                      <DialogFooter className={lightDialogFooterClassName}>
                         <DialogClose asChild>
-                          <Button type="button" variant="outline">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={lightButtonClassName}
+                          >
                             Cancel
                           </Button>
                         </DialogClose>
-                        <Button type="submit">
+                        <Button
+                          type="submit"
+                          className={`min-w-44 cursor-pointer font-semibold ${lightButtonClassName}`}
+                        >
                           {isEditMode
                             ? "Update Subscription"
                             : "Create Subscription"}
@@ -1326,13 +1530,13 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-slate-800 rounded-2xl shadow-sm p-6 border border-slate-700">
+        <div className={`rounded-2xl p-6 ${lightSurfaceClassName}`}>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 flex-1">
-              <div className="p-2.5 bg-slate-700 rounded-xl">
-                <Filter className="h-5 w-5 text-slate-300" />
+              <div className="rounded-xl border border-black/10 bg-slate-50 p-2.5">
+                <Filter className="h-5 w-5 text-slate-500" />
               </div>
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-semibold text-slate-900">
                 Filter by Status:
               </span>
               <Select
@@ -1342,25 +1546,49 @@ export default function SubscriptionsPage() {
                   setPage(1); // Reset to first page when filter changes
                 }}
               >
-                <SelectTrigger className="w-48 border-slate-600">
+                <SelectTrigger
+                  className={`w-48 ${lightSelectTriggerClassName}`}
+                >
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
+                <SelectContent className={lightSelectContentClassName}>
+                  <SelectItem value="all" className={lightSelectItemClassName}>
+                    All Statuses
+                  </SelectItem>
+                  <SelectItem
+                    value="active"
+                    className={lightSelectItemClassName}
+                  >
+                    Active
+                  </SelectItem>
+                  <SelectItem
+                    value="expired"
+                    className={lightSelectItemClassName}
+                  >
+                    Expired
+                  </SelectItem>
+                  <SelectItem
+                    value="cancelled"
+                    className={lightSelectItemClassName}
+                  >
+                    Cancelled
+                  </SelectItem>
+                  <SelectItem
+                    value="pending"
+                    className={lightSelectItemClassName}
+                  >
+                    Pending
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Customer History Selector */}
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-slate-700 rounded-xl">
-                <History className="h-5 w-5 text-slate-300" />
+              <div className="rounded-xl border border-black/10 bg-slate-50 p-2.5">
+                <History className="h-5 w-5 text-slate-500" />
               </div>
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-semibold text-slate-900">
                 View History:
               </span>
               <Select
@@ -1371,21 +1599,35 @@ export default function SubscriptionsPage() {
                   }
                 }}
               >
-                <SelectTrigger className="w-64 border-slate-600">
+                <SelectTrigger
+                  className={`w-64 ${lightSelectTriggerClassName}`}
+                >
                   <SelectValue placeholder="Select a customer" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={lightSelectContentClassName}>
                   {isLoadingCustomers ? (
-                    <SelectItem value="loading" disabled>
+                    <SelectItem
+                      value="loading"
+                      disabled
+                      className={lightSelectItemClassName}
+                    >
                       Loading customers...
                     </SelectItem>
                   ) : customers.length === 0 ? (
-                    <SelectItem value="empty" disabled>
+                    <SelectItem
+                      value="empty"
+                      disabled
+                      className={lightSelectItemClassName}
+                    >
                       No customers found
                     </SelectItem>
                   ) : (
                     customers.map((customer) => (
-                      <SelectItem key={customer._id} value={customer._id}>
+                      <SelectItem
+                        key={customer._id}
+                        value={customer._id}
+                        className={lightSelectItemClassName}
+                      >
                         {customer.name} ({customer.email})
                       </SelectItem>
                     ))
@@ -1397,19 +1639,23 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-2xl bg-slate-800 shadow-sm overflow-hidden border border-slate-700">
+        <div className={`overflow-hidden rounded-2xl ${lightSurfaceClassName}`}>
           <DataTable
             columns={columns}
             data={subscriptionsWithTrainerInfo}
             isLoading={isLoading}
             getRowId={(row) => row._id}
             emptyMessage="No subscriptions found."
+            tableWrapperClassName="border-black/10"
+            tableContainerClassName="border-black/10 bg-white shadow-none"
+            tableHeaderClassName="bg-slate-50 [&_tr]:border-black/10"
+            paginationTone="light"
             onRowClick={(subscription) => {
               // router.push(`/subscriptions/${subscription._id}`);
             }}
           />
           {paginationMeta.total > 0 && (
-            <div className="border-t border-slate-700 p-4">
+            <div className="border-t border-black/10 bg-white p-4">
               <DataTablePagination
                 meta={paginationMeta}
                 onPageChange={(newPage) => setPage(newPage)}
@@ -1418,12 +1664,12 @@ export default function SubscriptionsPage() {
                   setPage(1);
                 }}
                 isLoading={isLoading}
+                tone="light"
               />
             </div>
           )}
         </div>
 
-        {/* Subscription Details Dialog */}
         <SubscriptionDetailsDialog
           subscription={selectedSubscription}
           isOpen={isDetailsDialogOpen}

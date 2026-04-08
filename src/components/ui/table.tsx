@@ -4,11 +4,20 @@ import * as React from "react";
 
 import { cn } from "@/src/lib/utils";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+function Table({
+  className,
+  containerClassName,
+  ...props
+}: React.ComponentProps<"table"> & {
+  containerClassName?: string;
+}) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm"
+      className={cn(
+        "relative w-full overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm",
+        containerClassName,
+      )}
     >
       <div className="overflow-x-auto">
         <table
@@ -25,7 +34,10 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("bg-muted/30 [&_tr]:border-b [&_tr]:border-border/50", className)}
+      className={cn(
+        "bg-muted/30 [&_tr]:border-b [&_tr]:border-border/50",
+        className,
+      )}
       {...props}
     />
   );
@@ -72,7 +84,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "text-muted-foreground h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "text-muted-foreground h-12 px-4 text-left align-middle font-semibold text-xs uppercase tracking-wider whitespace-nowrap [&:has([role=checkbox])]:pr-0 *:[[role=checkbox]]:translate-y-0.5",
         className,
       )}
       {...props}
@@ -85,7 +97,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "px-4 py-4 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-sm",
+        "px-4 py-4 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 *:[[role=checkbox]]:translate-y-0.5 text-sm",
         className,
       )}
       {...props}

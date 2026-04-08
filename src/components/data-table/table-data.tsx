@@ -86,6 +86,10 @@ export function DataTable<TData>({
   filterPlaceholder,
   showColumnVisibility = false,
   toolbar,
+  tableWrapperClassName,
+  tableContainerClassName,
+  tableHeaderClassName,
+  paginationTone = "default",
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -185,10 +189,17 @@ export function DataTable<TData>({
         </div>
       )}
 
-      <div className="relative overflow-hidden rounded-lg border">
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-lg border",
+          tableWrapperClassName,
+        )}
+      >
         <TableLoaderOverlay show={isSoftLoading} />
-        <Table>
-          <TableHeader className="bg-muted sticky top-0 z-10">
+        <Table containerClassName={tableContainerClassName}>
+          <TableHeader
+            className={cn("bg-muted sticky top-0 z-10", tableHeaderClassName)}
+          >
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -258,6 +269,7 @@ export function DataTable<TData>({
           onPageChange={pagination.onPageChange}
           onPageSizeChange={pagination.onPageSizeChange}
           isLoading={pagination.isLoading}
+          tone={paginationTone}
         />
       )}
     </div>
