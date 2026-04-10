@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -18,16 +17,7 @@ import {
   type GymFeeFormState,
 } from "@/src/components/custom-fees/gym-prices/GymFeeFormDialog";
 import { GymFeeList } from "@/src/components/custom-fees/gym-prices/GymFeeList";
-
-const emptyFormState: GymFeeFormState = {
-  name: "",
-  amount: 0,
-  duration: 1,
-  durationUnit: "months",
-  promotionType: "none",
-  promotionValue: "",
-  isActive: true,
-};
+import { useGymPricesState } from "@/src/store/hooks/useGymPricesState";
 
 const lightSurfaceClassName =
   "border border-black/15 bg-white text-slate-900 shadow-sm";
@@ -35,40 +25,46 @@ const lightButtonClassName =
   "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
 
 export default function GymPricesPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedFee, setSelectedFee] = useState<GymFeeRecord | null>(null);
-  const [formData, setFormData] = useState<GymFeeFormState>(emptyFormState);
+  const {
+    isCreateDialogOpen,
+    isEditDialogOpen,
+    selectedFeeId,
+    formData,
+    openCreateDialog,
+    openEditDialog,
+    closeCreateDialog,
+    closeEditDialog,
+    setFormData,
+    resetForm,
+  } = useGymPricesState();
 
   const { data: gymFees = [], isLoading } = useGetAllGymFeeRecordsQuery({
     active: undefined,
   });
+  const selectedFee = gymFees.find((f) => f._id === selectedFeeId) ?? null;
   const [createFee] = useCreateGymFeeRecordMutation();
   const [updateFee] = useUpdateGymFeeRecordMutation();
   const [deleteFee] = useDeleteGymFeeRecordMutation();
-
-  const resetForm = () => {
-    setFormData(emptyFormState);
-    setSelectedFee(null);
-  };
 
   const handleCreate = async () => {
     try {
       const payload: CreateGymFeeRecordDto = {
         name: formData.name.trim(),
-        amount: formData.amount,
-        duration: formData.duration,
+        amount: Number(formData.amount || 0),
+        duration: Number(formData.duration || 1),
         durationUnit: formData.durationUnit,
         promotionType:
           formData.promotionType === "none"
             ? undefined
             : formData.promotionType,
         promotionValue:
-          formData.promotionValue === "" ? undefined : formData.promotionValue,
+          formData.promotionValue === ""
+            ? undefined
+            : Number(formData.promotionValue),
         isActive: formData.isActive,
       };
       await createFee(payload).unwrap();
-      setIsCreateDialogOpen(false);
+      closeCreateDialog();
       resetForm();
     } catch (error: any) {
       alert(error?.data?.message || "Failed to create gym fee");
@@ -76,17 +72,7 @@ export default function GymPricesPage() {
   };
 
   const handleEdit = (fee: GymFeeRecord) => {
-    setSelectedFee(fee);
-    setFormData({
-      name: fee.name,
-      amount: fee.amount,
-      duration: fee.duration,
-      durationUnit: fee.durationUnit,
-      promotionType: fee.promotionType ?? "none",
-      promotionValue: fee.promotionValue ?? "",
-      isActive: fee.isActive,
-    });
-    setIsEditDialogOpen(true);
+    openEditDialog(fee);
   };
 
   const handleUpdate = async () => {
@@ -96,8 +82,8 @@ export default function GymPricesPage() {
         id: selectedFee._id,
         data: {
           name: formData.name.trim(),
-          amount: formData.amount,
-          duration: formData.duration,
+          amount: Number(formData.amount || 0),
+          duration: Number(formData.duration || 1),
           durationUnit: formData.durationUnit,
           promotionType:
             formData.promotionType === "none"
@@ -106,12 +92,11 @@ export default function GymPricesPage() {
           promotionValue:
             formData.promotionValue === ""
               ? undefined
-              : formData.promotionValue,
+              : Number(formData.promotionValue),
           isActive: formData.isActive,
         },
       }).unwrap();
-      setIsEditDialogOpen(false);
-      resetForm();
+      closeEditDialog();
     } catch (error: any) {
       alert(error?.data?.message || "Failed to update gym fee");
     }
@@ -150,7 +135,7 @@ export default function GymPricesPage() {
           </p>
         </div>
         <Button
-          onClick={() => setIsCreateDialogOpen(true)}
+          onClick={() => openCreateDialog()}
           className={`px-6 py-6 cursor-pointer text-base font-semibold ${lightButtonClassName}`}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -174,12 +159,11 @@ export default function GymPricesPage() {
         formData={formData}
         onOpenChange={(open) => {
           if (!open) {
-            setIsCreateDialogOpen(false);
-            setIsEditDialogOpen(false);
-            resetForm();
+            if (isEditDialogOpen) closeEditDialog();
+            else closeCreateDialog();
           }
         }}
-        onChange={setFormData}
+        onChange={(data) => setFormData(data)}
         onSubmit={isEditDialogOpen ? handleUpdate : handleCreate}
       />
     </div>

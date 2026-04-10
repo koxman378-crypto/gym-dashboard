@@ -36,8 +36,8 @@ const lightInputClassName =
 
 export type GymFeeFormState = {
   name: string;
-  amount: number;
-  duration: number;
+  amount: number | "";
+  duration: number | "";
   durationUnit: DurationUnit;
   promotionType: Exclude<PromotionType, null> | "none";
   promotionValue: number | "";
@@ -88,16 +88,19 @@ export function GymFeeFormDialog({
             <Label htmlFor="amount" className="text-slate-900">
               Amount
             </Label>
-            <Input
-              id="amount"
-              type="number"
-              min="0"
-              value={formData.amount}
-              onChange={(e) =>
-                onChange({ ...formData, amount: Number(e.target.value) })
-              }
-              className={lightInputClassName}
-            />
+              <Input
+                id="amount"
+                type="number"
+                min="0"
+                value={formData.amount}
+                onChange={(e) =>
+                  onChange({
+                    ...formData,
+                    amount: e.target.value === "" ? "" : Number(e.target.value),
+                  })
+                }
+                className={lightInputClassName}
+              />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -112,7 +115,8 @@ export function GymFeeFormDialog({
                 onChange={(e) =>
                   onChange({
                     ...formData,
-                    duration: Number(e.target.value) || 1,
+                    duration:
+                      e.target.value === "" ? "" : Number(e.target.value),
                   })
                 }
                 className={lightInputClassName}
@@ -196,7 +200,7 @@ export function GymFeeFormDialog({
                       e.target.value === "" ? "" : Number(e.target.value),
                   })
                 }
-                placeholder="10"
+                placeholder="0000"
                 className={lightInputClassName}
               />
             </div>

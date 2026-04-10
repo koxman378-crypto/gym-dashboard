@@ -27,6 +27,8 @@ import {
   UserCheck,
   Settings,
   Building2,
+  MessageCircleQuestion,
+  Timer,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { useAppSelector } from "@/src/store/hooks";
@@ -54,6 +56,18 @@ const menuItems = [
     title: "Gym Profile",
     href: "/profile",
     icon: Building2,
+    roles: [Role.OWNER],
+  },
+  {
+    title: "FAQs",
+    href: "/faqs",
+    icon: MessageCircleQuestion,
+    roles: [Role.OWNER],
+  },
+  {
+    title: "Expiry Presets",
+    href: "/expiry-presets",
+    icon: Timer,
     roles: [Role.OWNER],
   },
   {
@@ -110,7 +124,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isAuthPage = authPages.some((page) => pathname?.startsWith(page));
   const trainerSubscriptionHref =
     user?.role === Role.TRAINER && user?._id
-      ? `/subscriptions?trainerId=${user._id}`
+      ? `/subscriptions/trainer/${user._id}`
       : null;
   const footerProfileHref =
     user?.role === Role.OWNER ? "/profile" : "/my-profile";
@@ -206,7 +220,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === "/subscriptions"}
+                    isActive={pathname?.startsWith("/subscriptions")}
                     tooltip="My Subscriptions"
                     className="px-3 py-2.5 hover:bg-sidebar-accent hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
                   >

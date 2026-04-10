@@ -10,6 +10,14 @@ import {
   REGISTER,
 } from "redux-persist";
 import authReducer from "./slices/authSlice";
+import usersUiReducer from "./slices/usersSlice";
+import subscriptionsUiReducer from "./slices/subscriptionsSlice";
+import attendanceUiReducer from "./slices/attendanceSlice";
+import gymPricesUiReducer from "./slices/gymPricesSlice";
+import otherServicesUiReducer from "./slices/otherServicesSlice";
+import trainerFeesUiReducer from "./slices/trainerFeesSlice";
+import faqsUiReducer from "./slices/faqsSlice";
+import expiryPresetsUiReducer from "./slices/expiryPresetsSlice";
 import { api } from "./services/baseApi";
 
 // Lazy storage proxy — always the same object shape on both server and client.
@@ -52,6 +60,14 @@ const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
+    usersUi: usersUiReducer,
+    subscriptionsUi: subscriptionsUiReducer,
+    attendanceUi: attendanceUiReducer,
+    gymPricesUi: gymPricesUiReducer,
+    otherServicesUi: otherServicesUiReducer,
+    trainerFeesUi: trainerFeesUiReducer,
+    faqsUi: faqsUiReducer,
+    expiryPresetsUi: expiryPresetsUiReducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

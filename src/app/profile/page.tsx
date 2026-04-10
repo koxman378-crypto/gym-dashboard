@@ -157,12 +157,7 @@ export default function GymProfilePage() {
     }
   };
 
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       dispatch({ type: "set_error", value: "Please select an image file" });
       return;
@@ -477,7 +472,7 @@ export default function GymProfilePage() {
             isEditing={state.isEditing}
             uploadingImage={state.uploadingImage}
             fileInputRef={fileInputRef}
-            onFileChange={handleImageUpload}
+            onFileCropped={handleImageUpload}
           />
 
           <GymProfileFormFields

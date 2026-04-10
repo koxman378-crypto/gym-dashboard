@@ -109,7 +109,9 @@ export type UpdateGymFeeDto = UpdateGymPriceDto;
 export interface OtherServiceItem {
   _id: string;
   name: string;
-  amount: number;
+  amountDays: number;
+  amountMonths: number;
+  amountYears: number;
   duration?: number;
   durationUnit?: DurationUnit;
   promotionType?: PromotionType;
@@ -123,13 +125,17 @@ export type ServiceItem = OtherServiceItem;
 
 export interface CreateOtherServiceDto {
   name: string;
-  amount: number;
+  amountDays: number | "";
+  amountMonths: number | "";
+  amountYears: number | "";
   isActive?: boolean;
 }
 
 export interface UpdateOtherServiceDto {
   name?: string;
-  amount?: number;
+  amountDays?: number | "";
+  amountMonths?: number | "";
+  amountYears?: number | "";
   isActive?: boolean;
 }
 
@@ -290,8 +296,69 @@ export interface CreateSubscriptionDto {
 }
 
 export interface UpdateSubscriptionDto {
+  startDate?: string | Date;
+  gymFee?: { feeId: string } | null;
+  services?: Array<{
+    serviceId: string;
+    duration: number;
+    durationUnit: string;
+    promotionType?: string | null;
+    promotionValue?: number | null;
+  }>;
+  trainer?: {
+    trainerId: string;
+    trainerFeeId?: string;
+    duration: number;
+    durationUnit: string;
+    promotionType?: string | null;
+    promotionValue?: number | null;
+  } | null;
   paymentStatus?: "paid" | "pending" | "partial";
   paidAmount?: number;
   notes?: string;
   status?: "active" | "expired" | "cancelled";
+}
+
+// ==================== FAQS ====================
+
+export interface Faq {
+  _id: string;
+  question: string;
+  answer: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateFaqDto {
+  question: string;
+  answer: string;
+}
+
+export interface UpdateFaqDto {
+  question?: string;
+  answer?: string;
+  isActive?: boolean;
+}
+
+// ==================== EXPIRY PRESETS ====================
+
+export interface ExpiryPreset {
+  _id: string;
+  label: string;
+  days: number;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateExpiryPresetDto {
+  label: string;
+  days: number;
+}
+
+export interface UpdateExpiryPresetDto {
+  label?: string;
+  days?: number;
+  isActive?: boolean;
 }

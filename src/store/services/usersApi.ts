@@ -380,43 +380,6 @@ export const usersApi = api.injectEndpoints({
       transformResponse: (response: any) => transformUser(response),
     }),
 
-    toggleTrainerFeeItem: builder.mutation<
-      User,
-      { trainerId: string; feeId: string }
-    >({
-      query: ({ trainerId, feeId }) => ({
-        url: `/users/${trainerId}/trainer-fees/${feeId}/toggle`,
-        method: "PATCH",
-      }),
-      invalidatesTags: (_result, _error, { trainerId }) => [
-        { type: "User", id: trainerId },
-        "Trainer",
-        "Staff",
-      ],
-      transformResponse: (response: any) => transformUser(response),
-    }),
-
-    // Bulk replace (kept for backward compatibility)
-    updateTrainerFees: builder.mutation<
-      User,
-      {
-        trainerId: string;
-        trainerFees: Array<{ amount: number; isActive?: boolean }>;
-      }
-    >({
-      query: ({ trainerId, trainerFees }) => ({
-        url: `/users/${trainerId}/trainer-fees`,
-        method: "PATCH",
-        body: { trainerFees },
-      }),
-      invalidatesTags: (_result, _error, { trainerId }) => [
-        { type: "User", id: trainerId },
-        "Trainer",
-        "Staff",
-      ],
-      transformResponse: (response: any) => transformUser(response),
-    }),
-
     getTrainerFees: builder.query<User, string>({
       query: (trainerId) => `/users/${trainerId}`,
       providesTags: (_result, _error, trainerId) => [
@@ -449,7 +412,5 @@ export const {
   useAddTrainerFeeItemMutation,
   useUpdateTrainerFeeItemMutation,
   useDeleteTrainerFeeItemMutation,
-  useToggleTrainerFeeItemMutation,
-  useUpdateTrainerFeesMutation,
   useGetTrainerFeesQuery,
 } = usersApi;

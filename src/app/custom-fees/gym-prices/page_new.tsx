@@ -605,7 +605,7 @@ export default function GymPricesPage() {
                             )
                           }
                           min="0"
-                          placeholder="100000"
+                          placeholder="0000"
                         />
                       </div>
 
@@ -648,7 +648,7 @@ export default function GymPricesPage() {
                               )
                             }
                             disabled={!price.promotionType}
-                            placeholder="10"
+                            placeholder="0000"
                             min="0"
                           />
                         </div>

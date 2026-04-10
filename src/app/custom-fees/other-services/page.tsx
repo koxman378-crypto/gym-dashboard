@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -15,21 +14,26 @@ import type {
 } from "@/src/types/extended-types";
 import { OtherServiceFormDialog } from "@/src/components/custom-fees/other-services/OtherServiceFormDialog";
 import { OtherServiceList } from "@/src/components/custom-fees/other-services/OtherServiceList";
+import { useOtherServicesState } from "@/src/store/hooks/useOtherServicesState";
 
 export default function OtherServicesPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<OtherServiceItem | null>(
-    null,
-  );
-  const [formData, setFormData] = useState<CreateOtherServiceDto>({
-    name: "",
-    amount: 0,
-    isActive: true,
-  });
+  const {
+    isCreateDialogOpen,
+    isEditDialogOpen,
+    selectedItemId,
+    formData,
+    openCreateDialog,
+    openEditDialog,
+    closeCreateDialog,
+    closeEditDialog,
+    setFormData,
+  } = useOtherServicesState();
 
   const { data: serviceItems = [], isLoading } =
     useGetAllOtherServiceItemsQuery({});
+  const selectedItem = selectedItemId
+    ? (serviceItems.find((i) => i._id === selectedItemId) ?? null)
+    : null;
   const [createItem] = useCreateOtherServiceItemMutation();
   const [updateItem] = useUpdateOtherServiceItemMutation();
   const [deleteItem] = useDeleteOtherServiceItemMutation();
@@ -41,25 +45,23 @@ export default function OtherServicesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      ...formData,
+      amountDays: Number(formData.amountDays || 0),
+      amountMonths: Number(formData.amountMonths || 0),
+      amountYears: Number(formData.amountYears || 0),
+    };
     if (isEditDialogOpen && selectedItem) {
-      await updateItem({ id: selectedItem._id, data: formData }).unwrap();
-      setIsEditDialogOpen(false);
-      setSelectedItem(null);
+      await updateItem({ id: selectedItem._id, data: payload }).unwrap();
+      closeEditDialog();
     } else {
-      await createItem(formData).unwrap();
-      setIsCreateDialogOpen(false);
+      await createItem(payload).unwrap();
+      closeCreateDialog();
     }
-    setFormData({ name: "", amount: 0, isActive: true });
   };
 
   const handleEdit = (item: OtherServiceItem) => {
-    setSelectedItem(item);
-    setFormData({
-      name: item.name,
-      amount: item.amount,
-      isActive: item.isActive,
-    });
-    setIsEditDialogOpen(true);
+    openEditDialog(item);
   };
 
   const handleDelete = async (item: OtherServiceItem) => {
@@ -73,7 +75,9 @@ export default function OtherServicesPage() {
       id: item._id,
       data: {
         name: item.name,
-        amount: item.amount,
+        amountDays: item.amountDays,
+        amountMonths: item.amountMonths,
+        amountYears: item.amountYears,
         isActive: !item.isActive,
       },
     }).unwrap();
@@ -87,11 +91,11 @@ export default function OtherServicesPage() {
         <div>
           <h1 className="text-3xl font-bold">Other Services</h1>
           <p className="mt-1 text-slate-600">
-            Create flat service items with amount only.
+            Create service items with day, month, and year prices.
           </p>
         </div>
         <Button
-          onClick={() => setIsCreateDialogOpen(true)}
+          onClick={() => openCreateDialog()}
           className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -115,13 +119,11 @@ export default function OtherServicesPage() {
         formData={formData}
         onOpenChange={(open) => {
           if (!open) {
-            setIsCreateDialogOpen(false);
-            setIsEditDialogOpen(false);
-            setSelectedItem(null);
-            setFormData({ name: "", amount: 0, isActive: true });
+            if (isEditDialogOpen) closeEditDialog();
+            else closeCreateDialog();
           }
         }}
-        onChange={setFormData}
+        onChange={(data) => setFormData(data)}
         onSubmit={handleSubmit}
       />
     </div>

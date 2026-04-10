@@ -10,7 +10,7 @@
  * - CUSTOMER: Cannot access user management
  */
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Users2 } from "lucide-react";
 import {
   useGetAllStaffQuery,
@@ -25,6 +25,7 @@ import {
 } from "@/src/store/services/usersApi";
 import { Role, type User, type CreateUserDto } from "@/src/types/type";
 import { useAppSelector } from "@/src/store/hooks";
+import { useUsersState } from "@/src/store/hooks/useUsersState";
 import { useRouter } from "next/navigation";
 
 import { UserCreateDialog } from "@/src/components/users/UserCreateDialog";
@@ -40,24 +41,24 @@ import { lightSurfaceClassName } from "@/src/components/users/users.constants";
 export default function UsersPage() {
   const router = useRouter();
 
-  // Search / filter / pagination state
-  const [searchName, setSearchName] = useState("");
-  const [searchEmail, setSearchEmail] = useState("");
-  const [filterRole, setFilterRole] = useState<string>("all");
-  const [userPage, setUserPage] = useState(1);
-  const [userLimit, setUserLimit] = useState(20);
-
-  // Edit dialog state
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [editFormData, setEditFormData] = useState<EditFormData>({
-    email: "",
-    name: "",
-    phone: "",
-    age: undefined,
-    assignedTrainer: "none",
-    bodyMeasurements: undefined,
-  });
+  const {
+    searchName,
+    searchEmail,
+    filterRole,
+    page: userPage,
+    limit: userLimit,
+    isEditDialogOpen,
+    selectedUserId,
+    editFormData,
+    setSearchName,
+    setSearchEmail,
+    setFilterRole,
+    setPage: setUserPage,
+    setLimit: setUserLimit,
+    openEditDialog: openEditDialogAction,
+    closeEditDialog,
+    setEditFormData,
+  } = useUsersState();
 
   // Auth
   const currentUser = useAppSelector((state) => state.auth.user);
@@ -80,6 +81,9 @@ export default function UsersPage() {
       { skip: !isAuthenticated || !accessToken },
     );
   const manageableUsers = manageableUsersData?.data ?? [];
+  const selectedUser = selectedUserId
+    ? (manageableUsers.find((u) => u._id === selectedUserId) ?? null)
+    : null;
   const manageableMeta = {
     page: manageableUsersData?.page ?? userPage,
     limit: manageableUsersData?.limit ?? userLimit,
@@ -125,13 +129,13 @@ export default function UsersPage() {
           ? (statistics.byRole?.[Role.TRAINER] ?? 0)
           : (statistics.byRole?.[Role.CASHIER] ?? 0) +
             (statistics.byRole?.[Role.TRAINER] ?? 0);
-        return {
-          totalUsers: statistics.totalUsers,
-          activeUsers: statistics.activeUsers,
-          customers: statistics.byRole?.[Role.CUSTOMER] ?? manageableMeta.total,
-          staff: staffCount,
-        };
-      }
+      return {
+        totalUsers: statistics.totalUsers,
+        activeUsers: statistics.activeUsers,
+        customers: statistics.byRole?.[Role.CUSTOMER] ?? manageableMeta.total,
+        staff: staffCount,
+      };
+    }
     const fallbackCustomers = manageableUsers.filter(
       (user) => user.role === Role.CUSTOMER,
     ).length;
@@ -142,11 +146,7 @@ export default function UsersPage() {
       customers: fallbackCustomers,
       staff: fallbackStaff,
     };
-  }, [
-    manageableMeta.total,
-    manageableUsers,
-    statistics,
-  ]);
+  }, [manageableMeta.total, manageableUsers, statistics]);
 
   // Helpers
   const getAssignedTrainerId = (
@@ -164,12 +164,18 @@ export default function UsersPage() {
   // Handlers
   const handleCreateUser = async (data: CreateUserDto) => {
     try {
+      const normalizedData = {
+        ...data,
+        email: data.email.trim(),
+      };
       if (data.role === Role.CUSTOMER) {
-        await createCustomer(data).unwrap();
+        await createCustomer(normalizedData).unwrap();
       } else {
-        await createStaff(data).unwrap();
+        await createStaff(normalizedData).unwrap();
       }
-    } catch {}
+    } catch (error) {
+      throw error;
+    }
   };
 
   const handleToggleActive = async (user: User) => {
@@ -212,26 +218,7 @@ export default function UsersPage() {
   };
 
   const handleEditUser = (user: User) => {
-    setSelectedUser(user);
-    setEditFormData({
-      email: user.email,
-      name: user.name,
-      phone: user.phone || "",
-      age: user.age ?? undefined,
-      assignedTrainer: getAssignedTrainerId(user.assignedTrainer),
-      bodyMeasurements: user.bodyMeasurements
-        ? {
-            height: user.bodyMeasurements.height ?? undefined,
-            weight: user.bodyMeasurements.weight ?? undefined,
-            bodyFat: user.bodyMeasurements.bodyFat ?? undefined,
-            chest: user.bodyMeasurements.chest ?? undefined,
-            waist: user.bodyMeasurements.waist ?? undefined,
-            biceps: user.bodyMeasurements.biceps ?? undefined,
-            leg: user.bodyMeasurements.leg ?? undefined,
-          }
-        : undefined,
-    });
-    setIsEditDialogOpen(true);
+    openEditDialogAction(user, trainers);
   };
 
   const handleUpdateUser = async (e: React.FormEvent) => {
@@ -239,14 +226,16 @@ export default function UsersPage() {
     if (!selectedUser) return;
     try {
       const updateData: Record<string, unknown> = {};
-      if (editFormData.email !== selectedUser.email)
-        updateData.email = editFormData.email;
+      const normalizedEmail = editFormData.email.trim();
+      if (normalizedEmail !== selectedUser.email)
+        updateData.email = normalizedEmail;
       if (editFormData.name !== selectedUser.name)
         updateData.name = editFormData.name;
       if (editFormData.phone !== (selectedUser.phone || ""))
         updateData.phone = editFormData.phone;
-      if (editFormData.age !== selectedUser.age)
-        updateData.age = editFormData.age;
+      const normalizedAge =
+        editFormData.age === "" ? undefined : editFormData.age;
+      if (normalizedAge !== selectedUser.age) updateData.age = normalizedAge;
 
       const currentTrainerId = getAssignedTrainerId(
         selectedUser.assignedTrainer,
@@ -277,12 +266,15 @@ export default function UsersPage() {
         }
       }
 
-      setIsEditDialogOpen(false);
-      setSelectedUser(null);
+      closeEditDialog();
     } catch (error: any) {
-      alert(
-        `Failed to update user: ${error?.data?.message || error?.message || "Unknown error"}`,
-      );
+      const status = error?.status ?? error?.data?.status;
+      const message = error?.data?.message || error?.message || "Unknown error";
+      if (status === 409 || /already exists|duplicate|email/i.test(message)) {
+        alert("Email already exists. Please use a different email.");
+        return;
+      }
+      alert(`Failed to update user: ${message}`);
     }
   };
 
@@ -329,10 +321,12 @@ export default function UsersPage() {
         {/* Edit Dialog */}
         <UserEditDialog
           open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) closeEditDialog();
+          }}
           selectedUser={selectedUser}
           formData={editFormData}
-          onFormChange={setEditFormData}
+          onFormChange={(data) => setEditFormData(data)}
           trainers={trainers}
           onSubmit={handleUpdateUser}
         />
@@ -343,18 +337,9 @@ export default function UsersPage() {
           searchEmail={searchEmail}
           filterRole={filterRole}
           currentUser={currentUser}
-          onSearchNameChange={(v) => {
-            setSearchName(v);
-            setUserPage(1);
-          }}
-          onSearchEmailChange={(v) => {
-            setSearchEmail(v);
-            setUserPage(1);
-          }}
-          onFilterRoleChange={(v) => {
-            setFilterRole(v);
-            setUserPage(1);
-          }}
+          onSearchNameChange={(v) => setSearchName(v)}
+          onSearchEmailChange={(v) => setSearchEmail(v)}
+          onFilterRoleChange={(v) => setFilterRole(v)}
         />
 
         {/* Statistics */}
@@ -376,11 +361,8 @@ export default function UsersPage() {
           onToggleActive={handleToggleActive}
           onViewMeasurements={handleViewMeasurements}
           onViewHistory={handleViewHistory}
-          onPageChange={setUserPage}
-          onPageSizeChange={(s) => {
-            setUserLimit(s);
-            setUserPage(1);
-          }}
+          onPageChange={(p) => setUserPage(p)}
+          onPageSizeChange={(s) => setUserLimit(s)}
         />
       </div>
     </div>

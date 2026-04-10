@@ -45,8 +45,8 @@ export function OtherServiceFormDialog({
           <DialogTitle>{isEdit ? "Edit Service" : "Add Service"}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update the service item."
-              : "Create a service item with amount only."}
+              ? "Update the service price for each duration unit."
+              : "Create a service item with day, month, and year prices."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -61,20 +61,67 @@ export function OtherServiceFormDialog({
               className={lightInputClassName}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="amount" className="text-slate-900">
-              Amount
-            </Label>
-            <Input
-              id="amount"
-              type="number"
-              min="0"
-              value={formData.amount}
-              onChange={(e) =>
-                onChange({ ...formData, amount: Number(e.target.value) })
-              }
-              className={lightInputClassName}
-            />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="amountDays" className="text-slate-900">
+                Day Price
+              </Label>
+              <Input
+                id="amountDays"
+                type="number"
+                min="0"
+                placeholder="0000"
+                value={formData.amountDays}
+                onChange={(e) =>
+                  onChange({
+                    ...formData,
+                    amountDays:
+                      e.target.value === "" ? "" : Number(e.target.value),
+                  })
+                }
+                className={lightInputClassName}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="amountMonths" className="text-slate-900">
+                Month Price
+              </Label>
+              <Input
+                id="amountMonths"
+                type="number"
+                min="0"
+                placeholder="0000"
+                value={formData.amountMonths}
+                onChange={(e) =>
+                  onChange({
+                    ...formData,
+                    amountMonths:
+                      e.target.value === "" ? "" : Number(e.target.value),
+                  })
+                }
+                className={lightInputClassName}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="amountYears" className="text-slate-900">
+                Year Price
+              </Label>
+              <Input
+                id="amountYears"
+                type="number"
+                min="0"
+                placeholder="0000"
+                value={formData.amountYears}
+                onChange={(e) =>
+                  onChange({
+                    ...formData,
+                    amountYears:
+                      e.target.value === "" ? "" : Number(e.target.value),
+                  })
+                }
+                className={lightInputClassName}
+              />
+            </div>
           </div>
           <DialogFooter className={lightDialogFooterClassName}>
             <Button

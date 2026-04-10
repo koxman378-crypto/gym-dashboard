@@ -29,7 +29,9 @@ const normalizeGymFeeRecord = (item: any): GymFeeRecord => ({
 const normalizeOtherServiceItem = (item: any): OtherServiceItem => ({
   _id: item?._id,
   name: item?.name ?? "",
-  amount: Number(item?.amount ?? item?.price ?? 0),
+  amountDays: Number(item?.amountDays ?? item?.amount ?? 0),
+  amountMonths: Number(item?.amountMonths ?? item?.amount ?? 0),
+  amountYears: Number(item?.amountYears ?? item?.amount ?? 0),
   isActive: Boolean(item?.isActive ?? true),
   createdAt: item?.createdAt,
   updatedAt: item?.updatedAt,

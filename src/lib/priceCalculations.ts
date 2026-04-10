@@ -42,8 +42,17 @@ export function calculateGymFinalPrice(
 export function calculateServiceFinalPrice(
   item: Omit<OtherServiceItem, "_id"> | OtherServiceItem
 ): number {
+  const duration = item.duration ?? 1;
+  const durationUnit = item.durationUnit ?? "months";
+  const unitPrice =
+    durationUnit === "days"
+      ? Number(item.amountDays ?? 0)
+      : durationUnit === "months"
+        ? Number(item.amountMonths ?? 0)
+        : Number(item.amountYears ?? 0);
+
   // Calculate base total (price * duration)
-  const baseTotal = item.amount * (item.duration ?? 1);
+  const baseTotal = unitPrice * duration;
 
   // Apply promotions if any
   if (!item.promotionType || !item.promotionValue) {

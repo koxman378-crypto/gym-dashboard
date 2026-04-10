@@ -34,7 +34,7 @@ export interface EditFormData {
   email: string;
   name: string;
   phone: string;
-  age: number | undefined;
+  age: number | "" | undefined;
   assignedTrainer: string;
   bodyMeasurements?: {
     height?: number;
@@ -143,9 +143,10 @@ export function UserEditDialog({
                   onChange={(e) =>
                     onFormChange({
                       ...formData,
-                      age: e.target.value ? Number(e.target.value) : undefined,
+                      age: e.target.value === "" ? "" : Number(e.target.value),
                     })
                   }
+                  placeholder="0000"
                   className={lightInputClassName}
                 />
               </div>
@@ -228,9 +229,10 @@ export function UserEditDialog({
                             ...formData,
                             bodyMeasurements: {
                               ...formData.bodyMeasurements,
-                              [id]: e.target.value
-                                ? Number(e.target.value)
-                                : undefined,
+                              [id]:
+                                e.target.value === ""
+                                  ? undefined
+                                  : Number(e.target.value),
                             },
                           })
                         }

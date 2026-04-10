@@ -1,108 +1,78 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
 import { User as UserIcon } from "lucide-react";
 import {
+  useAddTrainerFeeItemMutation,
+  useDeleteTrainerFeeItemMutation,
   useGetAllTrainersQuery,
-  useUpdateTrainerFeesMutation,
   useUpdateTrainerFeeItemMutation,
 } from "@/src/store/services/usersApi";
 import type { User } from "@/src/types/type";
-import type { TrainerFeeItem } from "@/src/types/extended-types";
 import { TrainerCard } from "@/src/components/custom-fees/trainer-fees/TrainerCard";
-import {
-  TrainerFeeEditDialog,
-  type FeeFormItem,
-} from "@/src/components/custom-fees/trainer-fees/TrainerFeeEditDialog";
+import { TrainerFeeEditDialog } from "@/src/components/custom-fees/trainer-fees/TrainerFeeEditDialog";
+import { useTrainerFeesState } from "@/src/store/hooks/useTrainerFeesState";
 
 const lightSurfaceClassName =
   "border border-black/15 bg-white text-slate-900 shadow-sm";
 
 export default function TrainerFeesPage() {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedTrainer, setSelectedTrainer] = useState<User | null>(null);
-  const [formData, setFormData] = useState<FeeFormItem[]>([]);
+  const {
+    isEditDialogOpen,
+    selectedTrainerId,
+    formData,
+    openEditDialog,
+    closeEditDialog,
+    updateFeeField,
+  } = useTrainerFeesState();
 
   const { data: trainers = [], isLoading } = useGetAllTrainersQuery();
-  const [updateTrainerFees] = useUpdateTrainerFeesMutation();
+  const selectedTrainer = selectedTrainerId
+    ? (trainers.find((t) => t._id === selectedTrainerId) ?? null)
+    : null;
+  const currentFee = selectedTrainer?.trainerFees?.[0] ?? null;
+
+  const [addTrainerFeeItem] = useAddTrainerFeeItemMutation();
   const [updateTrainerFeeItem] = useUpdateTrainerFeeItemMutation();
-
-  const addFeeRow = () => {
-    setFormData([...formData, { amount: 0, isActive: true }]);
-  };
-
-  const updateFeeRow = (
-    index: number,
-    field: keyof FeeFormItem,
-    value: any,
-  ) => {
-    const updated = [...formData];
-    updated[index] = { ...updated[index], [field]: value };
-    setFormData(updated);
-  };
-
-  const removeFeeRow = (index: number) => {
-    setFormData(formData.filter((_, i) => i !== index));
-  };
+  const [deleteTrainerFeeItem] = useDeleteTrainerFeeItemMutation();
 
   const handleEdit = (trainer: User) => {
-    setSelectedTrainer(trainer);
-    if (trainer.trainerFees && trainer.trainerFees.length > 0) {
-      setFormData(
-        trainer.trainerFees.map((fee: TrainerFeeItem) => ({
-          _id: fee._id,
-          amount: fee.amount,
-          isActive: fee.isActive,
-        })),
-      );
-    } else {
-      setFormData([{ amount: 0, isActive: true }]);
-    }
-    setIsEditDialogOpen(true);
+    openEditDialog(trainer);
   };
 
   const handleSave = async () => {
     if (!selectedTrainer) return;
     try {
-      await updateTrainerFees({
-        trainerId: selectedTrainer._id,
-        trainerFees: formData.map((fee) => ({
-          amount: fee.amount,
-          isActive: fee.isActive,
-        })),
-      }).unwrap();
-      setIsEditDialogOpen(false);
-      resetForm();
+      const feePayload = {
+        amount: Number(formData.amount) || 0,
+        isActive: formData.isActive,
+      };
+
+      if (currentFee?._id) {
+        await updateTrainerFeeItem({
+          trainerId: selectedTrainer._id,
+          feeId: currentFee._id,
+          feeData: feePayload,
+        }).unwrap();
+      } else {
+        await addTrainerFeeItem({
+          trainerId: selectedTrainer._id,
+          feeData: feePayload,
+        }).unwrap();
+      }
+
+      closeEditDialog();
     } catch (error: any) {
-      alert(error?.data?.message || "Failed to update trainer fees");
+      alert(error?.data?.message || "Failed to save trainer fee");
     }
   };
 
-  // Uses PUT /users/:id/trainer-fees/:feeId â€” the existing backend endpoint
-  const handleToggleItem = async (trainerId: string, feeId: string) => {
+  const handleDelete = async (trainerId: string, feeId: string) => {
     try {
-      const trainer = trainers.find((t) => t._id === trainerId);
-      if (!trainer || !trainer.trainerFees) return;
-
-      const fee = trainer.trainerFees.find((f) => f._id === feeId);
-      if (!fee) return;
-
-      await updateTrainerFeeItem({
-        trainerId,
-        feeId,
-        feeData: {
-          amount: fee.amount,
-          isActive: !fee.isActive,
-        },
-      }).unwrap();
+      if (!confirm("Delete this trainer fee?")) return;
+      await deleteTrainerFeeItem({ trainerId, feeId }).unwrap();
     } catch (error: any) {
-      alert(error?.data?.message || "Failed to toggle fee item");
+      alert(error?.data?.message || "Failed to delete trainer fee");
     }
-  };
-
-  const resetForm = () => {
-    setFormData([]);
-    setSelectedTrainer(null);
   };
 
   if (isLoading) {
@@ -121,10 +91,10 @@ export default function TrainerFeesPage() {
       <div className="container mx-auto p-6 space-y-6">
         <div className={`rounded-2xl p-8 ${lightSurfaceClassName}`}>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Trainer Fees Management
+            Trainer Fee Management
           </h1>
           <p className="mt-2 text-base text-slate-600">
-            Manage trainer fee items for each trainer
+            One trainer has one fee amount only.
           </p>
         </div>
 
@@ -151,7 +121,7 @@ export default function TrainerFeesPage() {
                 key={trainer._id}
                 trainer={trainer}
                 onEdit={handleEdit}
-                onToggleFee={handleToggleItem}
+                onDelete={handleDelete}
               />
             ))
           )}
@@ -162,16 +132,20 @@ export default function TrainerFeesPage() {
         open={isEditDialogOpen}
         selectedTrainer={selectedTrainer}
         formData={formData}
+        hasExistingFee={Boolean(currentFee)}
         onOpenChange={(open) => {
-          if (!open) {
-            setIsEditDialogOpen(false);
-            resetForm();
-          }
+          if (!open) closeEditDialog();
         }}
-        onAddRow={addFeeRow}
-        onUpdateRow={updateFeeRow}
-        onRemoveRow={removeFeeRow}
+        onAmountChange={(amount) => updateFeeField("amount", amount)}
+        onActiveChange={(isActive) => updateFeeField("isActive", isActive)}
         onSave={handleSave}
+        onDelete={() => {
+          if (!selectedTrainer || !currentFee?._id) return;
+          void (async () => {
+            await handleDelete(selectedTrainer._id, currentFee._id);
+            closeEditDialog();
+          })();
+        }}
       />
     </div>
   );

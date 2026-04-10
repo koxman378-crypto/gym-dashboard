@@ -228,7 +228,7 @@ export default function RegisterPage() {
                   id="age"
                   name="age"
                   type="number"
-                  placeholder="25"
+                placeholder="0000"
                   value={formData.age}
                   onChange={handleChange}
                   className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.age ? "border-red-500" : ""}`}

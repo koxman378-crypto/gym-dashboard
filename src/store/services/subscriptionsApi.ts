@@ -27,7 +27,8 @@ const normalizeSubscription = (sub: any): Subscription => {
     : [];
 
   const servicesTotal = normalizedServices.reduce(
-    (sum: number, item: any) => sum + Number(item.finalAmount ?? item.finalPrice ?? 0),
+    (sum: number, item: any) =>
+      sum + Number(item.finalAmount ?? item.finalPrice ?? 0),
     0,
   );
 
@@ -175,12 +176,24 @@ export const subscriptionsApi = api.injectEndpoints({
         status?: string;
         customer?: string;
         trainerId?: string;
+        paymentStatus?: string;
+        gymFeeExpiringWithinDays?: number;
       }
     >({
-      query: (params) => ({
-        url: "/subscriptions",
-        params,
-      }),
+      query: (params) => {
+        if (params.trainerId) {
+          const { trainerId, ...rest } = params;
+          return {
+            url: `/subscriptions/trainer/${trainerId}`,
+            params: rest,
+          };
+        }
+
+        return {
+          url: "/subscriptions",
+          params,
+        };
+      },
       transformResponse: (response: any, _meta, arg) => {
         // Normalise any backend shape into { data, total, page, limit, totalPages }
         let data: Subscription[] = [];

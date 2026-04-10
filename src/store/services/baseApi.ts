@@ -172,6 +172,8 @@ export const api = createApi({
     "GymPrice",
     "OtherService",
     "GymProfile",
+    "Faq",
+    "ExpiryPreset",
   ],
   endpoints: () => ({}),
 });

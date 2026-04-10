@@ -12,6 +12,7 @@ import {
   CreditCard,
   Activity,
   UserCheck,
+  Clock,
 } from "lucide-react";
 
 // Simple date formatter
@@ -29,6 +30,7 @@ interface ColumnsProps {
   onDelete?: (subscription: Subscription) => void;
   onViewDetails?: (subscription: Subscription) => void;
   onUpdate?: (subscription: Subscription) => void;
+  showDaysLeft?: boolean;
 }
 
 export const createSubscriptionColumns = ({
@@ -36,6 +38,7 @@ export const createSubscriptionColumns = ({
   onDelete,
   onViewDetails,
   onUpdate,
+  showDaysLeft,
 }: ColumnsProps = {}): ColumnDef<Subscription>[] => [
   {
     accessorKey: "_id",
@@ -242,6 +245,45 @@ export const createSubscriptionColumns = ({
       );
     },
   },
+  ...(showDaysLeft
+    ? [
+        {
+          id: "gymFeeEndsIn",
+          header: () => (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-slate-500" />
+              Days Left
+            </div>
+          ),
+          cell: ({ row }: { row: { original: Subscription } }) => {
+            const gymFee = row.original.gymFee;
+            if (!gymFee?.endDate)
+              return <span className="text-xs text-slate-400">No gym fee</span>;
+            const today = new Date();
+            const daysLeft = Math.ceil(
+              (new Date(gymFee.endDate).getTime() - today.getTime()) / 86400000,
+            );
+            if (daysLeft <= 0)
+              return (
+                <Badge variant="destructive" className="tabular-nums">
+                  Expired
+                </Badge>
+              );
+            const color =
+              daysLeft <= 7
+                ? "destructive"
+                : daysLeft <= 15
+                  ? "warning"
+                  : "active";
+            return (
+              <Badge variant={color as any} className="tabular-nums">
+                {daysLeft}d left
+              </Badge>
+            );
+          },
+        } as ColumnDef<Subscription>,
+      ]
+    : []),
   {
     id: "actions",
     header: "Actions",

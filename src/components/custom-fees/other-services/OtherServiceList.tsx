@@ -41,8 +41,16 @@ export function OtherServiceList({
         >
           <div>
             <div className="font-semibold">{item.name}</div>
-            <div className="text-sm text-green-400">
-              {item.amount.toLocaleString()} MMK
+            <div className="space-y-1 text-sm">
+              <div className="text-green-600">
+                Day: {item.amountDays.toLocaleString()} MMK
+              </div>
+              <div className="text-green-600">
+                Month: {item.amountMonths.toLocaleString()} MMK
+              </div>
+              <div className="text-green-600">
+                Year: {item.amountYears.toLocaleString()} MMK
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">

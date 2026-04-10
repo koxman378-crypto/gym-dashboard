@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Filter, Plus, Calendar, History, List } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,6 +9,7 @@ import { DataTable } from "@/src/components/data-table/table-data";
 import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
 import { createSubscriptionColumns } from "./columns";
 import { SubscriptionDetailsDialog } from "@/src/components/subscriptions/SubscriptionDetailsDialog";
+import { useGetExpiryPresetsQuery } from "@/src/store/services/expiryPresetsApi";
 import {
   Select,
   SelectContent,
@@ -46,9 +47,11 @@ import {
   useGetAllTrainersQuery,
 } from "@/src/store/services/usersApi";
 import { useAppSelector } from "@/src/store/hooks";
+import { useSubscriptionsState } from "@/src/store/hooks/useSubscriptionsState";
 import {
   Subscription,
   CreateSubscriptionDto,
+  UpdateSubscriptionDto,
   OtherServiceItem,
   DurationUnit,
   PromotionType,
@@ -59,41 +62,37 @@ import { Role } from "@/src/types/type";
 export default function SubscriptionsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [selectedSubscription, setSelectedSubscription] =
-    useState<Subscription | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [subscriptionToEdit, setSubscriptionToEdit] =
-    useState<Subscription | null>(null);
-  const [formData, setFormData] = useState({
-    customer: "",
-    startDate: new Date().toISOString().split("T")[0],
-    paymentStatus: "pending" as "paid" | "pending" | "partial",
-    paidAmount: 0,
-    trainerId: undefined as string | undefined,
-    trainerFeeRowId: undefined as string | undefined,
-    trainerDuration: 1,
-    trainerDurationUnit: "months" as DurationUnit,
-    trainerPromotionType: "none" as Exclude<PromotionType, null> | "none",
-    trainerPromotionValue: "" as number | "",
-    notes: undefined as string | undefined,
-  });
-  const [selectedGymFeeId, setSelectedGymFeeId] = useState<string>("");
-  const [selectedServices, setSelectedServices] = useState<
-    Record<
-      string,
-      {
-        duration: number;
-        durationUnit: DurationUnit;
-        promotionType: Exclude<PromotionType, null> | "none";
-        promotionValue: number | "";
-      }
-    >
-  >({});
+
+  const {
+    statusFilter,
+    paymentFilter,
+    gymFeeExpiryDays,
+    page,
+    limit,
+    isCreateDialogOpen,
+    isDetailsDialogOpen,
+    selectedSubscriptionId,
+    isEditMode,
+    subscriptionToEditId,
+    formData,
+    selectedGymFeeId,
+    selectedServices,
+    setStatusFilter,
+    setPaymentFilter,
+    setGymFeeExpiryDays,
+    setPage,
+    setLimit,
+    openCreateDialog,
+    closeCreateDialog,
+    openDetailsDialog,
+    closeDetailsDialog,
+    openEditDialog: openEditDialogAction,
+    setFormData,
+    setSelectedGymFeeId,
+    toggleService: handleServiceToggle,
+    updateServiceEntry,
+    resetCreateForm,
+  } = useSubscriptionsState();
 
   const currentUser = useAppSelector((state) => state.auth.user);
   const { isAuthenticated, accessToken } = useAppSelector(
@@ -102,6 +101,29 @@ export default function SubscriptionsPage() {
   const trainerIdFilter =
     searchParams.get("trainerId") ||
     (currentUser?.role === Role.TRAINER ? currentUser._id : undefined);
+  const trainerFilterSelectValue =
+    searchParams.get("trainerId") ||
+    (currentUser?.role === Role.TRAINER ? (currentUser._id ?? "all") : "all");
+
+  const getServiceUnitPrice = (
+    service: OtherServiceItem,
+    durationUnit: DurationUnit,
+  ) => {
+    if (durationUnit === "days") return Number(service.amountDays ?? 0);
+    if (durationUnit === "months") return Number(service.amountMonths ?? 0);
+    if (durationUnit === "years") return Number(service.amountYears ?? 0);
+    return 0;
+  };
+  const handleTrainerFilterChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!value || value === "all") {
+      params.delete("trainerId");
+    } else {
+      params.set("trainerId", value);
+    }
+    const query = params.toString();
+    router.push(query ? `/subscriptions?${query}` : "/subscriptions");
+  };
 
   // Fetch subscriptions with filters
   const {
@@ -110,11 +132,22 @@ export default function SubscriptionsPage() {
     refetch,
   } = useGetAllSubscriptionsQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
+    paymentStatus: paymentFilter !== "all" ? paymentFilter : undefined,
+    gymFeeExpiringWithinDays:
+      gymFeeExpiryDays !== "" && gymFeeExpiryDays > 0
+        ? gymFeeExpiryDays
+        : undefined,
     page,
     limit,
     trainerId: trainerIdFilter || undefined,
   });
   const subscriptions = subscriptionsData?.data ?? [];
+  const selectedSubscription = selectedSubscriptionId
+    ? (subscriptions.find((s) => s._id === selectedSubscriptionId) ?? null)
+    : null;
+  const subscriptionToEdit = subscriptionToEditId
+    ? (subscriptions.find((s) => s._id === subscriptionToEditId) ?? null)
+    : null;
   const paginationMeta = {
     page: subscriptionsData?.page ?? page,
     limit: subscriptionsData?.limit ?? limit,
@@ -152,9 +185,16 @@ export default function SubscriptionsPage() {
   );
 
   // Fetch trainers for dropdown
-  const { data: trainers = [] } = useGetAllTrainersQuery(undefined, {
-    skip: !isAuthenticated || !accessToken,
-  });
+  const { data: trainers = [], isLoading: isLoadingTrainers } =
+    useGetAllTrainersQuery(undefined, {
+      skip: !isAuthenticated || !accessToken,
+    });
+
+  // Fetch expiry presets for gymFee filter dropdown
+  const { data: expiryPresets = [] } = useGetExpiryPresetsQuery(
+    { active: true },
+    { skip: !isAuthenticated || !accessToken },
+  );
 
   const [createSubscription] = useCreateSubscriptionMutation();
   const [updateSubscription] = useUpdateSubscriptionMutation();
@@ -179,7 +219,8 @@ export default function SubscriptionsPage() {
     Object.entries(selectedServices).forEach(([serviceId, values]) => {
       const service = serviceItems.find((item) => item._id === serviceId);
       if (!service) return;
-      const baseTotal = service.amount * values.duration;
+      const basePrice = getServiceUnitPrice(service, values.durationUnit);
+      const baseTotal = basePrice * values.duration;
       let finalPrice = baseTotal;
       if (values.promotionType && values.promotionValue !== "") {
         if (values.promotionType === "percentage") {
@@ -256,10 +297,48 @@ export default function SubscriptionsPage() {
     try {
       if (isEditMode && subscriptionToEdit) {
         // Update existing subscription
-        const updateDto: any = {
+        const updateDto: UpdateSubscriptionDto = {
+          startDate: formData.startDate,
+          status: formData.status,
           paymentStatus: formData.paymentStatus,
           paidAmount: formData.paidAmount,
           notes: formData.notes || undefined,
+          gymFee:
+            selectedGymFeeId && selectedGymFeeId !== "none"
+              ? { feeId: selectedGymFeeId }
+              : null,
+          services: Object.entries(selectedServices).map(
+            ([serviceId, values]) => ({
+              serviceId,
+              duration: values.duration,
+              durationUnit: values.durationUnit,
+              promotionType:
+                values.promotionType === "none"
+                  ? undefined
+                  : values.promotionType,
+              promotionValue:
+                values.promotionValue === ""
+                  ? undefined
+                  : values.promotionValue,
+            }),
+          ),
+          trainer:
+            formData.trainerId && formData.trainerFeeRowId
+              ? {
+                  trainerId: formData.trainerId,
+                  trainerFeeId: formData.trainerFeeRowId,
+                  duration: formData.trainerDuration,
+                  durationUnit: formData.trainerDurationUnit,
+                  promotionType:
+                    formData.trainerPromotionType === "none"
+                      ? undefined
+                      : formData.trainerPromotionType,
+                  promotionValue:
+                    formData.trainerPromotionValue === ""
+                      ? undefined
+                      : formData.trainerPromotionValue,
+                }
+              : null,
         };
 
         await updateSubscription({
@@ -270,24 +349,7 @@ export default function SubscriptionsPage() {
         // Manually refetch subscriptions to ensure the list updates
         await refetch();
 
-        setIsCreateDialogOpen(false);
-        setIsEditMode(false);
-        setSubscriptionToEdit(null);
-
-        // Reset form
-        setFormData({
-          customer: "",
-          startDate: new Date().toISOString().split("T")[0],
-          paymentStatus: "pending",
-          paidAmount: 0,
-          trainerId: undefined,
-          trainerFeeRowId: undefined,
-          trainerDuration: 1,
-          trainerDurationUnit: "months",
-          trainerPromotionType: "none",
-          trainerPromotionValue: "",
-          notes: undefined,
-        });
+        closeCreateDialog();
       } else {
         // Create new subscription
         const dto: CreateSubscriptionDto = {
@@ -295,11 +357,11 @@ export default function SubscriptionsPage() {
           startDate: formData.startDate,
           paymentStatus: formData.paymentStatus as any,
           paidAmount: formData.paidAmount,
-          notes: formData.notes,
+          notes: formData.notes ?? undefined,
         };
 
         // Add gym fee selection if any
-        if (selectedGymFeeId) {
+        if (selectedGymFeeId && selectedGymFeeId !== "none") {
           dto.gymFee = {
             feeId: selectedGymFeeId,
           };
@@ -349,24 +411,8 @@ export default function SubscriptionsPage() {
 
         // Show success message
 
-        setIsCreateDialogOpen(false);
-
-        // Reset form
-        setFormData({
-          customer: "",
-          startDate: new Date().toISOString().split("T")[0],
-          paymentStatus: "pending",
-          paidAmount: 0,
-          trainerId: undefined,
-          trainerFeeRowId: undefined,
-          trainerDuration: 1,
-          trainerDurationUnit: "months",
-          trainerPromotionType: "none",
-          trainerPromotionValue: "",
-          notes: undefined,
-        });
-        setSelectedGymFeeId("");
-        setSelectedServices({});
+        closeCreateDialog();
+        resetCreateForm();
       }
     } catch (error: any) {
       const errorMessage =
@@ -375,26 +421,6 @@ export default function SubscriptionsPage() {
         `Failed to ${isEditMode ? "update" : "create"} subscription. Please try again.`;
       alert(`Error: ${errorMessage}`);
     }
-  };
-
-  const handleServiceToggle = (serviceId: string) => {
-    setSelectedServices((prev) => {
-      if (prev[serviceId]) {
-        const next = { ...prev };
-        delete next[serviceId];
-        return next;
-      }
-
-      return {
-        ...prev,
-        [serviceId]: {
-          duration: 1,
-          durationUnit: "months",
-          promotionType: "none",
-          promotionValue: "",
-        },
-      };
-    });
   };
 
   const canCreateSubscription =
@@ -439,53 +465,11 @@ export default function SubscriptionsPage() {
   };
 
   const handleViewDetails = (subscription: Subscription) => {
-    setSelectedSubscription(subscription);
-    setIsDetailsDialogOpen(true);
+    openDetailsDialog(subscription._id);
   };
 
   const handleUpdate = (subscription: Subscription) => {
-    setSubscriptionToEdit(subscription);
-    setIsEditMode(true);
-    // Pre-populate form data with editable fields
-    setFormData({
-      customer:
-        typeof subscription.customer === "string"
-          ? subscription.customer
-          : subscription.customer?._id || "",
-      startDate:
-        typeof subscription.startDate === "string"
-          ? subscription.startDate.split("T")[0]
-          : new Date(subscription.startDate).toISOString().split("T")[0],
-      paymentStatus: subscription.paymentStatus,
-      paidAmount: subscription.paidAmount,
-      trainerId: subscription.trainer
-        ? typeof subscription.trainer === "object" &&
-          "_id" in subscription.trainer
-          ? String(subscription.trainer._id)
-          : undefined
-        : undefined,
-      trainerFeeRowId: undefined, // Not editable in update mode
-      trainerDuration:
-        subscription.trainer && typeof subscription.trainer === "object"
-          ? (subscription.trainer.duration ?? 1)
-          : 1,
-      trainerDurationUnit:
-        subscription.trainer && typeof subscription.trainer === "object"
-          ? ((subscription.trainer.durationUnit as DurationUnit) ?? "months")
-          : "months",
-      trainerPromotionType:
-        subscription.trainer && typeof subscription.trainer === "object"
-          ? ((subscription.trainer.promotionType as PromotionType) ?? "none")
-          : "none",
-      trainerPromotionValue:
-        subscription.trainer && typeof subscription.trainer === "object"
-          ? (subscription.trainer.promotionValue ?? "")
-          : "",
-      notes: subscription.notes || undefined,
-    });
-    // Note: We cannot change gym price, services, dates, or customer in update mode
-    // Only paymentStatus, paidAmount, notes, and status can be updated
-    setIsCreateDialogOpen(true);
+    openEditDialogAction(subscription);
   };
 
   // Memoize columns with action handlers
@@ -499,8 +483,9 @@ export default function SubscriptionsPage() {
             : undefined,
         onViewDetails: handleViewDetails,
         onUpdate: canCreateSubscription ? handleUpdate : undefined,
+        showDaysLeft: gymFeeExpiryDays !== "",
       }),
-    [canCreateSubscription, currentUser],
+    [canCreateSubscription, currentUser, gymFeeExpiryDays],
   );
 
   const subscriptionsWithTrainerInfo = useMemo(() => {
@@ -554,7 +539,7 @@ export default function SubscriptionsPage() {
       <div className="flex flex-col gap-6 p-6">
         {/* Header Section */}
         <div className={`rounded-2xl p-8 ${lightSurfaceClassName}`}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="rounded-xl border border-black/10 bg-white p-2.5">
@@ -570,25 +555,116 @@ export default function SubscriptionsPage() {
                   : "Manage member subscriptions and renewals"}
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center justify-end gap-4 lg:ml-auto">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-slate-900">
+                  Payment:
+                </span>
+                <Select
+                  value={paymentFilter}
+                  onValueChange={(value) => setPaymentFilter(value)}
+                >
+                  <SelectTrigger
+                    className={`w-40 ${lightSelectTriggerClassName}`}
+                  >
+                    <SelectValue placeholder="All payments" />
+                  </SelectTrigger>
+                  <SelectContent className={lightSelectContentClassName}>
+                    <SelectItem
+                      value="all"
+                      className={lightSelectItemClassName}
+                    >
+                      All Payments
+                    </SelectItem>
+                    <SelectItem
+                      value="paid"
+                      className={lightSelectItemClassName}
+                    >
+                      Paid
+                    </SelectItem>
+                    <SelectItem
+                      value="pending"
+                      className={lightSelectItemClassName}
+                    >
+                      Pending
+                    </SelectItem>
+                    <SelectItem
+                      value="partial"
+                      className={lightSelectItemClassName}
+                    >
+                      Partial
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-slate-900">
+                  GymFee Expiring:
+                </span>
+                <Select
+                  value={
+                    gymFeeExpiryDays !== "" ? String(gymFeeExpiryDays) : "none"
+                  }
+                  onValueChange={(value) => {
+                    if (value === "none") {
+                      setGymFeeExpiryDays("");
+                    } else if (value === "custom") {
+                      setGymFeeExpiryDays("");
+                    } else {
+                      setGymFeeExpiryDays(Number(value));
+                    }
+                  }}
+                >
+                  <SelectTrigger
+                    className={`w-44 ${lightSelectTriggerClassName}`}
+                  >
+                    <SelectValue placeholder="Any expiry" />
+                  </SelectTrigger>
+                  <SelectContent className={lightSelectContentClassName}>
+                    <SelectItem
+                      value="none"
+                      className={lightSelectItemClassName}
+                    >
+                      Any Expiry
+                    </SelectItem>
+                    {expiryPresets.map((preset) => (
+                      <SelectItem
+                        key={preset._id}
+                        value={String(preset.days)}
+                        className={lightSelectItemClassName}
+                      >
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="Custom days"
+                  value={gymFeeExpiryDays}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setGymFeeExpiryDays(v === "" ? "" : Number(v));
+                  }}
+                  className="w-28 border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10"
+                />
+              </div>
+
               {canCreateSubscription && (
                 <Dialog
                   open={isCreateDialogOpen}
                   onOpenChange={(open) => {
-                    setIsCreateDialogOpen(open);
-                    if (!open) {
-                      // Reset edit mode when dialog closes
-                      setIsEditMode(false);
-                      setSubscriptionToEdit(null);
-                    }
+                    if (open) openCreateDialog();
+                    else closeCreateDialog();
                   }}
                 >
                   <DialogTrigger asChild>
                     <Button
                       className={`px-6 py-6 cursor-pointer text-base font-semibold ${lightButtonClassName}`}
                       onClick={() => {
-                        setIsEditMode(false);
-                        setSubscriptionToEdit(null);
+                        openCreateDialog();
                       }}
                     >
                       <Plus className="mr-2 h-5 w-5" />
@@ -604,7 +680,7 @@ export default function SubscriptionsPage() {
                       </DialogTitle>
                       <DialogDescription>
                         {isEditMode
-                          ? "Update payment status, amount, and notes for this subscription"
+                          ? "Update subscription package, payment status, amount, notes, and status"
                           : "Create a new subscription for a customer"}
                       </DialogDescription>
                     </DialogHeader>
@@ -617,7 +693,7 @@ export default function SubscriptionsPage() {
                         <Select
                           value={formData.customer}
                           onValueChange={(value) =>
-                            setFormData({ ...formData, customer: value })
+                            setFormData({ customer: value })
                           }
                           required
                           disabled={isEditMode}
@@ -661,10 +737,12 @@ export default function SubscriptionsPage() {
                         </Select>
                       </div>
 
-                      {/* GYM FEE SELECTION - Only in create mode */}
-                      {!isEditMode && gymFees.length > 0 && (
+                      {/* GYM FEE SELECTION */}
+                      {gymFees.length > 0 && (
                         <div className="space-y-3">
-                          <Label>Gym Fee</Label>
+                          <Label>
+                            Gym Fee {isEditMode ? "(Editable)" : ""}
+                          </Label>
                           <Select
                             value={selectedGymFeeId}
                             onValueChange={setSelectedGymFeeId}
@@ -677,6 +755,12 @@ export default function SubscriptionsPage() {
                             <SelectContent
                               className={lightSelectContentClassName}
                             >
+                              <SelectItem
+                                value="none"
+                                className={lightSelectItemClassName}
+                              >
+                                No Gym Fee
+                              </SelectItem>
                               {gymFees.map((fee) => (
                                 <SelectItem
                                   key={fee._id}
@@ -708,7 +792,7 @@ export default function SubscriptionsPage() {
                               ))}
                             </SelectContent>
                           </Select>
-                          {selectedGymFeeId && (
+                          {selectedGymFeeId && selectedGymFeeId !== "none" && (
                             <div className="rounded-lg border border-black/10 bg-slate-50 p-3 text-sm text-slate-600">
                               Selected fee will run for the configured duration
                               and promotion in the backend.
@@ -717,10 +801,13 @@ export default function SubscriptionsPage() {
                         </div>
                       )}
 
-                      {/* OTHER SERVICES SELECTION - Only in create mode */}
-                      {!isEditMode && serviceItems.length > 0 && (
+                      {/* OTHER SERVICES SELECTION */}
+                      {serviceItems.length > 0 && (
                         <div className="space-y-3">
-                          <Label>Additional Services (Optional)</Label>
+                          <Label>
+                            Additional Services{" "}
+                            {isEditMode ? "(Editable)" : "(Optional)"}
+                          </Label>
                           <div className="space-y-2">
                             {serviceItems
                               .filter((service) => service.isActive)
@@ -728,8 +815,12 @@ export default function SubscriptionsPage() {
                                 const selected = selectedServices[service._id];
                                 const total = selected
                                   ? (() => {
+                                      const basePrice = getServiceUnitPrice(
+                                        service,
+                                        selected.durationUnit,
+                                      );
                                       const baseTotal =
-                                        service.amount * selected.duration;
+                                        basePrice * selected.duration;
                                       if (
                                         !selected.promotionType ||
                                         selected.promotionValue === ""
@@ -773,12 +864,26 @@ export default function SubscriptionsPage() {
                                         htmlFor={`service-${service._id}`}
                                         className="text-sm font-medium cursor-pointer"
                                       >
-                                        {service.name} -{" "}
-                                        {Number(
-                                          service.amount ?? 0,
-                                        ).toLocaleString()}{" "}
-                                        MMK
+                                        {service.name}
                                       </label>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-2 text-xs text-slate-600">
+                                      <div>
+                                        Day:{" "}
+                                        {service.amountDays.toLocaleString()}{" "}
+                                        MMK
+                                      </div>
+                                      <div>
+                                        Month:{" "}
+                                        {service.amountMonths.toLocaleString()}{" "}
+                                        MMK
+                                      </div>
+                                      <div>
+                                        Year:{" "}
+                                        {service.amountYears.toLocaleString()}{" "}
+                                        MMK
+                                      </div>
                                     </div>
 
                                     {selected && (
@@ -790,15 +895,11 @@ export default function SubscriptionsPage() {
                                             min="1"
                                             value={selected.duration}
                                             onChange={(e) =>
-                                              setSelectedServices((prev) => ({
-                                                ...prev,
-                                                [service._id]: {
-                                                  ...prev[service._id],
-                                                  duration: Number(
-                                                    e.target.value,
-                                                  ),
-                                                },
-                                              }))
+                                              updateServiceEntry(service._id, {
+                                                duration: Number(
+                                                  e.target.value,
+                                                ),
+                                              })
                                             }
                                           />
                                         </div>
@@ -809,13 +910,9 @@ export default function SubscriptionsPage() {
                                             onValueChange={(
                                               value: DurationUnit,
                                             ) =>
-                                              setSelectedServices((prev) => ({
-                                                ...prev,
-                                                [service._id]: {
-                                                  ...prev[service._id],
-                                                  durationUnit: value,
-                                                },
-                                              }))
+                                              updateServiceEntry(service._id, {
+                                                durationUnit: value,
+                                              })
                                             }
                                           >
                                             <SelectTrigger
@@ -864,19 +961,12 @@ export default function SubscriptionsPage() {
                                               selected.promotionType || "none"
                                             }
                                             onValueChange={(value: string) =>
-                                              setSelectedServices((prev) => ({
-                                                ...prev,
-                                                [service._id]: {
-                                                  ...prev[service._id],
-                                                  promotionType: value as
-                                                    | Exclude<
-                                                        PromotionType,
-                                                        null
-                                                      >
-                                                    | "none",
-                                                  promotionValue: "",
-                                                },
-                                              }))
+                                              updateServiceEntry(service._id, {
+                                                promotionType: value as
+                                                  | Exclude<PromotionType, null>
+                                                  | "none",
+                                                promotionValue: "",
+                                              })
                                             }
                                           >
                                             <SelectTrigger
@@ -928,16 +1018,12 @@ export default function SubscriptionsPage() {
                                             }
                                             value={selected.promotionValue}
                                             onChange={(e) =>
-                                              setSelectedServices((prev) => ({
-                                                ...prev,
-                                                [service._id]: {
-                                                  ...prev[service._id],
-                                                  promotionValue:
-                                                    e.target.value === ""
-                                                      ? ""
-                                                      : Number(e.target.value),
-                                                },
-                                              }))
+                                              updateServiceEntry(service._id, {
+                                                promotionValue:
+                                                  e.target.value === ""
+                                                    ? ""
+                                                    : Number(e.target.value),
+                                              })
                                             }
                                           />
                                         </div>
@@ -963,9 +1049,8 @@ export default function SubscriptionsPage() {
                           value={formData.trainerId || ""}
                           onValueChange={(value) =>
                             setFormData({
-                              ...formData,
-                              trainerId: value === "none" ? undefined : value,
-                              trainerFeeRowId: undefined, // Reset trainer fee item when trainer changes
+                              trainerId: value === "none" ? null : value,
+                              trainerFeeRowId: null,
                               trainerDuration: 1,
                               trainerDurationUnit: "months",
                               trainerPromotionType: "none",
@@ -1065,7 +1150,6 @@ export default function SubscriptionsPage() {
                                   value={formData.trainerFeeRowId || ""}
                                   onValueChange={(value) =>
                                     setFormData({
-                                      ...formData,
                                       trainerFeeRowId: value,
                                     })
                                   }
@@ -1103,7 +1187,6 @@ export default function SubscriptionsPage() {
                                     value={formData.trainerDuration}
                                     onChange={(e) =>
                                       setFormData({
-                                        ...formData,
                                         trainerDuration:
                                           Number(e.target.value) || 1,
                                       })
@@ -1119,7 +1202,6 @@ export default function SubscriptionsPage() {
                                     value={formData.trainerDurationUnit}
                                     onValueChange={(value: DurationUnit) =>
                                       setFormData({
-                                        ...formData,
                                         trainerDurationUnit: value,
                                       })
                                     }
@@ -1164,7 +1246,6 @@ export default function SubscriptionsPage() {
                                     value={formData.trainerPromotionType}
                                     onValueChange={(value) =>
                                       setFormData({
-                                        ...formData,
                                         trainerPromotionType: value as
                                           | Exclude<PromotionType, null>
                                           | "none",
@@ -1216,7 +1297,6 @@ export default function SubscriptionsPage() {
                                     value={formData.trainerPromotionValue}
                                     onChange={(e) =>
                                       setFormData({
-                                        ...formData,
                                         trainerPromotionValue:
                                           e.target.value === ""
                                             ? ""
@@ -1245,12 +1325,10 @@ export default function SubscriptionsPage() {
                             value={formData.startDate}
                             onChange={(e) =>
                               setFormData({
-                                ...formData,
                                 startDate: e.target.value,
                               })
                             }
                             required
-                            disabled={isEditMode}
                           />
                         </div>
 
@@ -1261,7 +1339,7 @@ export default function SubscriptionsPage() {
                           <Select
                             value={formData.paymentStatus}
                             onValueChange={(value: any) =>
-                              setFormData({ ...formData, paymentStatus: value })
+                              setFormData({ paymentStatus: value })
                             }
                           >
                             <SelectTrigger
@@ -1295,6 +1373,48 @@ export default function SubscriptionsPage() {
                         </div>
                       </div>
 
+                      {isEditMode && (
+                        <div className="space-y-2">
+                          <Label htmlFor="subscriptionStatus">
+                            Subscription Status *
+                          </Label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value: any) =>
+                              setFormData({ status: value })
+                            }
+                          >
+                            <SelectTrigger
+                              className={lightSelectTriggerClassName}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent
+                              className={lightSelectContentClassName}
+                            >
+                              <SelectItem
+                                value="active"
+                                className={lightSelectItemClassName}
+                              >
+                                Active
+                              </SelectItem>
+                              <SelectItem
+                                value="expired"
+                                className={lightSelectItemClassName}
+                              >
+                                Expired
+                              </SelectItem>
+                              <SelectItem
+                                value="cancelled"
+                                className={lightSelectItemClassName}
+                              >
+                                Cancelled
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
                       {(formData.paymentStatus === "paid" ||
                         formData.paymentStatus === "partial") && (
                         <div className="space-y-2">
@@ -1317,11 +1437,10 @@ export default function SubscriptionsPage() {
                               value={formData.paidAmount || 0}
                               onChange={(e) =>
                                 setFormData({
-                                  ...formData,
                                   paidAmount: Number(e.target.value),
                                 })
                               }
-                              placeholder="Enter paid amount"
+                              placeholder="0000"
                               required
                               className="flex-1"
                             />
@@ -1331,7 +1450,6 @@ export default function SubscriptionsPage() {
                                 variant="outline"
                                 onClick={() =>
                                   setFormData({
-                                    ...formData,
                                     paidAmount: calculatedTotals.grandTotal,
                                   })
                                 }
@@ -1350,20 +1468,22 @@ export default function SubscriptionsPage() {
                           id="notes"
                           value={formData.notes || ""}
                           onChange={(e) =>
-                            setFormData({ ...formData, notes: e.target.value })
+                            setFormData({ notes: e.target.value })
                           }
                           placeholder="Additional notes..."
                           rows={3}
                         />
                       </div>
 
-                      {/* TOTAL SUMMARY - Only show in create mode */}
-                      {!isEditMode && calculatedTotals.grandTotal > 0 && (
+                      {/* TOTAL SUMMARY */}
+                      {calculatedTotals.grandTotal > 0 && (
                         <div className="space-y-3 rounded-xl border border-black/10 bg-slate-50 p-5">
                           <div className="flex items-center gap-2 mb-3">
                             <Calendar className="h-5 w-5 text-slate-500" />
                             <h3 className="text-lg font-bold text-slate-900">
-                              Subscription Summary
+                              {isEditMode
+                                ? "Updated Subscription Summary"
+                                : "Subscription Summary"}
                             </h3>
                           </div>
 
@@ -1541,10 +1661,7 @@ export default function SubscriptionsPage() {
               </span>
               <Select
                 value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setPage(1); // Reset to first page when filter changes
-                }}
+                onValueChange={(value) => setStatusFilter(value)}
               >
                 <SelectTrigger
                   className={`w-48 ${lightSelectTriggerClassName}`}
@@ -1581,6 +1698,66 @@ export default function SubscriptionsPage() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl border border-black/10 bg-slate-50 p-2.5">
+                <List className="h-5 w-5 text-slate-500" />
+              </div>
+              <span className="text-sm font-semibold text-slate-900">
+                Trainer:
+              </span>
+              {currentUser?.role === Role.TRAINER ? (
+                <div className="rounded-xl border border-black/10 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700">
+                  Your trainer account only
+                </div>
+              ) : (
+                <Select
+                  value={trainerFilterSelectValue}
+                  onValueChange={handleTrainerFilterChange}
+                >
+                  <SelectTrigger
+                    className={`w-64 ${lightSelectTriggerClassName}`}
+                  >
+                    <SelectValue placeholder="All trainers" />
+                  </SelectTrigger>
+                  <SelectContent className={lightSelectContentClassName}>
+                    <SelectItem
+                      value="all"
+                      className={lightSelectItemClassName}
+                    >
+                      All Trainers
+                    </SelectItem>
+                    {isLoadingTrainers ? (
+                      <SelectItem
+                        value="loading"
+                        disabled
+                        className={lightSelectItemClassName}
+                      >
+                        Loading trainers...
+                      </SelectItem>
+                    ) : trainers.length === 0 ? (
+                      <SelectItem
+                        value="empty"
+                        disabled
+                        className={lightSelectItemClassName}
+                      >
+                        No trainers found
+                      </SelectItem>
+                    ) : (
+                      trainers.map((trainer) => (
+                        <SelectItem
+                          key={trainer._id}
+                          value={trainer._id}
+                          className={lightSelectItemClassName}
+                        >
+                          {trainer.name} ({trainer.email})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             {/* Customer History Selector */}
@@ -1659,10 +1836,7 @@ export default function SubscriptionsPage() {
               <DataTablePagination
                 meta={paginationMeta}
                 onPageChange={(newPage) => setPage(newPage)}
-                onPageSizeChange={(newLimit) => {
-                  setLimit(newLimit);
-                  setPage(1);
-                }}
+                onPageSizeChange={(newLimit) => setLimit(newLimit)}
                 isLoading={isLoading}
                 tone="light"
               />
@@ -1673,10 +1847,7 @@ export default function SubscriptionsPage() {
         <SubscriptionDetailsDialog
           subscription={selectedSubscription}
           isOpen={isDetailsDialogOpen}
-          onClose={() => {
-            setIsDetailsDialogOpen(false);
-            setSelectedSubscription(null);
-          }}
+          onClose={() => closeDetailsDialog()}
         />
       </div>
     </div>

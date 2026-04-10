@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Clock, Calendar, User as UserIcon } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
@@ -14,20 +14,23 @@ import {
   useGetMonthlyStatsQuery,
 } from "@/src/store/services/attendanceApi";
 import { useAppSelector } from "@/src/store/hooks";
+import { useAttendanceState } from "@/src/store/hooks/useAttendanceState";
 import { AttendanceStatus } from "@/src/types/attendance";
 import { AttendanceCheckCard } from "@/src/components/attendance/AttendanceCheckCard";
 import { AttendanceMonthlyStats } from "@/src/components/attendance/AttendanceMonthlyStats";
 
 export default function AttendancePage() {
   const router = useRouter();
-  const [autoCloseAfter, setAutoCloseAfter] = useState<number>(120); // Default 2 hours
-  const [selectedMonth, setSelectedMonth] = useState<number>(
-    new Date().getMonth() + 1,
-  );
-  const [selectedYear, setSelectedYear] = useState<number>(
-    new Date().getFullYear(),
-  );
-  const [page, setPage] = useState(1);
+  const {
+    autoCloseAfter,
+    selectedMonth,
+    selectedYear,
+    page,
+    setAutoCloseAfter,
+    setSelectedMonth,
+    setSelectedYear,
+    setPage,
+  } = useAttendanceState();
   const limit = 30;
 
   const { isAuthenticated } = useAppSelector((state) => state.auth);
