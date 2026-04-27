@@ -19,6 +19,7 @@ import {
   lightSurfaceClassName,
   getRoleTextClass,
 } from "./users.constants";
+import type { MultiGymItem } from "@/src/types/type";
 
 interface Meta {
   page: number;
@@ -40,6 +41,7 @@ interface UsersTableProps {
   onViewHistory: (user: User) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  branches?: MultiGymItem[];
 }
 
 export function UsersTable({
@@ -55,6 +57,7 @@ export function UsersTable({
   onViewHistory,
   onPageChange,
   onPageSizeChange,
+  branches = [],
 }: UsersTableProps) {
   return (
     <div className={`overflow-hidden rounded-2xl ${lightSurfaceClassName}`}>
@@ -71,7 +74,7 @@ export function UsersTable({
               Role
             </TableHead>
             <TableHead className="font-semibold text-muted-foreground">
-              Nickname
+              Gym
             </TableHead>
             <TableHead className="font-semibold text-muted-foreground">
               Status
@@ -141,7 +144,17 @@ export function UsersTable({
                     {user.role}
                   </Badge>
                 </TableCell>
-                <TableCell>{user.nickname || "-"}</TableCell>
+                <TableCell>
+                  {user.gymId
+                    ? (() => {
+                        const gym = branches.find(
+                          (b: MultiGymItem) => b._id === user.gymId,
+                        );
+                        if (gym?.name) return gym.name;
+                        return "-";
+                      })()
+                    : "-"}
+                </TableCell>
                 <TableCell>
                   <Badge
                     variant="outline"

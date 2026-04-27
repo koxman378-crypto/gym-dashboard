@@ -123,24 +123,6 @@ export default function ExpiryPresetsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {isOwner && branches.length > 0 && (
-            <Select
-              value={selectedGymId ?? "all"}
-              onValueChange={(v) => setSelectedGymId(v === "all" ? null : v)}
-            >
-              <SelectTrigger className="w-44 border-border bg-background text-sm">
-                <SelectValue placeholder="All Gyms" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Gyms</SelectItem>
-                {branches.map((b) => (
-                  <SelectItem key={b._id} value={b._id!}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
           <Button
             onClick={() => openCreateDialog()}
             className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}

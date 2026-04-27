@@ -11,7 +11,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Users2 } from "lucide-react";
+import { Users2, Building2 } from "lucide-react";
 import {
   useGetAllStaffQuery,
   useGetAllTrainersQuery,
@@ -41,6 +41,13 @@ import { lightSurfaceClassName } from "@/src/components/users/users.constants";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 
 export default function UsersPage() {
   const router = useRouter();
@@ -70,7 +77,8 @@ export default function UsersPage() {
   const { isAuthenticated, accessToken } = useAppSelector(
     (state) => state.auth,
   );
-  const { isOwner, selectedGymId, branches } = useOwnerBranchFilter();
+  const { isOwner, selectedGymId, setSelectedGymId, branches } =
+    useOwnerBranchFilter();
   const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
 
   const searchRole = filterRole === "all" ? undefined : filterRole;
@@ -311,7 +319,7 @@ export default function UsersPage() {
       <div className="flex flex-col gap-6 p-6">
         {/* Header */}
         <div className={`rounded-2xl p-8 ${lightSurfaceClassName}`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex items-center gap-4">
               <div className="rounded-xl border border-border bg-background p-3.5">
                 <Users2 className="h-8 w-8 text-foreground" />
@@ -327,16 +335,48 @@ export default function UsersPage() {
                 </p>
               </div>
             </div>
-            {currentUser &&
-              (currentUser.role === Role.OWNER ||
-                currentUser.role === Role.CASHIER) && (
-                <UserCreateDialog
-                  currentUserRole={currentUser.role}
-                  branches={branches}
-                  defaultGymId={branchQuery ?? null}
-                  onCreate={handleCreateUser}
-                />
+            <div className="flex flex-wrap items-center gap-3 self-start xl:self-auto">
+              {isOwner && branches.length > 0 && (
+                <Select
+                  value={selectedGymId ?? "all"}
+                  onValueChange={(value) =>
+                    setSelectedGymId(value === "all" ? null : value)
+                  }
+                >
+                  <SelectTrigger className="h-12 -mt-4 w-44 cursor-pointer border border-gray-200 bg-white text-sm shadow-sm transition-colors hover:bg-gray-50 focus:ring-0 focus-visible:ring-0">
+                    <SelectValue placeholder="All Branches" />
+                  </SelectTrigger>
+                  <SelectContent className="border border-gray-200 bg-white shadow-lg">
+                    <SelectItem
+                      value="all"
+                      className="cursor-pointer focus:bg-gray-100"
+                    >
+                      All Branches
+                    </SelectItem>
+                    {branches.map((branch) => (
+                      <SelectItem
+                        key={branch._id}
+                        value={String(branch._id)}
+                        className="cursor-pointer focus:bg-gray-100"
+                      >
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
+
+              {currentUser &&
+                (currentUser.role === Role.OWNER ||
+                  currentUser.role === Role.CASHIER) && (
+                  <UserCreateDialog
+                    currentUserRole={currentUser.role}
+                    branches={branches}
+                    defaultGymId={branchQuery ?? null}
+                    onCreate={handleCreateUser}
+                  />
+                )}
+            </div>
           </div>
         </div>
 
@@ -393,6 +433,7 @@ export default function UsersPage() {
           onViewHistory={handleViewHistory}
           onPageChange={(p) => setUserPage(p)}
           onPageSizeChange={(s) => setUserLimit(s)}
+          branches={branches}
         />
       </div>
     </div>

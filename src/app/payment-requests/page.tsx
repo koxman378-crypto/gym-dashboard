@@ -476,9 +476,7 @@ export default function PaymentRequestsPage() {
   const totalPages = data?.totalPages ?? 1;
 
   useEffect(() => {
-    if (statusFilter === "approved") {
-      console.log("[PaymentRequests] approved fetched:", requests);
-    }
+    setPage(1);
   }, [statusFilter, requests]);
 
   if (isLoading && requests.length === 0) {
@@ -560,7 +558,10 @@ export default function PaymentRequestsPage() {
                   : "bg-white text-gray-500 border-gray-100 hover:bg-gray-50",
               )}
               onClick={() => {
-                dispatchStatusFilter({ type: "set", value: f.value as StatusFilter });
+                dispatchStatusFilter({
+                  type: "set",
+                  value: f.value as StatusFilter,
+                });
                 setPage(1);
               }}
             >

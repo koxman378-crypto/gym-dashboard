@@ -21,18 +21,18 @@ import {
 import type { DurationUnit, PromotionType } from "@/src/types/extended-types";
 
 const lightSelectTriggerClassName =
-  "border-border bg-background text-foreground hover:border-ring focus:border-ring focus:ring-ring/20";
+  "border border-gray-200 bg-white text-foreground hover:border-gray-300 focus:border-gray-300 focus:ring-0";
 const lightSelectContentClassName =
-  "border-border bg-background text-foreground shadow-xl ring-ring/20";
+  "border border-gray-200 bg-white text-foreground shadow-sm";
 const lightSelectItemClassName =
-  "text-foreground focus:bg-muted hover:bg-muted";
+  "text-foreground focus:bg-gray-100 hover:bg-gray-100";
 const lightDialogContentClassName =
-  "border border-border bg-background text-foreground shadow-2xl ring-ring/20";
-const lightDialogFooterClassName = "border-border bg-muted";
+  "border border-gray-200 bg-white text-foreground shadow-2xl";
+const lightDialogFooterClassName = "border-t border-gray-200 bg-white";
 const lightButtonClassName =
-  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
+  "border border-gray-200 bg-white text-foreground hover:bg-gray-50 hover:text-foreground shadow-sm";
 const lightInputClassName =
-  "border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20";
+  "border border-gray-200 bg-white text-foreground placeholder:text-muted-foreground hover:border-gray-300 focus:border-gray-300 focus:ring-0";
 
 export type GymFeeFormState = {
   name: string;
@@ -131,22 +131,16 @@ export function GymFeeFormDialog({
                 }
               >
                 <SelectTrigger className={lightSelectTriggerClassName}>
-                  <SelectValue />
+                  <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
                 <SelectContent className={lightSelectContentClassName}>
                   <SelectItem value="days" className={lightSelectItemClassName}>
                     Days
                   </SelectItem>
-                  <SelectItem
-                    value="months"
-                    className={lightSelectItemClassName}
-                  >
+                  <SelectItem value="months" className={lightSelectItemClassName}>
                     Months
                   </SelectItem>
-                  <SelectItem
-                    value="years"
-                    className={lightSelectItemClassName}
-                  >
+                  <SelectItem value="years" className={lightSelectItemClassName}>
                     Years
                   </SelectItem>
                 </SelectContent>
@@ -172,10 +166,7 @@ export function GymFeeFormDialog({
                   <SelectItem value="none" className={lightSelectItemClassName}>
                     None
                   </SelectItem>
-                  <SelectItem
-                    value="percentage"
-                    className={lightSelectItemClassName}
-                  >
+                  <SelectItem value="percentage" className={lightSelectItemClassName}>
                     Percentage
                   </SelectItem>
                   <SelectItem value="mmk" className={lightSelectItemClassName}>

@@ -294,10 +294,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         setSelectedGymId(value === "all" ? null : value)
                       }
                     >
-                      <SelectTrigger className="h-9 w-full cursor-pointer border border-gray-200 bg-white text-sm shadow-sm transition-colors hover:bg-gray-100 focus:ring-0 focus-visible:ring-0">
-                        <SelectValue placeholder="All Branches">
-                          {selectedBranch?.name ?? "All Branches"}
-                        </SelectValue>
+                    <SelectTrigger className="h-9 w-[11rem] cursor-pointer border border-gray-200 bg-white text-sm shadow-sm transition-colors hover:bg-gray-50 focus:ring-0 focus-visible:ring-0">
+                        <SelectValue placeholder="All Branches" />
                       </SelectTrigger>
                       <SelectContent className="border border-gray-200 bg-white shadow-lg">
                         <SelectItem
@@ -309,7 +307,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         {branches.map((branch) => (
                           <SelectItem
                             key={branch._id}
-                            value={branch._id ?? branch.name}
+                            value={String(branch._id)}
                             className="cursor-pointer focus:bg-gray-100"
                           >
                             {branch.name}

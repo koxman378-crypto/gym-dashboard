@@ -446,7 +446,6 @@ export default function SubscriptionsPage() {
         // Create new subscription
         const dto: CreateSubscriptionDto = {
           customer: formData.customer,
-          gymId: formData.gymId || branchQuery || undefined,
           startDate: formData.startDate,
           paymentStatus: normalizedPaymentStatus as any,
           paidAmount: formData.paidAmount,
