@@ -1,8 +1,33 @@
 "use client";
 
-import { Edit, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
+import React, { useRef, useEffect, useState } from "react";
+import { motion, useInView } from "motion/react";
+import { Check, Pencil, Trash2, UserRound } from "lucide-react";
 import type { Faq } from "@/src/types/extended-types";
+import { useFaqListState } from "@/src/store/hooks/useFaqListState";
+import { DeleteAlertDialog } from "@/src/components/ui/delete-alert-dialog";
+
+/* ---------- AnimatedItem ---------- */
+const AnimatedItem: React.FC<{
+  children: React.ReactNode;
+  delay?: number;
+  index: number;
+}> = ({ children, delay = 0, index }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.3, once: false });
+  return (
+    <motion.div
+      ref={ref}
+      data-index={index}
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.95, opacity: 0 }}
+      transition={{ duration: 0.25, delay }}
+      className="mb-4"
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 interface FaqListProps {
   faqs: Faq[];
@@ -19,71 +44,192 @@ export function FaqList({
   onDelete,
   onToggle,
 }: FaqListProps) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const [pendingDelete, setPendingDelete] = useState<Faq | null>(null);
+
+  const {
+    selectedIndex,
+    keyboardNav,
+    topGradientOpacity,
+    bottomGradientOpacity,
+    handleScroll,
+    setSelectedIndex,
+    setKeyboardNav,
+    moveDown,
+    moveUp,
+  } = useFaqListState();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey)) {
+        e.preventDefault();
+        moveDown(faqs.length - 1);
+      } else if (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) {
+        e.preventDefault();
+        moveUp(faqs.length - 1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [faqs.length, moveDown, moveUp]);
+
+  useEffect(() => {
+    if (!keyboardNav || selectedIndex < 0 || !listRef.current) return;
+    const container = listRef.current;
+    const selectedItem = container.querySelector(
+      `[data-index="${selectedIndex}"]`,
+    ) as HTMLElement | null;
+    if (selectedItem) {
+      const extraMargin = 50;
+      const containerScrollTop = container.scrollTop;
+      const containerHeight = container.clientHeight;
+      const itemTop = selectedItem.offsetTop;
+      const itemBottom = itemTop + selectedItem.offsetHeight;
+      if (itemTop < containerScrollTop + extraMargin) {
+        container.scrollTo({ top: itemTop - extraMargin, behavior: "smooth" });
+      } else if (
+        itemBottom >
+        containerScrollTop + containerHeight - extraMargin
+      ) {
+        container.scrollTo({
+          top: itemBottom - containerHeight + extraMargin,
+          behavior: "smooth",
+        });
+      }
+    }
+    setKeyboardNav(false);
+  }, [selectedIndex, keyboardNav, setKeyboardNav]);
+
   if (isLoading) {
-    return <div className="p-6 text-center text-slate-500">Loading...</div>;
+    return (
+      <div className="p-6 text-center text-muted-foreground">Loading...</div>
+    );
   }
 
   if (faqs.length === 0) {
-    return <div className="p-6 text-center text-slate-500">No FAQs found</div>;
+    return (
+      <div className="p-6 text-center text-muted-foreground">No FAQs found</div>
+    );
   }
 
   return (
-    <div className="divide-y divide-black/10">
-      {faqs.map((faq) => (
+    <>
+      <div className="relative w-full">
         <div
-          key={faq._id}
-          className="flex flex-col gap-4 p-4 md:flex-row md:items-start md:justify-between"
+          ref={listRef}
+          className="max-h-150 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-sm [&::-webkit-scrollbar-thumb]:bg-border"
+          onScroll={handleScroll}
+          style={{ scrollbarWidth: "thin" }}
         >
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-slate-900">{faq.question}</div>
-            <div className="mt-1 text-sm text-slate-600 whitespace-pre-wrap">
-              {faq.answer}
-            </div>
-            <div className="mt-1">
-              <span
-                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                  faq.isActive
-                    ? "bg-green-100 text-green-700"
-                    : "bg-slate-100 text-slate-500"
+          {faqs.map((faq, index) => (
+            <AnimatedItem key={faq._id} delay={0.05} index={index}>
+              <div
+                onMouseEnter={() => setSelectedIndex(index)}
+                onClick={() => setSelectedIndex(index)}
+                className={` rounded-xl border p-4 transition-colors duration-150 ${
+                  selectedIndex === index
+                    ? "border-gray-300 bg-gray-100"
+                    : "border-gray-200 bg-[#F5F5F5]"
                 }`}
               >
-                {faq.isActive ? "Active" : "Inactive"}
-              </span>
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onToggle(faq)}
-              title={faq.isActive ? "Deactivate" : "Activate"}
-              className="border border-black/10 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-            >
-              {faq.isActive ? (
-                <ToggleRight className="h-4 w-4" />
-              ) : (
-                <ToggleLeft className="h-4 w-4" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(faq)}
-              className="border border-black/10 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(faq)}
-              className="border border-black/10 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-foreground">
+                      {faq.question}
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">
+                      {faq.answer}
+                    </div>
+                    <div className="mt-2">
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                          faq.isActive
+                            ? "bg-green-100 text-green-700"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {faq.isActive ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(faq);
+                      }}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 transition-all duration-150 hover:bg-gray-100 active:scale-95"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggle(faq);
+                      }}
+                      className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-all duration-150 active:scale-95 ${
+                        faq.isActive
+                          ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
+                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      {faq.isActive ? "Deactivate" : "Activate"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDelete(faq);
+                      }}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-600 transition-all duration-150 hover:bg-red-100 active:scale-95"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </AnimatedItem>
+          ))}
         </div>
-      ))}
-    </div>
+
+        {/* Top gradient */}
+        <div
+          className="pointer-events-none absolute left-0 right-0 top-0 h-12.5 bg-linear-to-b from-background to-transparent transition-opacity duration-300"
+          style={{ opacity: topGradientOpacity }}
+        />
+        {/* Bottom gradient */}
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 right-0 h-25 bg-linear-to-t from-background to-transparent transition-opacity duration-300"
+          style={{ opacity: bottomGradientOpacity }}
+        />
+      </div>
+
+      {/* Delete confirmation dialog */}
+      <DeleteAlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        title="Delete FAQ"
+        description={
+          pendingDelete
+            ? `Are you sure you want to delete the FAQ "${pendingDelete.question}"? This action cannot be undone.`
+            : "Are you sure you want to delete this FAQ? This action cannot be undone."
+        }
+        onConfirm={() => {
+          if (pendingDelete) {
+            onDelete(pendingDelete);
+            setPendingDelete(null);
+          }
+        }}
+      />
+    </>
   );
 }

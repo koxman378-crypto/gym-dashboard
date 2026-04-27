@@ -55,3 +55,9 @@ export interface MonthlyStats {
     totalMinutes: number;
   }>;
 }
+
+export interface UserMonthAttendance {
+  year: number;
+  month: number;
+  byDate: Record<string, Attendance[]>;
+}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * Users Management Page
@@ -10,7 +10,7 @@
  * - CUSTOMER: Cannot access user management
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Users2 } from "lucide-react";
 import {
   useGetAllStaffQuery,
@@ -36,10 +36,15 @@ import {
 import { UserSearchFilters } from "@/src/components/users/UserSearchFilters";
 import { UserStatisticsCards } from "@/src/components/users/UserStatisticsCards";
 import { UsersTable } from "@/src/components/users/UsersTable";
+import { UserAttendanceHistoryDialog } from "@/src/components/users/UserAttendanceHistoryDialog";
 import { lightSurfaceClassName } from "@/src/components/users/users.constants";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 export default function UsersPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const {
     searchName,
@@ -65,6 +70,8 @@ export default function UsersPage() {
   const { isAuthenticated, accessToken } = useAppSelector(
     (state) => state.auth,
   );
+  const { isOwner, selectedGymId, branches } = useOwnerBranchFilter();
+  const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
 
   const searchRole = filterRole === "all" ? undefined : filterRole;
 
@@ -77,6 +84,7 @@ export default function UsersPage() {
         name: searchName || undefined,
         email: searchEmail || undefined,
         role: searchRole,
+        gymId: branchQuery,
       },
       { skip: !isAuthenticated || !accessToken },
     );
@@ -92,7 +100,7 @@ export default function UsersPage() {
   };
 
   const { data: staff = [], isLoading: staffLoading } = useGetAllStaffQuery(
-    undefined,
+    { gymId: branchQuery },
     {
       skip:
         !isAuthenticated || !accessToken || currentUser?.role !== Role.OWNER,
@@ -100,9 +108,12 @@ export default function UsersPage() {
   );
 
   const { data: trainers = [], isLoading: trainersLoading } =
-    useGetAllTrainersQuery(undefined, {
-      skip: !isAuthenticated || !accessToken,
-    });
+    useGetAllTrainersQuery(
+      { gymId: branchQuery },
+      {
+        skip: !isAuthenticated || !accessToken,
+      },
+    );
 
   const shouldLoadStatistics =
     !!isAuthenticated &&
@@ -110,7 +121,10 @@ export default function UsersPage() {
     (currentUser?.role === Role.OWNER || currentUser?.role === Role.CASHIER);
 
   const { data: statistics, isLoading: statisticsLoading } =
-    useGetStatisticsQuery(undefined, { skip: !shouldLoadStatistics });
+    useGetStatisticsQuery(
+      { gymId: branchQuery },
+      { skip: !shouldLoadStatistics },
+    );
 
   // Mutations
   const [createCustomer] = useCreateCustomerMutation();
@@ -118,6 +132,8 @@ export default function UsersPage() {
   const [updateUser] = useUpdateUserMutation();
   const [deleteUser] = useDeleteUserMutation();
   const [updateBodyMeasurements] = useUpdateBodyMeasurementsMutation();
+  const [attendanceHistoryUser, setAttendanceHistoryUser] =
+    useState<User | null>(null);
 
   const isLoading = manageableUsersLoading || staffLoading || trainersLoading;
   const isStatisticsLoading = statisticsLoading && shouldLoadStatistics;
@@ -147,6 +163,10 @@ export default function UsersPage() {
       staff: fallbackStaff,
     };
   }, [manageableMeta.total, manageableUsers, statistics]);
+
+  if (isLoading && manageableUsers.length === 0) {
+    return <PageLoadingState headerActionCount={1} itemCount={5} />;
+  }
 
   // Helpers
   const getAssignedTrainerId = (
@@ -283,27 +303,27 @@ export default function UsersPage() {
   };
 
   const handleViewHistory = (user: User) => {
-    router.push(`/subscriptions/customer/${user._id}`);
+    setAttendanceHistoryUser(user);
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="flex flex-col gap-6 p-6">
         {/* Header */}
-        <div className={`mb-6 rounded-2xl p-8 ${lightSurfaceClassName}`}>
+        <div className={`rounded-2xl p-8 ${lightSurfaceClassName}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="rounded-xl border border-black/15 bg-white p-3.5">
-                <Users2 className="h-8 w-8 text-slate-900" />
+              <div className="rounded-xl border border-border bg-background p-3.5">
+                <Users2 className="h-8 w-8 text-foreground" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-                  Users Management
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                  {t("users.title")}
                 </h1>
-                <p className="mt-1.5 text-base text-slate-600">
+                <p className="mt-1.5 text-base text-muted-foreground">
                   {currentUser?.role === Role.TRAINER
-                    ? "Manage your assigned customers"
-                    : "Manage all users, staff, and customers"}
+                    ? t("users.subtitleTrainer")
+                    : t("users.subtitleOwner")}
                 </p>
               </div>
             </div>
@@ -312,6 +332,8 @@ export default function UsersPage() {
                 currentUser.role === Role.CASHIER) && (
                 <UserCreateDialog
                   currentUserRole={currentUser.role}
+                  branches={branches}
+                  defaultGymId={branchQuery ?? null}
                   onCreate={handleCreateUser}
                 />
               )}
@@ -329,6 +351,14 @@ export default function UsersPage() {
           onFormChange={(data) => setEditFormData(data)}
           trainers={trainers}
           onSubmit={handleUpdateUser}
+        />
+
+        <UserAttendanceHistoryDialog
+          user={attendanceHistoryUser}
+          open={attendanceHistoryUser !== null}
+          onOpenChange={(open) => {
+            if (!open) setAttendanceHistoryUser(null);
+          }}
         />
 
         {/* Search & Filters */}

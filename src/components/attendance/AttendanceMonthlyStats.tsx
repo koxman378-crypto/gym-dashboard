@@ -79,19 +79,19 @@ export function AttendanceMonthlyStats({
       {monthlyStats ? (
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/30">
-            <p className="text-xs text-slate-400 mb-1">Total Days</p>
+            <p className="text-xs text-muted-foreground mb-1">Total Days</p>
             <p className="text-3xl font-bold text-blue-400">
               {monthlyStats.totalDays || 0}
             </p>
           </div>
           <div className="p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
-            <p className="text-xs text-slate-400 mb-1">Total Hours</p>
+            <p className="text-xs text-muted-foreground mb-1">Total Hours</p>
             <p className="text-3xl font-bold text-emerald-400">
               {Number(monthlyStats.totalHours || 0).toFixed(1)}
             </p>
           </div>
           <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/30 col-span-2">
-            <p className="text-xs text-slate-400 mb-1">Average Hours/Day</p>
+            <p className="text-xs text-muted-foreground mb-1">Average Hours/Day</p>
             <p className="text-3xl font-bold text-purple-400">
               {Number(monthlyStats.averageHoursPerDay || 0).toFixed(1)}
             </p>

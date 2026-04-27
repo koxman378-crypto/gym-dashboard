@@ -5,6 +5,7 @@ import type {
   UpdateAutoCloseDto,
   AttendanceHistoryResponse,
   MonthlyStats,
+  UserMonthAttendance,
 } from "@/src/types/attendance";
 
 export const attendanceApi = api.injectEndpoints({
@@ -78,6 +79,20 @@ export const attendanceApi = api.injectEndpoints({
       }),
       providesTags: ["Attendance"],
     }),
+
+    // [OWNER] Get a specific user's attendance for a given month (lazy, cached per userId+year+month)
+    getUserMonthAttendance: builder.query<
+      UserMonthAttendance,
+      { userId: string; year: number; month: number }
+    >({
+      query: ({ userId, year, month }) => ({
+        url: `/attendance/user/${userId}`,
+        params: { year, month },
+      }),
+      providesTags: (_result, _error, { userId }) => [
+        { type: "Attendance", id: `user-${userId}` },
+      ],
+    }),
   }),
 });
 
@@ -89,4 +104,5 @@ export const {
   useGetAttendanceHistoryQuery,
   useUpdateAutoCloseMutation,
   useGetMonthlyStatsQuery,
+  useGetUserMonthAttendanceQuery,
 } = attendanceApi;

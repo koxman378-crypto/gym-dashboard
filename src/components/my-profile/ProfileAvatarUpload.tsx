@@ -19,7 +19,7 @@ export function ProfileAvatarUpload({
 }: ProfileAvatarUploadProps) {
   return (
     <div className="mb-6">
-      <Label className="text-sm font-medium text-slate-300 mb-2 block">
+      <Label className="mb-2 block text-sm font-medium text-gray-700">
         Profile Picture
       </Label>
       <div className="flex items-center gap-4">
@@ -28,17 +28,17 @@ export function ProfileAvatarUpload({
             <img
               src={avatar}
               alt="Profile"
-              className="h-24 w-24 rounded-full object-cover border-2 border-slate-700"
+              className="h-24 w-24 rounded-full border-2 border-gray-200 object-cover"
             />
           ) : (
-            <div className="h-24 w-24 rounded-full bg-slate-600 flex items-center justify-center">
-              <User className="h-12 w-12 text-slate-400" />
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border border-gray-200 bg-gray-100">
+              <User className="h-12 w-12 text-gray-400" />
             </div>
           )}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadingImage}
-            className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 transition-colors"
+            className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
             <Camera className="h-4 w-4" />
           </button>
@@ -52,14 +52,14 @@ export function ProfileAvatarUpload({
           />
         </div>
         <div className="flex-1">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-gray-600">
             Click the camera icon to upload a new profile picture
           </p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="mt-1 text-xs text-gray-500">
             JPG, PNG or GIF. Max size 5MB.
           </p>
           {uploadingImage && (
-            <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+            <p className="mt-2 text-sm text-blue-600">Uploading image...</p>
           )}
         </div>
       </div>

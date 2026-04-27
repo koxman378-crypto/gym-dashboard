@@ -17,8 +17,8 @@
   --accent-foreground: 222 47% 11%;
   --destructive: 0 62.8% 50%;
   --destructive-foreground: 0 0% 100%;
-  --border: 214 32% 91%; /* light border */
-  --input: 214 32% 91%;
+  --border: 214 20% 88%; /* softer light border */
+  --input: 214 20% 88%;
   --ring: 160 84% 39%;
   --radius: 0.75rem;
   --success: 142.1 76.2% 36.3%;
@@ -58,6 +58,40 @@ body {
   --sidebar-ring: 160 84% 39%;
 }
 
+.dark {
+  --background: 0 0% 6%; /* #0F0F0F */
+  --foreground: 210 40% 96%; /* near white */
+  --card: 0 0% 13%; /* #212121 */
+  --card-foreground: 210 40% 96%;
+  --popover: 0 0% 13%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 160 84% 39%; /* keep emerald */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 13%;
+  --secondary-foreground: 210 40% 96%;
+  --muted: 0 0% 13%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 0 0% 15%;
+  --accent-foreground: 210 40% 96%;
+  --destructive: 0 62.8% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 18%; /* thin soft dark border */
+  --input: 0 0% 18%;
+  --ring: 160 84% 39%;
+  --success: 142.1 76.2% 36.3%;
+  --warning: 38.4 92% 50.2%;
+  --gradient-from: 160 84% 39%;
+  --gradient-to: 199 89% 48%;
+  --sidebar-background: 0 0% 13%;
+  --sidebar-foreground: 210 40% 96%;
+  --sidebar-primary: 160 84% 39%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 18%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 18%;
+  --sidebar-ring: 160 84% 39%;
+}
+
 @layer utilities {
   .gradient-bg {
     background: linear-gradient(
@@ -92,6 +126,11 @@ body {
     backdrop-filter: blur(12px) saturate(180%);
     background-color: rgba(255, 255, 255, 0.85);
     border: 1px solid rgba(214, 222, 235, 0.6);
+  }
+
+  .dark .glass-effect {
+    background-color: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(51, 65, 85, 0.6);
   }
 
   .card-hover {

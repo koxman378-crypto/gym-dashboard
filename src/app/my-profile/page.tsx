@@ -15,10 +15,14 @@ import { setUser } from "@/src/store/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { ProfileAvatarUpload } from "@/src/components/my-profile/ProfileAvatarUpload";
 import { ProfileFormFields } from "@/src/components/my-profile/ProfileFormFields";
+import { LanguageToggle } from "@/src/components/language/LanguageToggle";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 export default function ProfilePage() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { t } = useLanguage();
   const { user: authUser } = useAppSelector((state) => state.auth);
   const { data: profileData, isLoading: profileLoading } =
     useGetMyProfileQuery();
@@ -200,42 +204,58 @@ export default function ProfilePage() {
   };
 
   if (profileLoading) {
-    return (
-      <div className="min-h-screen bg-[#0F172B] flex items-center justify-center">
-        <div className="text-slate-400">Loading profile...</div>
-      </div>
-    );
+    return <PageLoadingState />;
   }
 
   const currentUser = profileData || authUser;
 
   return (
-    <div className="min-h-screen bg-[#0F172B]">
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold text-white">
-              Profile Settings
-            </h2>
+    <div className="min-h-screen bg-[#FCFCFC] p-6 text-foreground">
+      <div className="mx-auto max-w-4xl space-y-4">
+        {/* Header card */}
+        <div className="rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-foreground">
+                {t("myProfile.title")}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("myProfile.subtitle")}
+              </p>
+            </div>
             <Button
               variant="destructive"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50 text-red-600 shadow-sm hover:bg-red-100"
             >
               <LogOut className="h-4 w-4" />
-              {isLoggingOut ? "Logging out..." : "Logout"}
+              {isLoggingOut ? t("myProfile.loggingOut") : t("myProfile.logout")}
             </Button>
           </div>
+        </div>
 
+        {/* Preferences card */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Language
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-foreground">Language</span>
+            <LanguageToggle />
+          </div>
+        </div>
+
+        {/* Profile card */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           {successMessage && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-700">{successMessage}</p>
+            <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+              <p className="text-sm text-emerald-700">{successMessage}</p>
             </div>
           )}
 
           {uploadError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
               <p className="text-sm text-red-700">{uploadError}</p>
             </div>
           )}
@@ -259,23 +279,23 @@ export default function ProfilePage() {
           />
 
           {isEditing && (
-            <div className="flex gap-3 mt-6 pt-6 border-t border-slate-700">
+            <div className="mt-6 flex gap-3 border-t border-gray-200 pt-6">
               <Button
                 onClick={handleSave}
                 disabled={isUpdating || uploadingImage}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 rounded-full bg-gray-900 text-white shadow-sm hover:bg-gray-800"
               >
                 <Save className="h-4 w-4" />
-                {isUpdating ? "Saving..." : "Save Changes"}
+                {isUpdating ? t("myProfile.saving") : t("myProfile.saveChanges")}
               </Button>
               <Button
                 variant="outline"
                 onClick={handleCancel}
                 disabled={isUpdating || uploadingImage}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50"
               >
                 <X className="h-4 w-4" />
-                Cancel
+                {t("myProfile.cancel")}
               </Button>
             </div>
           )}

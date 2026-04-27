@@ -15,8 +15,14 @@ import type {
 import { OtherServiceFormDialog } from "@/src/components/custom-fees/other-services/OtherServiceFormDialog";
 import { OtherServiceList } from "@/src/components/custom-fees/other-services/OtherServiceList";
 import { useOtherServicesState } from "@/src/store/hooks/useOtherServicesState";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 export default function OtherServicesPage() {
+  const { t } = useLanguage();
+  const { isOwner, selectedGymId } = useOwnerBranchFilter();
+  const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
   const {
     isCreateDialogOpen,
     isEditDialogOpen,
@@ -30,7 +36,7 @@ export default function OtherServicesPage() {
   } = useOtherServicesState();
 
   const { data: serviceItems = [], isLoading } =
-    useGetAllOtherServiceItemsQuery({});
+    useGetAllOtherServiceItemsQuery({ gymId: branchQuery });
   const selectedItem = selectedItemId
     ? (serviceItems.find((i) => i._id === selectedItemId) ?? null)
     : null;
@@ -38,10 +44,14 @@ export default function OtherServicesPage() {
   const [updateItem] = useUpdateOtherServiceItemMutation();
   const [deleteItem] = useDeleteOtherServiceItemMutation();
 
+  if (isLoading && serviceItems.length === 0) {
+    return <PageLoadingState />;
+  }
+
   const lightSurfaceClassName =
-    "border border-black/15 bg-white text-slate-900 shadow-sm";
+    "border border-border bg-background text-foreground shadow-sm";
   const lightButtonClassName =
-    "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+    "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +65,7 @@ export default function OtherServicesPage() {
       await updateItem({ id: selectedItem._id, data: payload }).unwrap();
       closeEditDialog();
     } else {
-      await createItem(payload).unwrap();
+      await createItem({ data: payload, gymId: branchQuery }).unwrap();
       closeCreateDialog();
     }
   };
@@ -84,14 +94,14 @@ export default function OtherServicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6 text-slate-900">
+    <div className="min-h-screen p-6 text-foreground" style={{ backgroundColor: '#FCFCFC' }}>
       <div
-        className={`mb-6 flex items-center justify-between rounded-2xl p-6 ${lightSurfaceClassName}`}
+        className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm"
       >
         <div>
-          <h1 className="text-3xl font-bold">Other Services</h1>
-          <p className="mt-1 text-slate-600">
-            Create service items with day, month, and year prices.
+          <h1 className="text-3xl font-bold">{t("otherServices.title")}</h1>
+          <p className="mt-1 text-muted-foreground">
+            {t("otherServices.subtitle")}
           </p>
         </div>
         <Button
@@ -99,11 +109,11 @@ export default function OtherServicesPage() {
           className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Service
+          {t("otherServices.addService")}
         </Button>
       </div>
 
-      <div className={`rounded-2xl ${lightSurfaceClassName}`}>
+      <div>
         <OtherServiceList
           items={serviceItems}
           isLoading={isLoading}

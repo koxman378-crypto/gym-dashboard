@@ -28,6 +28,14 @@ export const gymProfileApi = api.injectEndpoints({
         facebook: response?.facebook ?? null,
         instagram: response?.instagram ?? null,
         tiktok: response?.tiktok ?? null,
+        multiGyms: Array.isArray(response?.multiGyms)
+          ? response.multiGyms.map((item: any) => ({
+              _id: item?._id ?? item?.gymId,
+              name: item?.name,
+              description: item?.description ?? null,
+              isActive: item?.isActive ?? true,
+            }))
+          : [],
         isActive: response?.isActive ?? true,
         createdAt: response?.createdAt,
         updatedAt: response?.updatedAt,
@@ -63,6 +71,14 @@ export const gymProfileApi = api.injectEndpoints({
         facebook: response?.facebook ?? null,
         instagram: response?.instagram ?? null,
         tiktok: response?.tiktok ?? null,
+        multiGyms: Array.isArray(response?.multiGyms)
+          ? response.multiGyms.map((item: any) => ({
+              _id: item?._id ?? item?.gymId,
+              name: item?.name,
+              description: item?.description ?? null,
+              isActive: item?.isActive ?? true,
+            }))
+          : [],
         isActive: response?.isActive ?? true,
         createdAt: response?.createdAt,
         updatedAt: response?.updatedAt,

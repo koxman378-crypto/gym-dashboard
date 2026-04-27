@@ -15,11 +15,11 @@ import { Button } from "@/src/components/ui/button";
 import type { FaqFormState } from "@/src/store/slices/faqsSlice";
 
 const lightDialogContentClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-2xl ring-black/10";
+  "border border-gray-200 bg-background text-foreground shadow-2xl ring-ring/20";
 const lightInputClassName =
-  "border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10";
+  "border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-border cursor-pointer bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 
 interface FaqFormDialogProps {
   open: boolean;
@@ -54,7 +54,7 @@ export function FaqFormDialog({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="faq-question" className="text-slate-900">
+            <Label htmlFor="faq-question" className="text-foreground">
               Question
             </Label>
             <Input
@@ -67,7 +67,7 @@ export function FaqFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="faq-answer" className="text-slate-900">
+            <Label htmlFor="faq-answer" className="text-foreground">
               Answer
             </Label>
             <Textarea
@@ -94,7 +94,7 @@ export function FaqFormDialog({
             disabled={
               isLoading || !formData.question.trim() || !formData.answer.trim()
             }
-            className="bg-slate-900 text-white hover:bg-slate-800"
+            className="cursor-pointer border border-gray-200 bg-white text-foreground shadow-sm hover:bg-gray-50 hover:text-foreground"
           >
             {isLoading ? "Saving..." : isEdit ? "Update" : "Create"}
           </Button>

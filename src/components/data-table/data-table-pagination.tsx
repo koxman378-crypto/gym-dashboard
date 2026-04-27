@@ -34,7 +34,7 @@ export function DataTablePagination({
       <div
         className={cn(
           "flex-1 text-sm text-muted-foreground",
-          isLightTone && "text-slate-600",
+          isLightTone && "text-muted-foreground",
         )}
       >
         Showing {total > 0 ? startItem : 0} to {endItem} of {total} results
@@ -44,7 +44,7 @@ export function DataTablePagination({
           <p
             className={cn(
               "text-sm font-medium",
-              isLightTone && "text-slate-900",
+              isLightTone && "text-foreground",
             )}
           >
             Rows per page
@@ -60,7 +60,7 @@ export function DataTablePagination({
               className={cn(
                 "h-8 w-[70px]",
                 isLightTone &&
-                  "border-black/20 bg-white text-slate-900 hover:border-black/40 focus:border-slate-900 focus:ring-black/10",
+                  "border-border bg-background text-foreground hover:border-ring focus:border-ring focus:ring-ring/20",
               )}
             >
               <SelectValue placeholder={limit} />
@@ -69,7 +69,7 @@ export function DataTablePagination({
               side="top"
               className={cn(
                 isLightTone &&
-                  "border-black/20 bg-white text-slate-900 shadow-xl ring-black/10",
+                  "border-border bg-background text-foreground shadow-xl ring-ring/20",
               )}
             >
               {[10, 20, 30, 40, 50].map((pageSize) => (
@@ -78,7 +78,7 @@ export function DataTablePagination({
                   value={`${pageSize}`}
                   className={cn(
                     isLightTone &&
-                      "text-slate-900 focus:bg-slate-100 hover:bg-slate-100",
+                      "text-foreground focus:bg-muted hover:bg-muted",
                   )}
                 >
                   {pageSize}
@@ -90,7 +90,7 @@ export function DataTablePagination({
         <div
           className={cn(
             "flex w-[100px] items-center justify-center text-sm font-medium",
-            isLightTone && "text-slate-900",
+            isLightTone && "text-foreground",
           )}
         >
           Page {page} of {totalPages}
@@ -101,7 +101,7 @@ export function DataTablePagination({
             className={cn(
               "hidden h-8 w-8 p-0 lg:flex",
               isLightTone &&
-                "border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900",
+                "border-border bg-background text-foreground hover:bg-muted hover:text-foreground",
             )}
             onClick={() => onPageChange(Math.max(1, page - 5))}
             disabled={page === 1 || isLoading}
@@ -114,7 +114,7 @@ export function DataTablePagination({
             className={cn(
               "h-8 w-8 p-0",
               isLightTone &&
-                "border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900",
+                "border-border bg-background text-foreground hover:bg-muted hover:text-foreground",
             )}
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1 || isLoading}
@@ -127,7 +127,7 @@ export function DataTablePagination({
             className={cn(
               "h-8 w-8 p-0",
               isLightTone &&
-                "border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900",
+                "border-border bg-background text-foreground hover:bg-muted hover:text-foreground",
             )}
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages || isLoading}
@@ -140,7 +140,7 @@ export function DataTablePagination({
             className={cn(
               "hidden h-8 w-8 p-0 lg:flex",
               isLightTone &&
-                "border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900",
+                "border-border bg-background text-foreground hover:bg-muted hover:text-foreground",
             )}
             onClick={() => onPageChange(Math.min(totalPages, page + 5))}
             disabled={page === totalPages || isLoading}

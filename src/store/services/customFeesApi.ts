@@ -15,6 +15,7 @@ import type {
 const normalizeGymFeeRecord = (item: any): GymFeeRecord => ({
   _id: item?._id,
   name: item?.name ?? "",
+  gymId: item?.gymId ?? null,
   amount: Number(item?.amount ?? 0),
   duration: Number(item?.duration ?? 1),
   durationUnit: item?.durationUnit ?? "months",
@@ -29,6 +30,7 @@ const normalizeGymFeeRecord = (item: any): GymFeeRecord => ({
 const normalizeOtherServiceItem = (item: any): OtherServiceItem => ({
   _id: item?._id,
   name: item?.name ?? "",
+  gymId: item?.gymId ?? null,
   amountDays: Number(item?.amountDays ?? item?.amount ?? 0),
   amountMonths: Number(item?.amountMonths ?? item?.amount ?? 0),
   amountYears: Number(item?.amountYears ?? item?.amount ?? 0),
@@ -40,20 +42,30 @@ const normalizeOtherServiceItem = (item: any): OtherServiceItem => ({
 export const customFeesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // ============ GYM PRICE GROUPS ============
-    createGymFeeRecord: builder.mutation<GymFeeRecord, CreateGymFeeRecordDto>({
-      query: (data) => ({
+    createGymFeeRecord: builder.mutation<
+      GymFeeRecord,
+      { data: CreateGymFeeRecordDto; gymId?: string }
+    >({
+      query: ({ data, gymId }) => ({
         url: "/custom-fees/gym-fees",
         method: "POST",
         body: data,
+        params: gymId ? { gymId } : {},
       }),
       invalidatesTags: ["GymPrice"],
       transformResponse: (response: any) => normalizeGymFeeRecord(response),
     }),
 
-    getAllGymFeeRecords: builder.query<GymFeeRecord[], { active?: boolean }>({
-      query: ({ active } = {}) => ({
+    getAllGymFeeRecords: builder.query<
+      GymFeeRecord[],
+      { active?: boolean; gymId?: string }
+    >({
+      query: ({ active, gymId } = {}) => ({
         url: "/custom-fees/gym-fees",
-        params: active !== undefined ? { active: active.toString() } : {},
+        params: {
+          ...(active !== undefined ? { active: active.toString() } : {}),
+          ...(gymId ? { gymId } : {}),
+        },
       }),
       providesTags: ["GymPrice"],
       transformResponse: (response: any) => {
@@ -109,10 +121,16 @@ export const customFeesApi = api.injectEndpoints({
       invalidatesTags: ["GymPrice"],
     }),
 
-    getAllGymPriceGroups: builder.query<GymPriceGroup[], { active?: boolean }>({
-      query: ({ active } = {}) => ({
+    getAllGymPriceGroups: builder.query<
+      GymPriceGroup[],
+      { active?: boolean; gymId?: string }
+    >({
+      query: ({ active, gymId } = {}) => ({
         url: "/custom-fees/gym-fees",
-        params: active !== undefined ? { active: active.toString() } : {},
+        params: {
+          ...(active !== undefined ? { active: active.toString() } : {}),
+          ...(gymId ? { gymId } : {}),
+        },
       }),
       providesTags: ["GymPrice"],
     }),
@@ -167,21 +185,28 @@ export const customFeesApi = api.injectEndpoints({
     // ============ OTHER SERVICE ITEMS ============
     createOtherServiceItem: builder.mutation<
       OtherServiceItem,
-      CreateOtherServiceDto
+      { data: CreateOtherServiceDto; gymId?: string }
     >({
-      query: (data) => ({
+      query: ({ data, gymId }) => ({
         url: "/custom-fees/services",
         method: "POST",
         body: data,
+        params: gymId ? { gymId } : {},
       }),
       invalidatesTags: ["OtherService"],
       transformResponse: (response: any) => normalizeOtherServiceItem(response),
     }),
 
-    getAllOtherServiceItems: builder.query<OtherServiceItem[], { active?: boolean }>({
-      query: ({ active } = {}) => ({
+    getAllOtherServiceItems: builder.query<
+      OtherServiceItem[],
+      { active?: boolean; gymId?: string }
+    >({
+      query: ({ active, gymId } = {}) => ({
         url: "/custom-fees/services",
-        params: active !== undefined ? { active: active.toString() } : {},
+        params: {
+          ...(active !== undefined ? { active: active.toString() } : {}),
+          ...(gymId ? { gymId } : {}),
+        },
       }),
       providesTags: ["OtherService"],
       transformResponse: (response: any) => {

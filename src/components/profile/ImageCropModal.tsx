@@ -76,11 +76,11 @@ export function ImageCropModal({ src, onDone, onCancel }: ImageCropModalProps) {
     /* Overlay */
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
       {/* Modal box */}
-      <div className="flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden w-[90vw] max-w-md">
+      <div className="flex flex-col bg-background rounded-2xl shadow-2xl overflow-hidden w-[90vw] max-w-md">
         {/* Header */}
         <div className="px-5 py-4 border-b border-slate-200">
-          <h2 className="text-base font-bold text-slate-900">Done</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-base font-bold text-foreground">Done</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Drag to reposition · Scroll or pinch to zoom
           </p>
         </div>
@@ -102,8 +102,8 @@ export function ImageCropModal({ src, onDone, onCancel }: ImageCropModalProps) {
         </div>
 
         {/* Zoom slider */}
-        <div className="px-5 py-3 flex items-center gap-3 bg-slate-50 border-b border-slate-200">
-          <span className="text-xs text-slate-500 shrink-0">Zoom</span>
+        <div className="px-5 py-3 flex items-center gap-3 bg-muted border-b border-slate-200">
+          <span className="text-xs text-muted-foreground shrink-0">Zoom</span>
           <input
             type="range"
             min={1}
@@ -113,17 +113,17 @@ export function ImageCropModal({ src, onDone, onCancel }: ImageCropModalProps) {
             onChange={(e) => setZoom(Number(e.target.value))}
             className="flex-1 accent-blue-600 cursor-pointer"
           />
-          <span className="text-xs text-slate-500 w-8 text-right shrink-0">
+          <span className="text-xs text-muted-foreground w-8 text-right shrink-0">
             {zoom.toFixed(1)}×
           </span>
         </div>
 
         {/* Footer buttons */}
-        <div className="px-5 py-4 flex justify-end gap-3 bg-white">
+        <div className="px-5 py-4 flex justify-end gap-3 bg-background">
           <button
             onClick={onCancel}
             disabled={processing}
-            className="px-5 py-2 rounded-lg border border-slate-300 text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50"
+            className="px-5 py-2 rounded-lg border border-slate-300 text-sm font-semibold text-foreground bg-background hover:bg-muted transition-colors disabled:opacity-50"
           >
             Cancel
           </button>

@@ -16,11 +16,17 @@ const normalizeFaq = (item: any): Faq => ({
 
 export const faqsApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getFaqs: builder.query<Faq[], { active?: boolean }>({
-      query: ({ active } = {}) => ({
-        url: "/faqs",
-        params: active !== undefined ? { active: active.toString() } : {},
-      }),
+    getFaqs: builder.query<Faq[], { active?: boolean } | void>({
+      query: (params) => {
+        const active =
+          params && typeof params === "object" ? params.active : undefined;
+        return {
+          url: "/faqs",
+          params: {
+            ...(active !== undefined ? { active: active.toString() } : {}),
+          },
+        };
+      },
       providesTags: ["Faq"],
       transformResponse: (response: any) => {
         if (Array.isArray(response)) return response.map(normalizeFaq);

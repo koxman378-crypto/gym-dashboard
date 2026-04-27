@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   MoreHorizontal,
   Pencil,
@@ -7,18 +8,18 @@ import {
   Activity,
   UserCheck,
   UserX,
-  History,
+  CalendarDays,
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
 import { Button } from "@/src/components/ui/button";
 import { Role, type User, canDeleteRole } from "@/src/types/type";
+import { DeleteAlertDialog } from "@/src/components/ui/delete-alert-dialog";
 
 interface UserActionsDropdownProps {
   user: User;
@@ -39,7 +40,8 @@ export function UserActionsDropdown({
   onToggleActive,
   onViewHistory,
 }: UserActionsDropdownProps) {
-  // Determine permissions
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
   const canDelete =
     user.role !== Role.OWNER && canDeleteRole(currentUserRole, user.role);
   const canEdit =
@@ -61,7 +63,6 @@ export function UserActionsDropdown({
       currentUserRole === Role.CASHIER ||
       currentUserRole === Role.TRAINER);
 
-  // If no actions available, don't show the dropdown
   if (
     !canEdit &&
     !canDelete &&
@@ -73,85 +74,96 @@ export function UserActionsDropdown({
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="h-8 w-8 rounded-md border border-black/10 bg-white p-0 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="h-8 w-8 rounded-md border-gray-200 bg-white p-0 shadow-sm"
+          >
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="border-gray-200 bg-white text-foreground shadow-xl ring-0"
         >
-          <span className="sr-only">Open menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="border-black/15 bg-white text-slate-900 shadow-xl ring-black/10"
-      >
-        <DropdownMenuSeparator />
-
-        {canEdit && onEdit && (
-          <DropdownMenuItem
-            onClick={() => onEdit(user)}
-            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit User
-          </DropdownMenuItem>
-        )}
-
-        {canViewBodyMeasurements && onViewMeasurements && (
-          <DropdownMenuItem
-            onClick={() => onViewMeasurements(user._id)}
-            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
-          >
-            <Activity className="mr-2 h-4 w-4" />
-            Body Measurements
-          </DropdownMenuItem>
-        )}
-
-        {canViewHistory && onViewHistory && (
-          <DropdownMenuItem
-            onClick={() => onViewHistory(user)}
-            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
-          >
-            <History className="mr-2 h-4 w-4" />
-            Subscription History
-          </DropdownMenuItem>
-        )}
-
-        {canToggleActive && onToggleActive && (
-          <DropdownMenuItem
-            onClick={() => onToggleActive(user)}
-            className="text-slate-900 focus:bg-slate-100 hover:bg-slate-100"
-          >
-            {user.isActive ? (
-              <>
-                <UserX className="mr-2 h-4 w-4" />
-                Deactivate User
-              </>
-            ) : (
-              <>
-                <UserCheck className="mr-2 h-4 w-4" />
-                Activate User
-              </>
-            )}
-          </DropdownMenuItem>
-        )}
-
-        {canDelete && onDelete && (
-          <>
-            <DropdownMenuSeparator />
+          {canEdit && onEdit && (
             <DropdownMenuItem
-              onClick={() => onDelete(user._id)}
-              className="text-red-600 focus:bg-red-50 hover:bg-red-50 focus:text-red-700"
+              onClick={() => onEdit(user)}
+              className="text-foreground focus:bg-muted hover:bg-gray-100 cursor-pointer"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete User
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit User
             </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          )}
+
+          {canViewBodyMeasurements && onViewMeasurements && (
+            <DropdownMenuItem
+              onClick={() => onViewMeasurements(user._id)}
+              className="text-foreground focus:bg-muted hover:bg-gray-100 cursor-pointer"
+            >
+              <Activity className="mr-2 h-4 w-4" />
+              Body Measurements
+            </DropdownMenuItem>
+          )}
+
+          {canViewHistory && onViewHistory && (
+            <DropdownMenuItem
+              onClick={() => onViewHistory(user)}
+              className="text-foreground focus:bg-sky-50 hover:bg-sky-50 cursor-pointer"
+            >
+              <CalendarDays className="mr-2 h-4 w-4 text-sky-600" />
+              Attendance History
+            </DropdownMenuItem>
+          )}
+
+          {canToggleActive && onToggleActive && (
+            <DropdownMenuItem
+              onClick={() => onToggleActive(user)}
+              className="text-foreground focus:bg-muted hover:bg-gray-100 cursor-pointer"
+            >
+              {user.isActive ? (
+                <>
+                  <UserX className="mr-2 h-4 w-4" />
+                  Deactivate User
+                </>
+              ) : (
+                <>
+                  <UserCheck className="mr-2 h-4 w-4" />
+                  Activate User
+                </>
+              )}
+            </DropdownMenuItem>
+          )}
+
+          {canDelete && onDelete && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setDeleteOpen(true)}
+                className="text-red-600 focus:bg-red-50 cursor-pointer hover:bg-red-50 focus:text-red-700"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete User
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DeleteAlertDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete User"
+        description={`Are you sure you want to permanently delete "${user.name}"? This action cannot be undone.`}
+        onConfirm={() => {
+          if (onDelete) onDelete(user._id);
+          setDeleteOpen(false);
+        }}
+      />
+    </>
   );
 }

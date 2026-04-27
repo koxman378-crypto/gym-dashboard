@@ -100,12 +100,18 @@ export default function LoginPage() {
 
       {/* Centered login box */}
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-[2px] p-8">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-background/10 shadow-2xl backdrop-blur-[2px] p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 shadow-lg shadow-emerald-900/50">
-                <span className="text-2xl font-bold text-white">GM</span>
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white shadow-lg shadow-emerald-900/50">
+                <Image
+                  src="/gym-logo.png"
+                  alt="Gym logo"
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-cover"
+                />
               </div>
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
@@ -141,7 +147,7 @@ export default function LoginPage() {
                 placeholder="your.email@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.email ? "border-red-500" : ""}`}
+                className={`bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors ${validationErrors.email ? "border-red-500" : ""}`}
                 disabled={isLoading}
                 autoComplete="email"
               />
@@ -166,7 +172,7 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.password ? "border-red-500" : ""}`}
+                  className={`pr-10 bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors ${validationErrors.password ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   autoComplete="current-password"
                 />

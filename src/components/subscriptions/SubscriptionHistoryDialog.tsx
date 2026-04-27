@@ -114,7 +114,7 @@ export function SubscriptionHistoryDialog({
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-slate-400">
+            <div className="text-muted-foreground">
               Loading history...
             </div>
           </div>
@@ -124,7 +124,7 @@ export function SubscriptionHistoryDialog({
             <p className="text-red-600">
               Error loading subscription history
             </p>
-            <p className="text-sm text-slate-400 mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               {error && typeof error === "object" && "data" in error
                 ? String((error as any).data?.message || "Unknown error")
                 : "Failed to load data"}
@@ -133,7 +133,7 @@ export function SubscriptionHistoryDialog({
         ) : history.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Package className="h-16 w-16 text-slate-300 mb-4" />
-            <p className="text-slate-400">
+            <p className="text-muted-foreground">
               No subscription history found
             </p>
           </div>
@@ -155,7 +155,7 @@ export function SubscriptionHistoryDialog({
                         {getStatusBadge(subscription)}
                         {getPaymentStatusBadge(subscription.paymentStatus)}
                       </div>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-muted-foreground">
                         Purchased on{" "}
                         {formatDate(
                           subscription.createdAt || subscription.startDate,
@@ -182,8 +182,8 @@ export function SubscriptionHistoryDialog({
                   {/* Dates */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-400">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">
                         Period:
                       </span>
                       <span className="font-medium text-white">
@@ -195,8 +195,8 @@ export function SubscriptionHistoryDialog({
                     {/* Trainer */}
                     {subscription.trainer && (
                       <div className="flex items-center gap-2 text-sm">
-                        <User className="h-4 w-4 text-slate-400" />
-                        <span className="text-slate-400">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">
                           Trainer:
                         </span>
                         <span className="font-medium text-white">
@@ -209,8 +209,8 @@ export function SubscriptionHistoryDialog({
                   {/* Payment Info */}
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm">
-                      <DollarSign className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-400">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">
                         Total:
                       </span>
                       <span className="font-bold text-white">
@@ -218,8 +218,8 @@ export function SubscriptionHistoryDialog({
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <DollarSign className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-400">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">
                         Paid:
                       </span>
                       <span className="font-medium text-white">
@@ -285,7 +285,7 @@ export function SubscriptionHistoryDialog({
                 {/* Notes */}
                 {subscription.notes && (
                   <div className="mt-4 pt-4 border-t border-slate-700">
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                       <span className="font-semibold">Notes:</span>{" "}
                       {subscription.notes}
                     </p>

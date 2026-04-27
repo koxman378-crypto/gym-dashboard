@@ -14,12 +14,12 @@ import { Button } from "@/src/components/ui/button";
 import type { CreateOtherServiceDto } from "@/src/types/extended-types";
 
 const lightInputClassName =
-  "border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10";
+  "border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20";
 const lightDialogContentClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-2xl ring-black/10";
-const lightDialogFooterClassName = "border-black/10 bg-slate-50";
+  "border border-border bg-background text-foreground shadow-2xl ring-ring/20";
+const lightDialogFooterClassName = "border-border bg-muted";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 
 interface OtherServiceFormDialogProps {
   open: boolean;
@@ -51,7 +51,7 @@ export function OtherServiceFormDialog({
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-slate-900">
+            <Label htmlFor="name" className="text-foreground">
               Name
             </Label>
             <Input
@@ -63,7 +63,7 @@ export function OtherServiceFormDialog({
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="amountDays" className="text-slate-900">
+              <Label htmlFor="amountDays" className="text-foreground">
                 Day Price
               </Label>
               <Input
@@ -83,7 +83,7 @@ export function OtherServiceFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amountMonths" className="text-slate-900">
+              <Label htmlFor="amountMonths" className="text-foreground">
                 Month Price
               </Label>
               <Input
@@ -103,7 +103,7 @@ export function OtherServiceFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amountYears" className="text-slate-900">
+              <Label htmlFor="amountYears" className="text-foreground">
                 Year Price
               </Label>
               <Input

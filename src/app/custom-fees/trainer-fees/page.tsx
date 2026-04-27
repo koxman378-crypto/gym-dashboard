@@ -11,11 +11,17 @@ import type { User } from "@/src/types/type";
 import { TrainerCard } from "@/src/components/custom-fees/trainer-fees/TrainerCard";
 import { TrainerFeeEditDialog } from "@/src/components/custom-fees/trainer-fees/TrainerFeeEditDialog";
 import { useTrainerFeesState } from "@/src/store/hooks/useTrainerFeesState";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 const lightSurfaceClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-sm";
+  "border border-gray-200 bg-background text-foreground shadow-sm";
 
 export default function TrainerFeesPage() {
+  const { t } = useLanguage();
+  const { isOwner, selectedGymId } = useOwnerBranchFilter();
+  const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
   const {
     isEditDialogOpen,
     selectedTrainerId,
@@ -25,7 +31,9 @@ export default function TrainerFeesPage() {
     updateFeeField,
   } = useTrainerFeesState();
 
-  const { data: trainers = [], isLoading } = useGetAllTrainersQuery();
+  const { data: trainers = [], isLoading } = useGetAllTrainersQuery({
+    gymId: branchQuery,
+  });
   const selectedTrainer = selectedTrainerId
     ? (trainers.find((t) => t._id === selectedTrainerId) ?? null)
     : null;
@@ -68,7 +76,6 @@ export default function TrainerFeesPage() {
 
   const handleDelete = async (trainerId: string, feeId: string) => {
     try {
-      if (!confirm("Delete this trainer fee?")) return;
       await deleteTrainerFeeItem({ trainerId, feeId }).unwrap();
     } catch (error: any) {
       alert(error?.data?.message || "Failed to delete trainer fee");
@@ -76,25 +83,18 @@ export default function TrainerFeesPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-slate-900"></div>
-          <p className="mt-4 text-slate-500">Loading...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingState itemCount={3} />;
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto p-6 space-y-6">
         <div className={`rounded-2xl p-8 ${lightSurfaceClassName}`}>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            Trainer Fee Management
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {t("trainerFees.title")}
           </h1>
-          <p className="mt-2 text-base text-slate-600">
-            One trainer has one fee amount only.
+          <p className="mt-2 text-base text-muted-foreground">
+            {t("trainerFees.subtitle")}
           </p>
         </div>
 
@@ -104,14 +104,14 @@ export default function TrainerFeesPage() {
               className={`rounded-2xl p-12 text-center ${lightSurfaceClassName}`}
             >
               <div className="max-w-md mx-auto">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-black/10 bg-slate-100 p-4">
-                  <UserIcon className="h-8 w-8 text-slate-500" />
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-border bg-muted p-4">
+                  <UserIcon className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="mb-2 text-lg font-semibold text-slate-900">
-                  No Trainers Found
+                <h3 className="mb-2 text-lg font-semibold text-foreground">
+                  {t("trainerFees.noTrainers")}
                 </h3>
-                <p className="text-slate-600">
-                  Create trainers in the staff management section first
+                <p className="text-muted-foreground">
+                  {t("trainerFees.noTrainersHint")}
                 </p>
               </div>
             </div>

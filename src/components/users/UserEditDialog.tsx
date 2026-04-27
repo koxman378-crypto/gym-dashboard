@@ -88,7 +88,7 @@ export function UserEditDialog({
         {selectedUser && (
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name" className="text-slate-900">
+              <Label htmlFor="edit-name" className="text-foreground">
                 Name *
               </Label>
               <Input
@@ -103,7 +103,7 @@ export function UserEditDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-email" className="text-slate-900">
+              <Label htmlFor="edit-email" className="text-foreground">
                 Email *
               </Label>
               <Input
@@ -120,7 +120,7 @@ export function UserEditDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-phone" className="text-slate-900">
+                <Label htmlFor="edit-phone" className="text-foreground">
                   Phone
                 </Label>
                 <Input
@@ -133,7 +133,7 @@ export function UserEditDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-age" className="text-slate-900">
+                <Label htmlFor="edit-age" className="text-foreground">
                   Age
                 </Label>
                 <Input
@@ -153,7 +153,7 @@ export function UserEditDialog({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-900">Role</Label>
+              <Label className="text-foreground">Role</Label>
               <Input
                 value={selectedUser.role}
                 disabled
@@ -162,7 +162,7 @@ export function UserEditDialog({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-slate-900">Status</Label>
+              <Label className="text-foreground">Status</Label>
               <Input
                 value={selectedUser.isActive ? "Active" : "Inactive"}
                 disabled
@@ -172,7 +172,7 @@ export function UserEditDialog({
 
             {selectedUser.role === Role.CUSTOMER && (
               <div className="space-y-2">
-                <Label htmlFor="edit-trainer" className="text-slate-900">
+                <Label htmlFor="edit-trainer" className="text-foreground">
                   Assign Trainer (Optional)
                 </Label>
                 <Select
@@ -206,17 +206,17 @@ export function UserEditDialog({
             )}
 
             {selectedUser.role === Role.CUSTOMER && (
-              <div className="space-y-3 border-t border-black/10 pt-4">
-                <h4 className="text-sm font-medium text-slate-900">
+              <div className="space-y-3 border-t border-border pt-4">
+                <h4 className="text-sm font-medium text-foreground">
                   Body Measurements (Optional)
                 </h4>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Update the customer's body measurements
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {MEASUREMENT_FIELDS.map(({ id, label, placeholder }) => (
                     <div key={id} className="space-y-2">
-                      <Label htmlFor={`edit-${id}`} className="text-slate-900">
+                      <Label htmlFor={`edit-${id}`} className="text-foreground">
                         {label}
                       </Label>
                       <Input

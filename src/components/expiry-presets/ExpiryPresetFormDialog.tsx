@@ -14,11 +14,11 @@ import { Button } from "@/src/components/ui/button";
 import type { ExpiryPresetFormState } from "@/src/store/slices/expiryPresetsSlice";
 
 const lightDialogContentClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-2xl ring-black/10";
+  "border border-border bg-background text-foreground shadow-2xl ring-ring/20";
 const lightInputClassName =
-  "border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10";
+  "border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 
 interface ExpiryPresetFormDialogProps {
   open: boolean;
@@ -55,7 +55,7 @@ export function ExpiryPresetFormDialog({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="preset-label" className="text-slate-900">
+            <Label htmlFor="preset-label" className="text-foreground">
               Label
             </Label>
             <Input
@@ -68,7 +68,7 @@ export function ExpiryPresetFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="preset-days" className="text-slate-900">
+            <Label htmlFor="preset-days" className="text-foreground">
               Days
             </Label>
             <Input

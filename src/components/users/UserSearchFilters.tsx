@@ -1,7 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { Role } from "@/src/types/type";
+import { Role, type MultiGymItem } from "@/src/types/type";
 import { type AuthUser } from "@/src/store/slices/authSlice";
 import { Input } from "@/src/components/ui/input";
 import {
@@ -27,6 +27,10 @@ interface UserSearchFiltersProps {
   onSearchNameChange: (value: string) => void;
   onSearchEmailChange: (value: string) => void;
   onFilterRoleChange: (value: string) => void;
+  isOwner?: boolean;
+  branches?: MultiGymItem[];
+  selectedGymId?: string | null;
+  onGymChange?: (gymId: string | null) => void;
 }
 
 export function UserSearchFilters({
@@ -37,12 +41,48 @@ export function UserSearchFilters({
   onSearchNameChange,
   onSearchEmailChange,
   onFilterRoleChange,
+  isOwner,
+  branches = [],
+  selectedGymId,
+  onGymChange,
 }: UserSearchFiltersProps) {
   return (
-    <div className={`rounded-xl p-6 shadow-lg ${lightSurfaceClassName}`}>
+    <div className={`rounded-xl p-6 shadow-sm ${lightSurfaceClassName}`}>
+      {isOwner && branches.length > 0 && onGymChange && (
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-sm font-semibold text-foreground">Gym:</span>
+          <Select
+            value={selectedGymId ?? "all"}
+            onValueChange={(v) => onGymChange(v === "all" ? null : v)}
+          >
+            <SelectTrigger
+              className={`w-52 transition-colors ${lightSelectTriggerClassName}`}
+            >
+              <SelectValue placeholder="All Gyms" />
+            </SelectTrigger>
+            <SelectContent className={lightSelectContentClassName}>
+              <SelectItem
+                value="all"
+                className={`cursor-pointer ${lightSelectItemClassName}`}
+              >
+                All Gyms
+              </SelectItem>
+              {branches.map((branch) => (
+                <SelectItem
+                  key={branch._id}
+                  value={branch._id!}
+                  className={`cursor-pointer ${lightSelectItemClassName}`}
+                >
+                  {branch.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       <div className="flex gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute text-gray-500 left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by name..."
             value={searchName}
@@ -51,7 +91,7 @@ export function UserSearchFilters({
           />
         </div>
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute text-gray-500 left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by email..."
             value={searchEmail}

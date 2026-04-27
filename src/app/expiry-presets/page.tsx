@@ -13,13 +13,27 @@ import type { ExpiryPreset } from "@/src/types/extended-types";
 import { ExpiryPresetFormDialog } from "@/src/components/expiry-presets/ExpiryPresetFormDialog";
 import { ExpiryPresetList } from "@/src/components/expiry-presets/ExpiryPresetList";
 import { useExpiryPresetsState } from "@/src/store/hooks/useExpiryPresetsState";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 
 const lightSurfaceClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground shadow-sm";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 
 export default function ExpiryPresetsPage() {
+  const { t } = useLanguage();
+  const { isOwner, selectedGymId, setSelectedGymId, branches } =
+    useOwnerBranchFilter();
+  const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
   const {
     isCreateDialogOpen,
     isEditDialogOpen,
@@ -32,7 +46,9 @@ export default function ExpiryPresetsPage() {
     setFormData,
   } = useExpiryPresetsState();
 
-  const { data: presets = [], isLoading } = useGetExpiryPresetsQuery({});
+  const { data: presets = [], isLoading } = useGetExpiryPresetsQuery({
+    gymId: branchQuery,
+  });
   const selectedPreset =
     presets.find((p) => p._id === selectedPresetId) ?? null;
 
@@ -42,6 +58,10 @@ export default function ExpiryPresetsPage() {
     useUpdateExpiryPresetMutation();
   const [togglePreset] = useToggleExpiryPresetMutation();
   const [deletePreset] = useDeleteExpiryPresetMutation();
+
+  if (isLoading && presets.length === 0) {
+    return <PageLoadingState headerActionCount={isOwner ? 2 : 1} />;
+  }
 
   const handleCreate = async () => {
     if (formData.days === "") return;
@@ -91,27 +111,47 @@ export default function ExpiryPresetsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6 text-slate-900">
-      <div
-        className={`mb-6 flex items-center justify-between rounded-2xl p-6 ${lightSurfaceClassName}`}
-      >
+    <div
+      className="min-h-screen p-6 text-foreground"
+      style={{ backgroundColor: "#FCFCFC" }}
+    >
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
         <div>
-          <h1 className="text-3xl font-bold">Expiry Presets</h1>
-          <p className="mt-1 text-slate-600">
-            Manage preset values used in the subscription expiry filter
-            dropdown.
+          <h1 className="text-3xl font-bold">{t("expiryPresets.title")}</h1>
+          <p className="mt-1 text-muted-foreground">
+            {t("expiryPresets.subtitle")}
           </p>
         </div>
-        <Button
-          onClick={() => openCreateDialog()}
-          className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Preset
-        </Button>
+        <div className="flex items-center gap-3">
+          {isOwner && branches.length > 0 && (
+            <Select
+              value={selectedGymId ?? "all"}
+              onValueChange={(v) => setSelectedGymId(v === "all" ? null : v)}
+            >
+              <SelectTrigger className="w-44 border-border bg-background text-sm">
+                <SelectValue placeholder="All Gyms" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Gyms</SelectItem>
+                {branches.map((b) => (
+                  <SelectItem key={b._id} value={b._id!}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Button
+            onClick={() => openCreateDialog()}
+            className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t("expiryPresets.addPreset")}
+          </Button>
+        </div>
       </div>
 
-      <div className={`rounded-2xl ${lightSurfaceClassName}`}>
+      <div>
         <ExpiryPresetList
           presets={presets}
           isLoading={isLoading}

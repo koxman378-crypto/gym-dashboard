@@ -59,8 +59,11 @@ export const usersApi = api.injectEndpoints({
       transformResponse: (response: any) => transformUser(response),
     }),
 
-    getAllStaff: builder.query<User[], void>({
-      query: () => "/users/staff",
+    getAllStaff: builder.query<User[], { gymId?: string } | void>({
+      query: (params) => ({
+        url: "/users/staff",
+        params: params?.gymId ? { gymId: params.gymId } : {},
+      }),
       providesTags: ["Staff"],
       transformResponse: (response: any[]) => transformUserArray(response),
     }),
@@ -87,6 +90,7 @@ export const usersApi = api.injectEndpoints({
       {
         isActive?: boolean;
         assignedTrainer?: string;
+        gymId?: string;
         page?: number;
         limit?: number;
       }
@@ -128,8 +132,11 @@ export const usersApi = api.injectEndpoints({
     }),
 
     // ============ TRAINERS LIST ============
-    getAllTrainers: builder.query<User[], void>({
-      query: () => "/users/trainers",
+    getAllTrainers: builder.query<User[], { gymId?: string } | void>({
+      query: (params) => ({
+        url: "/users/trainers",
+        params: params?.gymId ? { gymId: params.gymId } : {},
+      }),
       providesTags: ["Trainer"],
       transformResponse: (response: any[]) => {
         const transformed = transformUserArray(response);
@@ -152,6 +159,7 @@ export const usersApi = api.injectEndpoints({
         email?: string;
         role?: string;
         isActive?: boolean;
+        gymId?: string;
       }
     >({
       query: (params) => ({
@@ -268,8 +276,11 @@ export const usersApi = api.injectEndpoints({
     }),
 
     // ============ STATISTICS ============
-    getStatistics: builder.query<UserStatistics, void>({
-      query: () => "/users/dashboard/statistics",
+    getStatistics: builder.query<UserStatistics, { gymId?: string } | void>({
+      query: (params) => ({
+        url: "/users/dashboard/statistics",
+        params: params?.gymId ? { gymId: params.gymId } : {},
+      }),
       providesTags: ["Statistics"],
     }),
 

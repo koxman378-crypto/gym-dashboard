@@ -1,16 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Camera } from "lucide-react";
+import Image from "next/image";
+import { Camera } from "lucide-react";
 import { Label } from "@/src/components/ui/label";
-import { ImageCropModal } from "./ImageCropModal";
 
 interface GymLogoUploadProps {
   logo: string;
   isEditing: boolean;
   uploadingImage: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-  onFileCropped: (file: File) => void;
+  onFileSelected: (file: File) => void;
 }
 
 export function GymLogoUpload({
@@ -18,38 +18,21 @@ export function GymLogoUpload({
   isEditing,
   uploadingImage,
   fileInputRef,
-  onFileCropped,
+  onFileSelected,
 }: GymLogoUploadProps) {
   const isLocked = !isEditing || uploadingImage;
-  const [cropSrc, setCropSrc] = React.useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setCropSrc(reader.result as string);
-    reader.readAsDataURL(file);
+    onFileSelected(file);
     // reset input so same file can be re-selected
     e.target.value = "";
   };
 
-  const handleCropDone = (croppedFile: File) => {
-    setCropSrc(null);
-    onFileCropped(croppedFile);
-  };
-
   return (
-    <>
-      {cropSrc && (
-        <ImageCropModal
-          src={cropSrc}
-          onDone={handleCropDone}
-          onCancel={() => setCropSrc(null)}
-        />
-      )}
-
       <div className="mb-6">
-        <Label className="mb-2 block text-sm font-medium text-slate-900">
+        <Label className="mb-2 block text-sm font-medium text-gray-700">
           Gym Logo
         </Label>
         <div className="flex items-center gap-4">
@@ -58,17 +41,24 @@ export function GymLogoUpload({
               <img
                 src={logo}
                 alt="Gym logo"
-                className="h-24 w-24 rounded-full border-2 border-black/10 object-cover"
+                className="h-24 w-24 rounded-full border-2 border-gray-200 object-cover"
               />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-full border border-black/10 bg-slate-100">
-                <Building2 className="h-12 w-12 text-slate-500" />
+              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+                <Image
+                  src="/gym-logo.png"
+                  alt="Gym logo placeholder"
+                  width={96}
+                  height={96}
+                  className="h-full w-full object-cover"
+                />
               </div>
             )}
             <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isLocked}
-              className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-gray-100 text-black flex items-center justify-center"
+              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
             >
               <Camera className="h-4 w-4" />
             </button>
@@ -82,20 +72,19 @@ export function GymLogoUpload({
             />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-gray-600">
               {isEditing
                 ? "Click the camera icon to upload a new gym logo"
                 : "Enable edit mode to upload a new gym logo"}
             </p>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-gray-500">
               JPG, PNG or GIF. Max size 5MB.
             </p>
             {uploadingImage && (
-              <p className="text-sm text-blue-600 mt-2">Uploading image...</p>
+              <p className="mt-2 text-sm text-blue-600">Uploading image...</p>
             )}
           </div>
         </div>
       </div>
-    </>
   );
 }

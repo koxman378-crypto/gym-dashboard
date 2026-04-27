@@ -11,9 +11,11 @@ import { useAppSelector } from "@/src/store/hooks";
 import { CurrentMeasurementsCard } from "@/src/components/measurements/CurrentMeasurementsCard";
 import { MeasurementHistoryTable } from "@/src/components/measurements/MeasurementHistoryTable";
 import { BodyMeasurement } from "@/src/types/type";
+import { useLanguage } from "@/src/components/language/LanguageContext";
 
 export default function MeasurementsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const currentUser = useAppSelector((state) => state.auth.user);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -40,7 +42,7 @@ export default function MeasurementsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">Body Measurements History</h1>
+          <h1 className="text-3xl font-bold">{t("measurements.title")}</h1>
           {userProfile && (
             <p className="text-muted-foreground mt-1">
               {userProfile.name} ({userProfile.email})

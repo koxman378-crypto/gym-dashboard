@@ -1,6 +1,5 @@
 import { Separator } from "@/src/components/ui/seperator";
 
-
 type SiteHeaderProps = {
   title: string;
 };
@@ -13,8 +12,7 @@ export function SiteHeader({ title }: SiteHeaderProps) {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-          {title}
-
+        <span className="flex-1">{title}</span>
       </div>
     </header>
   );

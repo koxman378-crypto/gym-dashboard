@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -10,9 +10,12 @@ import {
   useGetGymProfileQuery,
   useUpdateGymProfileMutation,
 } from "@/src/store/services/gymProfileApi";
-import type { GymProfile } from "@/src/types/type";
+import type { GymProfile, MultiGymItem } from "@/src/types/type";
 import { GymLogoUpload } from "@/src/components/profile/GymLogoUpload";
 import { GymProfileFormFields } from "@/src/components/profile/GymProfileFormFields";
+import { MultiGymCrudBox } from "@/src/components/profile/MultiGymCrudBox";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 type GymProfileFormState = {
   name: string;
@@ -124,6 +127,7 @@ function gymProfileReducer(
 
 export default function GymProfilePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { data: profileData, isLoading: profileLoading } =
     useGetGymProfileQuery();
   const [updateGymProfile, { isLoading: isUpdating }] =
@@ -132,20 +136,14 @@ export default function GymProfilePage() {
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
   const [state, dispatch] = React.useReducer(gymProfileReducer, emptyFormState);
+  const [multiGyms, setMultiGyms] = React.useState<MultiGymItem[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const lightSurfaceClassName =
-    "border border-black/15 bg-white text-slate-900 shadow-sm";
-  const lightInputClassName =
-    "mt-1 border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10 disabled:cursor-not-allowed disabled:border-black/10 disabled:bg-slate-100 disabled:text-slate-500 disabled:hover:border-black/10";
-  const lightButtonClassName =
-    "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
-  const primaryActionButtonClassName =
-    "border border-slate-900 bg-slate-900 text-white hover:bg-slate-800 hover:text-white shadow-sm";
   const isFormLocked = !state.isEditing || isUpdating;
 
   React.useEffect(() => {
     dispatch({ type: "hydrate", payload: profileData });
+    setMultiGyms(profileData?.multiGyms ?? []);
   }, [profileData]);
 
   const handleLogout = async () => {
@@ -305,6 +303,16 @@ export default function GymProfilePage() {
         latitude: parsedLatitude,
         longitude: parsedLongitude,
         isActive: state.isActive,
+        multiGyms: multiGyms
+          .map((branch) => ({
+            ...(branch._id ? { _id: branch._id } : {}),
+            name: branch.name.trim(),
+            ...(branch.description?.trim()
+              ? { description: branch.description.trim() }
+              : {}),
+            isActive: branch.isActive ?? true,
+          }))
+          .filter((branch) => branch.name.length > 0),
         ...(state.logo ? { logo: state.logo } : {}),
         ...(state.locationLabel.trim()
           ? { locationLabel: state.locationLabel.trim() }
@@ -400,31 +408,32 @@ export default function GymProfilePage() {
     };
 
   if (profileLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="text-slate-500">Loading gym profile...</div>
-      </div>
-    );
+    return <PageLoadingState itemCount={4} />;
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className={`rounded-lg p-6 ${lightSurfaceClassName}`}>
-          <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-[#FCFCFC] p-6 text-foreground">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900">
-                Gym Profile
+              <h2 className="text-2xl font-semibold text-foreground">
+                {t("gymProfile.title")}
               </h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Owner-only gym information and branding
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("gymProfile.subtitle")}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+
+            <div className="flex items-center gap-2">
               <Button
                 onClick={state.isEditing ? handleSave : handleStartEditing}
                 disabled={state.uploadingImage || isUpdating}
-                className={`flex items-center gap-2 cursor-pointer ${state.isEditing ? primaryActionButtonClassName : lightButtonClassName}`}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm shadow-sm ${
+                  state.isEditing
+                    ? "bg-gray-900 text-white hover:bg-gray-800"
+                    : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
               >
                 {state.isEditing ? (
                   <Save className="h-4 w-4" />
@@ -433,48 +442,56 @@ export default function GymProfilePage() {
                 )}
                 {state.isEditing
                   ? isUpdating
-                    ? "Saving..."
-                    : "Save Changes"
-                  : "Edit Profile"}
+                    ? t("gymProfile.saving")
+                    : t("gymProfile.saveChanges")
+                  : t("gymProfile.editProfile")}
               </Button>
+
               <Button
-                variant="destructive"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex cursor-pointer items-center gap-2 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 shadow-sm hover:bg-red-100"
               >
                 <LogOut className="h-4 w-4" />
-                {isLoggingOut ? "Logging out..." : "Logout"}
+                {isLoggingOut
+                  ? t("gymProfile.loggingOut")
+                  : t("gymProfile.logout")}
               </Button>
             </div>
           </div>
+        </div>
 
-          <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+          {/* Info Banner */}
+          <div className="rounded-xl border border-gray-200 bg-[#F8F8F8] px-4 py-3 text-sm text-gray-600">
             {state.isEditing
-              ? "Editing mode is enabled. Update the fields you want, then click Save Changes."
-              : "Click Edit Profile to unlock the form and make changes."}
+              ? "Editing mode is enabled. Update fields and save."
+              : "Click Edit Profile to make changes."}
           </div>
 
+          {/* Alerts */}
           {state.successMessage && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-700">{state.successMessage}</p>
+            <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+              {state.successMessage}
             </div>
           )}
 
           {state.uploadError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-700">{state.uploadError}</p>
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              {state.uploadError}
             </div>
           )}
 
+          {/* Logo */}
           <GymLogoUpload
             logo={state.logo}
             isEditing={state.isEditing}
             uploadingImage={state.uploadingImage}
             fileInputRef={fileInputRef}
-            onFileCropped={handleImageUpload}
+            onFileSelected={handleImageUpload}
           />
 
+          {/* Form */}
           <GymProfileFormFields
             fields={state}
             disabled={isFormLocked}
@@ -485,6 +502,25 @@ export default function GymProfilePage() {
                 field: "isActive",
                 value: e.target.checked,
               });
+              dispatch({ type: "set_editing", value: true });
+            }}
+          />
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground">Branches</h3>
+
+            <span className="text-xs text-gray-500">
+              Manage your gym branches
+            </span>
+          </div>
+
+          <MultiGymCrudBox
+            branches={multiGyms}
+            disabled={isFormLocked}
+            onChange={(nextBranches) => {
+              setMultiGyms(nextBranches);
               dispatch({ type: "set_editing", value: true });
             }}
           />

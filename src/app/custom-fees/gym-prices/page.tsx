@@ -18,13 +18,17 @@ import {
 } from "@/src/components/custom-fees/gym-prices/GymFeeFormDialog";
 import { GymFeeList } from "@/src/components/custom-fees/gym-prices/GymFeeList";
 import { useGymPricesState } from "@/src/store/hooks/useGymPricesState";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
-const lightSurfaceClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-sm";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 
 export default function GymPricesPage() {
+  const { t } = useLanguage();
+  const { isOwner, selectedGymId } = useOwnerBranchFilter();
+  const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
   const {
     isCreateDialogOpen,
     isEditDialogOpen,
@@ -40,11 +44,16 @@ export default function GymPricesPage() {
 
   const { data: gymFees = [], isLoading } = useGetAllGymFeeRecordsQuery({
     active: undefined,
+    gymId: branchQuery,
   });
   const selectedFee = gymFees.find((f) => f._id === selectedFeeId) ?? null;
   const [createFee] = useCreateGymFeeRecordMutation();
   const [updateFee] = useUpdateGymFeeRecordMutation();
   const [deleteFee] = useDeleteGymFeeRecordMutation();
+
+  if (isLoading && gymFees.length === 0) {
+    return <PageLoadingState />;
+  }
 
   const handleCreate = async () => {
     try {
@@ -63,7 +72,7 @@ export default function GymPricesPage() {
             : Number(formData.promotionValue),
         isActive: formData.isActive,
       };
-      await createFee(payload).unwrap();
+      await createFee({ data: payload, gymId: branchQuery }).unwrap();
       closeCreateDialog();
       resetForm();
     } catch (error: any) {
@@ -124,26 +133,26 @@ export default function GymPricesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6 text-slate-900">
+    <div className="min-h-screen p-6 text-foreground" style={{ backgroundColor: '#FCFCFC' }}>
       <div
-        className={`mb-6 flex items-center justify-between rounded-2xl p-6 ${lightSurfaceClassName}`}
+        className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm"
       >
         <div>
-          <h1 className="text-3xl font-bold">Gym Prices</h1>
-          <p className="mt-1 text-slate-600">
-            Create flat gym fee items with amount, duration and promotion.
+          <h1 className="text-3xl font-bold">{t("gymPrices.title")}</h1>
+          <p className="mt-1 text-muted-foreground">
+            {t("gymPrices.subtitle")}
           </p>
         </div>
         <Button
           onClick={() => openCreateDialog()}
-          className={`px-6 py-6 cursor-pointer text-base font-semibold ${lightButtonClassName}`}
+          className={`cursor-pointer gap-2 px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
         >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Fee
+          <Plus className="h-4 w-4" />
+          {t("gymPrices.addFee")}
         </Button>
       </div>
 
-      <div className={`rounded-2xl ${lightSurfaceClassName}`}>
+      <div>
         <GymFeeList
           fees={gymFees}
           isLoading={isLoading}

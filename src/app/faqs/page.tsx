@@ -13,13 +13,16 @@ import type { Faq } from "@/src/types/extended-types";
 import { FaqFormDialog } from "@/src/components/faqs/FaqFormDialog";
 import { FaqList } from "@/src/components/faqs/FaqList";
 import { useFaqsState } from "@/src/store/hooks/useFaqsState";
+import { useLanguage } from "@/src/components/language/LanguageContext";
+import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 const lightSurfaceClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground shadow-sm";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 
 export default function FaqsPage() {
+  const { t } = useLanguage();
   const {
     isCreateDialogOpen,
     isEditDialogOpen,
@@ -39,6 +42,10 @@ export default function FaqsPage() {
   const [updateFaq, { isLoading: isUpdating }] = useUpdateFaqMutation();
   const [toggleFaq] = useToggleFaqMutation();
   const [deleteFaq] = useDeleteFaqMutation();
+
+  if (isLoading && faqs.length === 0) {
+    return <PageLoadingState />;
+  }
 
   const handleCreate = async () => {
     try {
@@ -87,26 +94,27 @@ export default function FaqsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-6 text-slate-900">
-      <div
-        className={`mb-6 flex items-center justify-between rounded-2xl p-6 ${lightSurfaceClassName}`}
-      >
+    <div
+      className="min-h-screen p-6 text-foreground"
+      style={{ backgroundColor: "#FCFCFC" }}
+    >
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
         <div>
-          <h1 className="text-3xl font-bold">FAQs</h1>
-          <p className="mt-1 text-slate-600">
-            Manage frequently asked questions displayed to gym members.
-          </p>
+          <h1 className="text-3xl font-bold">{t("faqs.title")}</h1>
+          <p className="mt-1 text-muted-foreground">{t("faqs.subtitle")}</p>
         </div>
-        <Button
-          onClick={() => openCreateDialog()}
-          className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add FAQ
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => openCreateDialog()}
+            className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t("faqs.addFaq")}
+          </Button>
+        </div>
       </div>
 
-      <div className={`rounded-2xl ${lightSurfaceClassName}`}>
+      <div>
         <FaqList
           faqs={faqs}
           isLoading={isLoading}

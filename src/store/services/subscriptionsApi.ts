@@ -178,6 +178,7 @@ export const subscriptionsApi = api.injectEndpoints({
         trainerId?: string;
         paymentStatus?: string;
         gymFeeExpiringWithinDays?: number;
+        gymId?: string;
       }
     >({
       query: (params) => {

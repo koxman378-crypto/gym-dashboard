@@ -21,18 +21,18 @@ import {
 import type { DurationUnit, PromotionType } from "@/src/types/extended-types";
 
 const lightSelectTriggerClassName =
-  "border-black/20 bg-white text-slate-900 hover:border-black/40 focus:border-slate-900 focus:ring-black/10";
+  "border-border bg-background text-foreground hover:border-ring focus:border-ring focus:ring-ring/20";
 const lightSelectContentClassName =
-  "border-black/20 bg-white text-slate-900 shadow-xl ring-black/10";
+  "border-border bg-background text-foreground shadow-xl ring-ring/20";
 const lightSelectItemClassName =
-  "text-slate-900 focus:bg-slate-100 hover:bg-slate-100";
+  "text-foreground focus:bg-muted hover:bg-muted";
 const lightDialogContentClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-2xl ring-black/10";
-const lightDialogFooterClassName = "border-black/10 bg-slate-50";
+  "border border-border bg-background text-foreground shadow-2xl ring-ring/20";
+const lightDialogFooterClassName = "border-border bg-muted";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
 const lightInputClassName =
-  "border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10";
+  "border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20";
 
 export type GymFeeFormState = {
   name: string;
@@ -74,7 +74,7 @@ export function GymFeeFormDialog({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-slate-900">
+            <Label htmlFor="name" className="text-foreground">
               Name
             </Label>
             <Input
@@ -85,7 +85,7 @@ export function GymFeeFormDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-slate-900">
+            <Label htmlFor="amount" className="text-foreground">
               Amount
             </Label>
               <Input
@@ -104,7 +104,7 @@ export function GymFeeFormDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="duration" className="text-slate-900">
+              <Label htmlFor="duration" className="text-foreground">
                 Duration
               </Label>
               <Input
@@ -123,7 +123,7 @@ export function GymFeeFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-900">Duration Unit</Label>
+              <Label className="text-foreground">Duration Unit</Label>
               <Select
                 value={formData.durationUnit}
                 onValueChange={(value) =>
@@ -155,7 +155,7 @@ export function GymFeeFormDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-900">Promotion Type</Label>
+              <Label className="text-foreground">Promotion Type</Label>
               <Select
                 value={formData.promotionType}
                 onValueChange={(value) =>
@@ -185,7 +185,7 @@ export function GymFeeFormDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="promotionValue" className="text-slate-900">
+              <Label htmlFor="promotionValue" className="text-foreground">
                 Promotion Value
               </Label>
               <Input
@@ -205,10 +205,10 @@ export function GymFeeFormDialog({
               />
             </div>
           </div>
-          <div className="flex items-center justify-between rounded-lg border border-black/10 bg-slate-50 px-4 py-3">
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-slate-900">Active</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm font-medium text-foreground">Active</p>
+              <p className="text-xs text-muted-foreground">
                 Toggle gym fee visibility
               </p>
             </div>
@@ -218,7 +218,7 @@ export function GymFeeFormDialog({
               onChange={(e) =>
                 onChange({ ...formData, isActive: e.target.checked })
               }
-              className="h-4 w-4 rounded border-black/20 bg-white text-emerald-600 focus:ring-black/10"
+              className="h-4 w-4 rounded border-border bg-background text-emerald-600 focus:ring-ring/20"
             />
           </div>
         </div>

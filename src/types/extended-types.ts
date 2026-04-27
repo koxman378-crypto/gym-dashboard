@@ -46,6 +46,7 @@ export type GymFee = GymPriceGroup;
 export interface GymFeeRecord {
   _id: string;
   name: string;
+  gymId?: string | null;
   amount: number;
   duration: number;
   durationUnit: DurationUnit;
@@ -109,6 +110,7 @@ export type UpdateGymFeeDto = UpdateGymPriceDto;
 export interface OtherServiceItem {
   _id: string;
   name: string;
+  gymId?: string | null;
   amountDays: number;
   amountMonths: number;
   amountYears: number;
@@ -249,6 +251,7 @@ export interface TrainerSnapshot {
 export interface Subscription {
   _id: string;
   customer: any; // User object or ObjectId
+  gymId?: string | null;
   startDate: Date | string;
   gymFee: GymFeeSnapshot | null;
   services: ServiceSnapshot[];
@@ -273,6 +276,7 @@ export interface Subscription {
 
 export interface CreateSubscriptionDto {
   customer: string;
+  gymId?: string | null;
   startDate: string | Date;
   services?: Array<{
     serviceId: string;

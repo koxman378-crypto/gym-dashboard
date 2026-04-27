@@ -2,12 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import type { ComponentProps } from "react";
 import {
   ArrowLeft,
   User,
   Calendar,
-  CreditCard,
-  DollarSign,
   Package,
   Activity,
   Loader2,
@@ -29,8 +28,10 @@ const formatDate = (dateString: string | Date) => {
   });
 };
 
+type BadgeVariant = NonNullable<ComponentProps<typeof Badge>["variant"]>;
+
 const StatusBadge = ({ status }: { status: string }) => {
-  const variants: Record<string, any> = {
+  const variants: Record<string, BadgeVariant> = {
     active: "active",
     expired: "inactive",
     cancelled: "destructive",
@@ -44,7 +45,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 const PaymentBadge = ({ status }: { status: string }) => {
-  const variants: Record<string, any> = {
+  const variants: Record<string, BadgeVariant> = {
     paid: "success",
     pending: "warning",
     partial: "warning",
@@ -58,11 +59,15 @@ const PaymentBadge = ({ status }: { status: string }) => {
 };
 
 const lightSurfaceClassName =
-  "border border-black/15 bg-white text-slate-900 shadow-sm";
-const lightInnerCardClassName =
-  "rounded-md border border-black/10 bg-slate-50 p-3 text-slate-900";
+  "border border-gray-200 bg-slate-50/90 shadow-sm text-card-foreground";
+const gymInnerCardClassName =
+  "rounded-xl border border-blue-200 bg-blue-50/80 p-3 text-foreground shadow-sm";
+const serviceInnerCardClassName =
+  "rounded-xl border border-violet-200 bg-violet-50/80 p-3 text-foreground shadow-sm";
+const trainerInnerCardClassName =
+  "rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 text-foreground shadow-sm";
 const lightButtonClassName =
-  "border border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 shadow-sm";
+  "border border-gray-200 bg-white text-foreground hover:bg-gray-50 hover:text-foreground shadow-sm";
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -84,12 +89,12 @@ const SubscriptionCard = ({
 
   return (
     <div
-      className={`rounded-lg p-6 transition-shadow hover:shadow-lg ${lightSurfaceClassName}`}
+      className={`rounded-2xl p-6 transition-shadow hover:shadow-lg ${lightSurfaceClassName}`}
     >
       {/* Header with ID and Status */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm font-semibold text-slate-500">
+          <span className="font-mono text-sm font-semibold text-muted-foreground">
             #{subscription._id.slice(-8).toUpperCase()}
           </span>
         </div>
@@ -106,26 +111,28 @@ const SubscriptionCard = ({
         {/* Gym Package */}
         {gymPrice && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Package className="h-4 w-4" />
               Gym Package
             </div>
-            <div className={lightInnerCardClassName}>
+            <div className={gymInnerCardClassName}>
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="font-medium">{gymPrice.groupName}</div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="font-semibold text-black/80">
+                    {gymPrice.groupName}
+                  </div>
+                  <div className="text-sm text-slate-500">
                     {gymPrice.selectedPrice.duration}{" "}
                     {gymPrice.selectedPrice.durationUnit}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-semibold text-emerald-600">
+                  <div className="font-semibold text-emerald-700">
                     {gymPrice.selectedPrice.finalPrice.toLocaleString()} MMK
                   </div>
                   {gymPrice.selectedPrice.promotionType &&
                     gymPrice.selectedPrice.promotionValue && (
-                      <div className="text-xs text-green-600">
+                      <div className="text-xs font-medium text-orange-700">
                         {gymPrice.selectedPrice.promotionType === "percentage"
                           ? `${gymPrice.selectedPrice.promotionValue}% off`
                           : `${Number(gymPrice.selectedPrice.promotionValue).toLocaleString()} MMK off`}
@@ -140,12 +147,12 @@ const SubscriptionCard = ({
         {/* Additional Services */}
         {servicesCount > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Package className="h-4 w-4" />
               Additional Services ({servicesCount})
             </div>
-            <div className={lightInnerCardClassName}>
-              <div className="text-sm text-emerald-600 font-semibold">
+            <div className={serviceInnerCardClassName}>
+              <div className="text-sm font-semibold text-black/80">
                 {Number(subscription.otherServiceTotal ?? 0).toLocaleString()}{" "}
                 MMK
               </div>
@@ -156,16 +163,16 @@ const SubscriptionCard = ({
         {/* Trainer */}
         {subscription.trainer && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <User className="h-4 w-4" />
               Trainer
             </div>
-            <div className={lightInnerCardClassName}>
+            <div className={trainerInnerCardClassName}>
               <div className="flex justify-between">
-                <div className="text-sm">
+                <div className="text-sm font-medium text-emerald-700">
                   {subscription.trainer.trainerName}
                 </div>
-                <div className="text-sm font-semibold text-emerald-600">
+                <div className="text-sm font-semibold text-emerald-700">
                   {Number(
                     subscription.trainer.finalPrice ?? 0,
                   ).toLocaleString()}{" "}
@@ -186,7 +193,7 @@ const SubscriptionCard = ({
           </div>
           <span className="text-muted-foreground">→</span>
           <div
-            className={`flex items-center gap-2 ${isExpired ? "text-red-600" : "text-muted-foreground"}`}
+            className={`flex items-center gap-2 ${isExpired ? "text-zinc-700" : "text-muted-foreground"}`}
           >
             <Calendar className="h-4 w-4" />
             <span>{formatDate(subscription.endDate)}</span>
@@ -198,19 +205,19 @@ const SubscriptionCard = ({
         {/* Payment Summary */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Grand Total:</span>
-            <span className="text-lg font-bold text-green-600">
+            <span className="text-sm text-slate-500">Grand Total:</span>
+            <span className="text-lg font-bold text-emerald-700">
               {Number(subscription.grandTotal ?? 0).toLocaleString()} MMK
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Paid Amount:</span>
-            <span className="text-sm font-semibold">
+            <span className="text-sm text-slate-500">Paid Amount:</span>
+            <span className="text-sm font-semibold text-green-500">
               {Number(subscription.paidAmount ?? 0).toLocaleString()} MMK
             </span>
           </div>
           {subscription.paidAmount < subscription.grandTotal && (
-            <div className="flex justify-between items-center text-red-600">
+            <div className="flex items-center justify-between text-red-600">
               <span className="text-sm font-medium">Outstanding:</span>
               <span className="text-sm font-semibold">
                 {(
@@ -227,7 +234,7 @@ const SubscriptionCard = ({
         <Button
           onClick={() => onViewDetails(subscription)}
           variant="outline"
-          className={`mt-4 w-full ${lightButtonClassName}`}
+          className={`mt-4 w-full cursor-pointer ${lightButtonClassName}`}
         >
           <Eye className="h-4 w-4 mr-2" />
           View Full Details
@@ -268,14 +275,14 @@ export default function CustomerSubscriptionsPage() {
   const customerData = typeof customer === "object" ? customer : null;
 
   return (
-    <div className="min-h-screen bg-white p-6 text-slate-900">
+    <div className="min-h-screen bg-background p-6 text-foreground">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Button
             onClick={() => router.back()}
             variant="ghost"
-            className={`mb-4 ${lightButtonClassName}`}
+            className={`mb-4 cursor-pointer ${lightButtonClassName}`}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -283,13 +290,13 @@ export default function CustomerSubscriptionsPage() {
 
           {isLoading ? (
             <div className="animate-pulse">
-              <div className="mb-2 h-8 w-64 rounded bg-slate-200"></div>
-              <div className="h-4 w-48 rounded bg-slate-200"></div>
+              <div className="mb-2 h-8 w-64 rounded bg-zinc-200"></div>
+              <div className="h-4 w-48 rounded bg-zinc-200"></div>
             </div>
           ) : customerData ? (
             <div>
-              <h1 className="mb-2 text-3xl font-bold text-slate-900">
-                {customerData.name}'s Subscriptions
+              <h1 className="mb-2 text-3xl font-bold text-foreground">
+                {customerData.name}&apos;s Subscriptions
               </h1>
               <div className="flex items-center gap-4 text-muted-foreground">
                 <span>{customerData.email}</span>
@@ -302,7 +309,7 @@ export default function CustomerSubscriptionsPage() {
               </div>
             </div>
           ) : (
-            <h1 className="text-3xl font-bold text-slate-900">
+            <h1 className="text-3xl font-bold text-foreground">
               Customer Subscriptions
             </h1>
           )}
@@ -311,7 +318,7 @@ export default function CustomerSubscriptionsPage() {
         {/* Subscription Count */}
         {!isLoading && subscriptions && subscriptions.length > 0 && (
           <div className="mb-6">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-zinc-700">
               <Activity className="h-4 w-4" />
               <span className="font-semibold">{subscriptions.length}</span>
               <span>
@@ -324,14 +331,14 @@ export default function CustomerSubscriptionsPage() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <p className="text-red-600">
+          <div className="rounded-lg border border-zinc-200 bg-white p-6 text-center">
+            <p className="text-zinc-700">
               Failed to load subscriptions. Please try again.
             </p>
           </div>
@@ -345,12 +352,12 @@ export default function CustomerSubscriptionsPage() {
             <div
               className={`rounded-lg p-12 text-center ${lightSurfaceClassName}`}
             >
-              <Package className="mx-auto mb-4 h-16 w-16 text-slate-400" />
-              <h2 className="mb-2 text-xl font-semibold text-slate-900">
+              <Package className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+              <h2 className="mb-2 text-xl font-semibold text-foreground">
                 No Subscriptions Found
               </h2>
               <p className="text-muted-foreground">
-                This customer doesn't have any subscriptions yet.
+                This customer doesn&apos;t have any subscriptions yet.
               </p>
             </div>
           )}

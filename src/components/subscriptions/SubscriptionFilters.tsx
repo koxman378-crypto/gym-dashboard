@@ -12,11 +12,11 @@ import { useRouter } from "next/navigation";
 import { User } from "@/src/types/type";
 
 const lightSelectTriggerClassName =
-  "border-black/20 bg-white text-slate-900 hover:border-black/40 focus:border-slate-900 focus:ring-black/10";
+  "border-border bg-background text-foreground hover:border-ring focus:border-slate-900 focus:ring-ring/20";
 const lightSelectContentClassName =
-  "border-black/20 bg-white text-slate-900 shadow-xl ring-black/10";
+  "border-border bg-background text-foreground shadow-xl ring-ring/20";
 const lightSelectItemClassName =
-  "text-slate-900 focus:bg-slate-100 hover:bg-slate-100";
+  "text-foreground focus:bg-muted hover:bg-muted";
 
 interface SubscriptionFiltersProps {
   statusFilter: string;
@@ -36,10 +36,10 @@ export function SubscriptionFilters({
   return (
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-3 flex-1">
-        <div className="rounded-xl border border-black/10 bg-slate-50 p-2.5">
-          <Filter className="h-5 w-5 text-slate-500" />
+        <div className="rounded-xl border border-border bg-muted p-2.5">
+          <Filter className="h-5 w-5 text-muted-foreground" />
         </div>
-        <span className="text-sm font-semibold text-slate-900">
+        <span className="text-sm font-semibold text-foreground">
           Filter by Status:
         </span>
         <Select value={statusFilter} onValueChange={onStatusChange}>
@@ -84,10 +84,10 @@ export function SubscriptionFilters({
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="rounded-xl border border-black/10 bg-slate-50 p-2.5">
-          <History className="h-5 w-5 text-slate-500" />
+        <div className="rounded-xl border border-border bg-muted p-2.5">
+          <History className="h-5 w-5 text-muted-foreground" />
         </div>
-        <span className="text-sm font-semibold text-slate-900">
+        <span className="text-sm font-semibold text-foreground">
           View History:
         </span>
         <Select

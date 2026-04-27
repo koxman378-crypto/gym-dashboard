@@ -171,14 +171,14 @@ export default function BodyMeasurementsHistoryPage() {
 
       {/* Access Denied Message */}
       {!isLoading && user && !hasAccess() && (
-        <div className="rounded-lg border-2 border-red-200 bg-red-50 p-6">
+        <div className="rounded-lg border border-zinc-200 bg-white p-6">
           <div className="flex items-center gap-3">
-            <AlertCircle className="h-6 w-6 text-red-600" />
+            <AlertCircle className="h-6 w-6 text-zinc-700" />
             <div>
-              <h3 className="text-lg font-semibold text-red-900">
+              <h3 className="text-lg font-semibold text-zinc-900">
                 Access Denied
               </h3>
-              <p className="text-sm text-red-700 mt-1">
+              <p className="mt-1 text-sm text-zinc-600">
                 You don't have permission to view this user's measurements.
               </p>
             </div>
@@ -191,7 +191,7 @@ export default function BodyMeasurementsHistoryPage() {
         <>
       {/* Current Measurements Card */}
       {user.bodyMeasurements && (
-        <div className="rounded-lg border bg-card p-6">
+        <div className="rounded-lg border border-zinc-200 bg-white p-6">
           <div className="flex items-center gap-2 mb-4">
             <User className="h-5 w-5 text-muted-foreground" />
             <h2 className="text-xl font-semibold">Current Measurements</h2>
@@ -252,8 +252,8 @@ export default function BodyMeasurementsHistoryPage() {
       )}
 
       {/* Measurement History Table */}
-      <div className="rounded-lg border bg-card">
-        <div className="p-6 border-b">
+      <div className="rounded-lg border border-zinc-200 bg-white">
+        <div className="border-b border-zinc-200 p-6">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-muted-foreground" />
             <h2 className="text-xl font-semibold">Measurement History</h2>
@@ -307,10 +307,10 @@ export default function BodyMeasurementsHistoryPage() {
                         <div className="flex items-center justify-end gap-1">
                           {measurement.height || "-"}
                           {heightTrend === "up" && (
-                            <TrendingUp className="h-4 w-4 text-blue-500" />
+                            <TrendingUp className="h-4 w-4 text-zinc-700" />
                           )}
                           {heightTrend === "down" && (
-                            <TrendingDown className="h-4 w-4 text-orange-500" />
+                            <TrendingDown className="h-4 w-4 text-zinc-500" />
                           )}
                         </div>
                       </TableCell>
@@ -318,10 +318,10 @@ export default function BodyMeasurementsHistoryPage() {
                         <div className="flex items-center justify-end gap-1">
                           {measurement.weight || "-"}
                           {weightTrend === "up" && (
-                            <TrendingUp className="h-4 w-4 text-red-500" />
+                            <TrendingUp className="h-4 w-4 text-zinc-700" />
                           )}
                           {weightTrend === "down" && (
-                            <TrendingDown className="h-4 w-4 text-green-500" />
+                            <TrendingDown className="h-4 w-4 text-zinc-500" />
                           )}
                         </div>
                       </TableCell>
@@ -331,10 +331,10 @@ export default function BodyMeasurementsHistoryPage() {
                             ? measurement.bodyFat
                             : "-"}
                           {bodyFatTrend === "up" && (
-                            <TrendingUp className="h-4 w-4 text-red-500" />
+                            <TrendingUp className="h-4 w-4 text-zinc-700" />
                           )}
                           {bodyFatTrend === "down" && (
-                            <TrendingDown className="h-4 w-4 text-green-500" />
+                            <TrendingDown className="h-4 w-4 text-zinc-500" />
                           )}
                         </div>
                       </TableCell>
@@ -342,10 +342,10 @@ export default function BodyMeasurementsHistoryPage() {
                         <div className="flex items-center justify-end gap-1">
                           {measurement.chest || "-"}
                           {chestTrend === "up" && (
-                            <TrendingUp className="h-4 w-4 text-blue-500" />
+                            <TrendingUp className="h-4 w-4 text-zinc-700" />
                           )}
                           {chestTrend === "down" && (
-                            <TrendingDown className="h-4 w-4 text-orange-500" />
+                            <TrendingDown className="h-4 w-4 text-zinc-500" />
                           )}
                         </div>
                       </TableCell>
@@ -353,10 +353,10 @@ export default function BodyMeasurementsHistoryPage() {
                         <div className="flex items-center justify-end gap-1">
                           {measurement.waist || "-"}
                           {waistTrend === "up" && (
-                            <TrendingUp className="h-4 w-4 text-orange-500" />
+                            <TrendingUp className="h-4 w-4 text-zinc-700" />
                           )}
                           {waistTrend === "down" && (
-                            <TrendingDown className="h-4 w-4 text-green-500" />
+                            <TrendingDown className="h-4 w-4 text-zinc-500" />
                           )}
                         </div>
                       </TableCell>
@@ -364,10 +364,10 @@ export default function BodyMeasurementsHistoryPage() {
                         <div className="flex items-center justify-end gap-1">
                           {measurement.biceps || "-"}
                           {bicepsTrend === "up" && (
-                            <TrendingUp className="h-4 w-4 text-blue-500" />
+                            <TrendingUp className="h-4 w-4 text-zinc-700" />
                           )}
                           {bicepsTrend === "down" && (
-                            <TrendingDown className="h-4 w-4 text-orange-500" />
+                            <TrendingDown className="h-4 w-4 text-zinc-500" />
                           )}
                         </div>
                       </TableCell>
@@ -375,10 +375,10 @@ export default function BodyMeasurementsHistoryPage() {
                         <div className="flex items-center justify-end gap-1">
                           {measurement.leg || "-"}
                           {legTrend === "up" && (
-                            <TrendingUp className="h-4 w-4 text-blue-500" />
+                            <TrendingUp className="h-4 w-4 text-zinc-700" />
                           )}
                           {legTrend === "down" && (
-                            <TrendingDown className="h-4 w-4 text-orange-500" />
+                            <TrendingDown className="h-4 w-4 text-zinc-500" />
                           )}
                         </div>
                       </TableCell>
@@ -396,7 +396,7 @@ export default function BodyMeasurementsHistoryPage() {
 
       {/* Assigned Trainer Info */}
       {user?.assignedTrainer && typeof user.assignedTrainer === "object" && (
-        <div className="rounded-lg border bg-card p-4">
+        <div className="rounded-lg border border-zinc-200 bg-white p-4">
           <p className="text-sm text-muted-foreground">
             Assigned Trainer:{" "}
             <span className="font-medium text-foreground">

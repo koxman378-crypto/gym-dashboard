@@ -36,10 +36,10 @@ export function UserStatisticsCards({
           key={label}
           className={`rounded-2xl p-6 transition-shadow hover:shadow-md ${lightSurfaceClassName}`}
         >
-          <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             {label}
           </p>
-          <p className="text-3xl font-bold text-slate-900">
+          <p className="text-3xl font-bold text-foreground">
             {isLoading ? "--" : value}
           </p>
         </div>

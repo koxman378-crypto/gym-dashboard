@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { Role, type CreateUserDto } from "@/src/types/type";
+import { Role, type CreateUserDto, type MultiGymItem } from "@/src/types/type";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
@@ -33,13 +33,16 @@ import {
   lightSelectItemClassName,
   lightSelectTriggerClassName,
 } from "./users.constants";
+import { FaUserPlus } from "react-icons/fa";
 
 interface UserCreateDialogProps {
   currentUserRole: Role;
+  branches?: MultiGymItem[];
+  defaultGymId?: string | null;
   onCreate: (data: CreateUserDto) => Promise<void>;
 }
 
-const defaultForm: CreateUserDto = {
+const buildDefaultForm = (defaultGymId?: string | null): CreateUserDto => ({
   email: "",
   password: "",
   name: "",
@@ -47,8 +50,9 @@ const defaultForm: CreateUserDto = {
   phone: "",
   age: undefined,
   role: Role.CUSTOMER,
+  gymId: defaultGymId ?? undefined,
   bodyMeasurements: undefined,
-};
+});
 
 const isPhoneValid = (phone: string) => /^\d{9,11}$/.test(phone.trim());
 
@@ -81,19 +85,26 @@ const validateForm = (formData: CreateUserDto) => {
 
 export function UserCreateDialog({
   currentUserRole,
+  branches = [],
+  defaultGymId = null,
   onCreate,
 }: UserCreateDialogProps) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<CreateUserDto>(defaultForm);
+  const [formData, setFormData] = useState<CreateUserDto>(
+    buildDefaultForm(defaultGymId),
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOpenChange = (value: boolean) => {
-    if (value) setOpen(true);
+    if (value) {
+      setFormData(buildDefaultForm(defaultGymId));
+      setOpen(true);
+    }
   };
 
   const handleClose = () => {
     setOpen(false);
-    setFormData(defaultForm);
+    setFormData(buildDefaultForm(defaultGymId));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,6 +116,20 @@ export function UserCreateDialog({
     if (missing.length > 0) {
       toast.error(`Please fix: ${missing.join(", ")}`, {
         description: missing.map((f) => `• ${f}`).join("\n"),
+        duration: 4000,
+      });
+      return;
+    }
+
+    if (
+      currentUserRole === Role.OWNER &&
+      formData.role !== Role.OWNER &&
+      branches.length > 0 &&
+      !formData.gymId
+    ) {
+      toast.error("Please choose a branch", {
+        description:
+          "Owner-created staff and customers must be assigned to a branch.",
         duration: 4000,
       });
       return;
@@ -153,9 +178,9 @@ export function UserCreateDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
-          className={`px-6 py-6 cursor-pointer text-base font-semibold shadow-sm ${lightButtonClassName}`}
+          className={`px-6 py-6 text-base font-semibold cursor-pointer ${lightButtonClassName}`}
         >
-          <Plus className="mr-2 h-5 w-5" />
+          <FaUserPlus className="mr-2 h-5 w-5" />
           Create User
         </Button>
       </DialogTrigger>
@@ -167,7 +192,7 @@ export function UserCreateDialog({
       >
         <DialogClose asChild onClick={handleClose}>
           <button
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-slate-500"
+            className="absolute cursor-pointer right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-muted-foreground"
             type="button"
             aria-label="Close"
           >
@@ -197,7 +222,7 @@ export function UserCreateDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="create-name" className="text-slate-900">
+            <Label htmlFor="create-name" className="text-foreground">
               Name <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -210,7 +235,7 @@ export function UserCreateDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="create-email" className="text-slate-900">
+            <Label htmlFor="create-email" className="text-foreground">
               Email <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -224,7 +249,7 @@ export function UserCreateDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="create-password" className="text-slate-900">
+            <Label htmlFor="create-password" className="text-foreground">
               Password <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -239,7 +264,7 @@ export function UserCreateDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="create-phone" className="text-slate-900">
+            <Label htmlFor="create-phone" className="text-foreground">
               Phone <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -254,7 +279,7 @@ export function UserCreateDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="create-age" className="text-slate-900">
+            <Label htmlFor="create-age" className="text-foreground">
               Age <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -275,7 +300,7 @@ export function UserCreateDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="create-role" className="text-slate-900">
+            <Label htmlFor="create-role" className="text-foreground">
               Role <span className="text-red-500">*</span>
             </Label>
             <Select
@@ -296,13 +321,13 @@ export function UserCreateDialog({
                 </SelectItem>
                 {(currentUserRole === Role.OWNER ||
                   currentUserRole === Role.CASHIER) && (
-                  <SelectItem
-                    value={Role.TRAINER}
-                    className={lightSelectItemClassName}
-                  >
-                    Trainer
-                  </SelectItem>
-                )}
+                    <SelectItem
+                      value={Role.TRAINER}
+                      className={lightSelectItemClassName}
+                    >
+                      Trainer
+                    </SelectItem>
+                  )}
                 {currentUserRole === Role.OWNER && (
                   <SelectItem
                     value={Role.CASHIER}
@@ -314,10 +339,44 @@ export function UserCreateDialog({
               </SelectContent>
             </Select>
           </div>
+          {currentUserRole === Role.OWNER && branches.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="create-gym" className="text-foreground">
+                Branch <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.gymId ?? "none"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    gymId: value === "none" ? undefined : value,
+                  })
+                }
+              >
+                <SelectTrigger className={lightSelectTriggerClassName}>
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent className={lightSelectContentClassName}>
+                  <SelectItem value="none" className={lightSelectItemClassName}>
+                    Select branch
+                  </SelectItem>
+                  {branches.map((branch) => (
+                    <SelectItem
+                      key={branch._id}
+                      value={branch._id ?? branch.name}
+                      className={lightSelectItemClassName}
+                    >
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Body Measurements */}
-          <div className="space-y-3 border-t border-black/10 pt-4">
-            <h4 className="text-sm font-medium text-slate-900">
+          <div className="space-y-3 border-t border-border pt-4">
+            <h4 className="text-sm font-medium text-foreground">
               Body Measurements (Optional)
             </h4>
             <div className="grid grid-cols-2 gap-3">
@@ -333,7 +392,7 @@ export function UserCreateDialog({
                 ] as const
               ).map(({ id, label, placeholder }) => (
                 <div key={id} className="space-y-2">
-                  <Label htmlFor={`create-${id}`} className="text-slate-900">
+                  <Label htmlFor={`create-${id}`} className="text-foreground">
                     {label}
                   </Label>
                   <Input

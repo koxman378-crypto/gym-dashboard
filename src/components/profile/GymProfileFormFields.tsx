@@ -5,7 +5,7 @@ import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 
 const LIGHT_INPUT_CN =
-  "mt-1 border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10 disabled:cursor-not-allowed disabled:border-black/10 disabled:bg-slate-100 disabled:text-slate-500 disabled:hover:border-black/10";
+  "mt-1 border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 hover:border-gray-300 focus-visible:border-gray-300 focus-visible:ring-0 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400 disabled:hover:border-gray-200";
 
 type FormFields = {
   name: string;
@@ -103,10 +103,10 @@ export function GymProfileFormFields({
   onActiveChange,
 }: GymProfileFormFieldsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {TEXT_FIELDS.map((f) => (
         <div key={f.key} className={f.span2 ? "md:col-span-2" : undefined}>
-          <Label className="text-sm font-medium text-slate-900">
+          <Label className="text-sm font-medium text-gray-700">
             {f.label}
           </Label>
           <Input
@@ -120,10 +120,10 @@ export function GymProfileFormFields({
         </div>
       ))}
 
-      <div className="md:col-span-2 flex items-center justify-between rounded-lg border border-black/10 bg-slate-50 px-4 py-3">
+      <div className="md:col-span-2 flex items-center justify-between rounded-lg border border-gray-200 bg-[#F8F8F8] px-4 py-3">
         <div>
-          <p className="text-sm font-medium text-slate-900">Active</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-medium text-gray-900">Active</p>
+          <p className="text-xs text-gray-500">
             Toggle gym profile visibility
           </p>
         </div>
@@ -131,7 +131,7 @@ export function GymProfileFormFields({
           type="checkbox"
           checked={fields.isActive}
           onChange={onActiveChange}
-          className="h-4 w-4 rounded border-black/20 bg-white text-emerald-600 focus:ring-black/10"
+          className="h-4 w-4 rounded border-gray-300 bg-white text-emerald-600"
           disabled={disabled}
         />
       </div>

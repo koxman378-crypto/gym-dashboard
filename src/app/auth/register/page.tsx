@@ -118,7 +118,7 @@ export default function RegisterPage() {
 
       {/* Centered register box */}
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4 py-10">
-        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-[2px] p-8">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-background/10 shadow-2xl backdrop-blur-[2px] p-8">
           {/* Header */}
           <div className="mb-8 text-center">
             <div className="mb-4 flex justify-center">
@@ -159,7 +159,7 @@ export default function RegisterPage() {
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 transition-colors ${validationErrors.name ? "border-red-500" : ""}`}
+                className={`bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 transition-colors ${validationErrors.name ? "border-red-500" : ""}`}
                 disabled={isLoading}
                 autoComplete="name"
               />
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                 placeholder="your.email@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.email ? "border-red-500" : ""}`}
+                className={`bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors ${validationErrors.email ? "border-red-500" : ""}`}
                 disabled={isLoading}
                 autoComplete="email"
               />
@@ -210,7 +210,7 @@ export default function RegisterPage() {
                   placeholder="+1234567890"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors"
+                  className="bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors"
                   disabled={isLoading}
                   autoComplete="tel"
                 />
@@ -231,7 +231,7 @@ export default function RegisterPage() {
                 placeholder="0000"
                   value={formData.age}
                   onChange={handleChange}
-                  className={`bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.age ? "border-red-500" : ""}`}
+                  className={`bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors ${validationErrors.age ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   min="1"
                   max="120"
@@ -258,7 +258,7 @@ export default function RegisterPage() {
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.password ? "border-red-500" : ""}`}
+                  className={`pr-10 bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors ${validationErrors.password ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />
@@ -298,7 +298,7 @@ export default function RegisterPage() {
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-white/15 transition-colors ${validationErrors.confirmPassword ? "border-red-500" : ""}`}
+                  className={`pr-10 bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors ${validationErrors.confirmPassword ? "border-red-500" : ""}`}
                   disabled={isLoading}
                   autoComplete="new-password"
                 />

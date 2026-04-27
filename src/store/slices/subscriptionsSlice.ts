@@ -14,6 +14,7 @@ export interface ServiceSelectionEntry {
 
 export interface SubscriptionFormData {
   customer: string;
+  gymId: string | null;
   startDate: string;
   status: "active" | "expired" | "cancelled";
   paymentStatus: "paid" | "pending" | "partial";
@@ -45,6 +46,7 @@ export interface SubscriptionsUiState {
 
 const defaultFormData: SubscriptionFormData = {
   customer: "",
+  gymId: null,
   startDate: new Date().toISOString().split("T")[0],
   status: "active",
   paymentStatus: "pending",
@@ -72,6 +74,22 @@ const initialState: SubscriptionsUiState = {
   formData: defaultFormData,
   selectedGymFeeId: "",
   selectedServices: {},
+};
+
+const resolveTrainerId = (trainer: Subscription["trainer"]) => {
+  if (!trainer || typeof trainer !== "object") return null;
+  const candidate = (trainer as any).trainerId ?? (trainer as any)._id;
+  return candidate ? String(candidate) : null;
+};
+
+const resolveTrainerFeeId = (trainer: Subscription["trainer"]) => {
+  if (!trainer || typeof trainer !== "object") return null;
+  const candidate =
+    (trainer as any).feeId ??
+    (trainer as any).feeRowId ??
+    (trainer as any).trainerFeeId ??
+    (trainer as any)._id;
+  return candidate ? String(candidate) : null;
 };
 
 const subscriptionsSlice = createSlice({
@@ -153,6 +171,7 @@ const subscriptionsSlice = createSlice({
           typeof sub.customer === "string"
             ? sub.customer
             : sub.customer?._id || "",
+        gymId: sub.gymId ?? null,
         startDate:
           typeof sub.startDate === "string"
             ? sub.startDate.split("T")[0]
@@ -160,35 +179,16 @@ const subscriptionsSlice = createSlice({
         status: sub.status,
         paymentStatus: sub.paymentStatus,
         paidAmount: sub.paidAmount,
-        trainerId:
-          sub.trainer && typeof sub.trainer === "object" && "_id" in sub.trainer
-            ? String((sub.trainer as any)._id)
-            : null,
-        trainerFeeRowId:
-          sub.trainer && typeof sub.trainer === "object"
-            ? String(
-                (sub.trainer as any).feeId ??
-                  (sub.trainer as any).feeRowId ??
-                  "",
-              )
-            : null,
-        trainerDuration:
-          sub.trainer && typeof sub.trainer === "object"
-            ? ((sub.trainer as any).duration ?? 1)
-            : 1,
+        trainerId: resolveTrainerId(sub.trainer),
+        trainerFeeRowId: resolveTrainerFeeId(sub.trainer),
+        trainerDuration: (sub.trainer as any)?.duration ?? 1,
         trainerDurationUnit:
-          sub.trainer && typeof sub.trainer === "object"
-            ? (((sub.trainer as any).durationUnit as DurationUnit) ?? "months")
-            : "months",
+          (((sub.trainer as any)?.durationUnit as DurationUnit) ??
+            "months") as DurationUnit,
         trainerPromotionType:
-          sub.trainer && typeof sub.trainer === "object"
-            ? ((((sub.trainer as any).promotionType as PromotionType) ??
-                "none") as Exclude<PromotionType, null> | "none")
-            : "none",
-        trainerPromotionValue:
-          sub.trainer && typeof sub.trainer === "object"
-            ? ((sub.trainer as any).promotionValue ?? "")
-            : "",
+          ((((sub.trainer as any)?.promotionType as PromotionType) ??
+            "none") as Exclude<PromotionType, null> | "none"),
+        trainerPromotionValue: (sub.trainer as any)?.promotionValue ?? "",
         notes: sub.notes || null,
       };
       state.selectedGymFeeId =

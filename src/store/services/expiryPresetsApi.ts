@@ -16,10 +16,12 @@ const normalizePreset = (item: any): ExpiryPreset => ({
 
 export const expiryPresetsApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getExpiryPresets: builder.query<ExpiryPreset[], { active?: boolean }>({
-      query: ({ active } = {}) => ({
+    getExpiryPresets: builder.query<ExpiryPreset[], { active?: boolean; gymId?: string }>({      query: ({ active, gymId } = {}) => ({
         url: "/expiry-presets",
-        params: active !== undefined ? { active: active.toString() } : {},
+        params: {
+          ...(active !== undefined ? { active: active.toString() } : {}),
+          ...(gymId ? { gymId } : {}),
+        },
       }),
       providesTags: ["ExpiryPreset"],
       transformResponse: (response: any) => {

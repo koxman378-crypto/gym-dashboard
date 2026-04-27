@@ -18,9 +18,11 @@ import { useAttendanceState } from "@/src/store/hooks/useAttendanceState";
 import { AttendanceStatus } from "@/src/types/attendance";
 import { AttendanceCheckCard } from "@/src/components/attendance/AttendanceCheckCard";
 import { AttendanceMonthlyStats } from "@/src/components/attendance/AttendanceMonthlyStats";
+import { useLanguage } from "@/src/components/language/LanguageContext";
 
 export default function AttendancePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const {
     autoCloseAfter,
     selectedMonth,
@@ -128,11 +130,11 @@ export default function AttendancePage() {
                   <Clock className="h-8 w-8" />
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight">
-                  My Attendance
+                  {t("attendance.title")}
                 </h1>
               </div>
               <p className="text-white/95 text-lg">
-                Track your gym attendance and workout sessions
+                {t("attendance.subtitle")}
               </p>
             </div>
             <div className="flex gap-2">
@@ -142,7 +144,7 @@ export default function AttendancePage() {
                 size="lg"
               >
                 <UserIcon className="h-5 w-5 mr-2" />
-                My Measurements
+                {t("attendance.myMeasurements")}
               </Button>
             </div>
           </div>

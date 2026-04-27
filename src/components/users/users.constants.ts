@@ -1,30 +1,31 @@
 import { Role } from "@/src/types/type";
 
 export const lightSurfaceClassName =
-  "border border-black/15 bg-white shadow-sm text-slate-900";
+  "border border-zinc-200 bg-white shadow-sm text-card-foreground";
 export const lightInputClassName =
-  "border-black/20 bg-white text-slate-900 placeholder:text-slate-500 hover:border-black/40 focus-visible:border-slate-900 focus-visible:ring-black/10";
+  "border-zinc-200 bg-white text-foreground placeholder:text-muted-foreground shadow-none hover:border-zinc-300 focus-visible:border-zinc-300 focus-visible:ring-2 focus-visible:ring-black/5";
 export const lightSelectTriggerClassName =
-  "border-black/20 bg-white text-slate-900 hover:border-black/40 focus:border-slate-900 focus:ring-black/10";
+  "border-zinc-200 bg-white text-foreground shadow-none hover:border-zinc-300 focus:border-zinc-300 focus:ring-2 focus:ring-black/5";
 export const lightSelectContentClassName =
-  "border-black/20 bg-white text-slate-900 shadow-xl ring-black/10";
-export const lightSelectItemClassName =
-  "text-slate-900 focus:bg-slate-100 hover:bg-slate-100";
+  "bg-white border border-gray-200 shadow-none ring-0";
+export const lightSelectItemClassName = "text-foreground hover:bg-zinc-100";
 export const lightDialogContentClassName =
-  "max-w-2xl max-h-[90vh] overflow-y-auto border border-black/15 bg-white text-slate-900 shadow-2xl ring-black/10";
-export const lightDialogFooterClassName = "border-black/10 bg-slate-50";
+  "max-w-2xl max-h-[90vh] overflow-y-auto border border-zinc-200 bg-white text-card-foreground shadow-xl";
+export const lightDialogFooterClassName = "border-zinc-200 bg-white";
 export const lightButtonClassName =
-  "border-black/20 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900";
+  "border border-zinc-200 bg-white text-foreground shadow-sm hover:bg-zinc-50 hover:text-foreground";
+export const lightBadgeClassName =
+  "rounded-lg border border-zinc-200 bg-white shadow-none";
 
 export const getRoleTextClass = (role: Role): string => {
   switch (role) {
     case Role.OWNER:
-      return "text-red-600";
+      return "text-zinc-900";
     case Role.CASHIER:
-      return "text-blue-600";
+      return "text-zinc-700";
     case Role.TRAINER:
-      return "text-purple-600";
+      return "text-zinc-600";
     default:
-      return "text-slate-600";
+      return "text-muted-foreground";
   }
 };
