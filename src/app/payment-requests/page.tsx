@@ -5,7 +5,6 @@ import { motion, useInView } from "motion/react";
 import { CheckCircle, XCircle, Clock, Wallet, UserRound } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
-import { Skeleton } from "@/src/components/ui/skeleton";
 import { cn } from "@/src/lib/utils";
 import {
   useGetPaymentRequestsQuery,
@@ -88,13 +87,14 @@ function Avatar({ name, avatar }: { name: string; avatar?: string | null }) {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  if (status === "pending")
+  const normalized = status.trim().toLowerCase();
+  if (normalized === "pending")
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
         <Clock className="h-3 w-3" /> Payment Submitted
       </span>
     );
-  if (status === "approved")
+  if (normalized === "approved")
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
         <CheckCircle className="h-3 w-3" /> Payment Approved
@@ -140,12 +140,12 @@ function ReviewModal({
             className={cn(
               "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
               action === "approve"
-                ? "bg-emerald-100 dark:bg-emerald-900/30"
+                ? "bg-emerald-100 dark:bg-blue-900/30"
                 : "bg-red-100 dark:bg-red-900/30",
             )}
           >
             {action === "approve" ? (
-              <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle className="h-6 w-6 text-blue-600 dark:text-emerald-400" />
             ) : (
               <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
             )}
@@ -226,7 +226,10 @@ function RequestRow({ request }: { request: PaymentRequest }) {
     });
   const proofSrc = viewUrlData?.viewUrl ?? request.proofImage ?? undefined;
 
-  const isPending = request.status === "pending";
+  const status = request.status.trim().toLowerCase();
+  const isPending = status === "pending";
+  const isApproved = status === "approved";
+  const isRejected = status === "rejected";
 
   const handleConfirm = async (note: string) => {
     if (!reviewAction) return;
@@ -272,9 +275,11 @@ function RequestRow({ request }: { request: PaymentRequest }) {
           "overflow-hidden rounded-xl border shadow-lg border-gray-100 transition-all",
           isPending
             ? "bg-[#F8F8F8]"
-            : request.status === "approved"
+            : isApproved
               ? "bg-[#F8F8F8]"
-              : "",
+              : isRejected
+                ? "bg-red-50/60"
+                : "",
         )}
       >
         <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
@@ -296,7 +301,7 @@ function RequestRow({ request }: { request: PaymentRequest }) {
             </div>
 
             <div className="flex items-center gap-3">
-              <StatusBadge status={request.status} />
+              <StatusBadge status={status} />
 
               <div
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full 
@@ -321,10 +326,10 @@ function RequestRow({ request }: { request: PaymentRequest }) {
           {/* Subscription summary */}
           {sub && (
             <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-              <span className="text-black font-semibold">
+              <span className="font-semibold text-black">
                 Total: {sub.grandTotal.toLocaleString()} MMK
               </span>
-              <span className="text-green-500 font-semibold italic">
+              <span className="font-semibold italic text-green-500">
                 Paid: {sub.paidAmount.toLocaleString()} MMK
               </span>
               <span className="text-red-400">
@@ -337,14 +342,14 @@ function RequestRow({ request }: { request: PaymentRequest }) {
           {request.proofImage && (
             <button
               type="button"
-              className="overflow-hiddenbg-muted/20 text-left"
+              className="overflow-hidden rounded-2xl border border-gray-200 bg-muted/20 text-left"
               onClick={() => {
                 if (proofSrc) setPreviewOpen(true);
               }}
               disabled={fetchingViewUrl && !proofSrc}
             >
               <div className="px-3 py-2">
-                <span className="text-black text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                <span className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
                   Payment Proof
                 </span>
                 {request.note && (
@@ -358,15 +363,18 @@ function RequestRow({ request }: { request: PaymentRequest }) {
                   </span>
                 )}
               </div>
-              <div className="bg-black/5 dark:bg-black/10 rounded-sm">
+              <div className="rounded-b-2xl bg-black/5 dark:bg-black/10">
                 {proofSrc ? (
                   <img
                     src={proofSrc}
                     alt="Payment proof"
                     className="max-h-56 w-full cursor-pointer object-contain"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <Skeleton className="min-h-40 w-full rounded-none" />
+                  <div className="flex min-h-40 w-full items-center justify-center px-4 py-8 text-sm text-muted-foreground">
+                    Proof image is loading or unavailable.
+                  </div>
                 )}
               </div>
             </button>
@@ -379,7 +387,7 @@ function RequestRow({ request }: { request: PaymentRequest }) {
                 <>
                   <Button
                     size="sm"
-                    className="h-8 rounded-full bg-emerald-600 px-4 hover:bg-emerald-700"
+                    className="h-8 rounded-full bg-blue-600 px-4 hover:bg-emerald-700"
                     onClick={() => setReviewAction("approve")}
                   >
                     <CheckCircle className="mr-1.5 h-3.5 w-3.5" />

@@ -125,6 +125,7 @@ export interface UpdateUserDto {
   emergencyContact?: string;
   emergencyPhone?: string;
   notes?: string;
+  password?: string;
 }
 
 export interface BodyMeasurementDto {

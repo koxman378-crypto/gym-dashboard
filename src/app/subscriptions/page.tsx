@@ -164,7 +164,7 @@ export default function SubscriptionsPage() {
     const activeFees =
       selectedTrainer?.trainerFees?.filter((fee) => fee.isActive) || [];
     const autoSelectedFeeId =
-      activeFees.length === 1 ? activeFees[0]?._id ?? null : null;
+      activeFees.length === 1 ? (activeFees[0]?._id ?? null) : null;
 
     setFormData({
       trainerId: nextTrainerId,

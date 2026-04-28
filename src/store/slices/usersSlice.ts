@@ -6,6 +6,7 @@ export interface UsersEditFormData {
   name: string;
   phone: string;
   age: number | "";
+  password: string;
   assignedTrainer: string;
   bodyMeasurements?: {
     height?: number;
@@ -23,6 +24,7 @@ const defaultEditForm: UsersEditFormData = {
   name: "",
   phone: "",
   age: "",
+  password: "",
   assignedTrainer: "none",
   bodyMeasurements: undefined,
 };
@@ -95,6 +97,7 @@ const usersSlice = createSlice({
         name: user.name ?? "",
         phone: user.phone ?? "",
         age: user.age ?? "",
+        password: "",
         assignedTrainer: assignedTrainerId,
         bodyMeasurements: user.bodyMeasurements
           ? {

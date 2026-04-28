@@ -88,19 +88,19 @@ export function GymFeeFormDialog({
             <Label htmlFor="amount" className="text-foreground">
               Amount
             </Label>
-              <Input
-                id="amount"
-                type="number"
-                min="0"
-                value={formData.amount}
-                onChange={(e) =>
-                  onChange({
-                    ...formData,
-                    amount: e.target.value === "" ? "" : Number(e.target.value),
-                  })
-                }
-                className={lightInputClassName}
-              />
+            <Input
+              id="amount"
+              type="number"
+              min="0"
+              value={formData.amount}
+              onChange={(e) =>
+                onChange({
+                  ...formData,
+                  amount: e.target.value === "" ? "" : Number(e.target.value),
+                })
+              }
+              className={lightInputClassName}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -137,10 +137,16 @@ export function GymFeeFormDialog({
                   <SelectItem value="days" className={lightSelectItemClassName}>
                     Days
                   </SelectItem>
-                  <SelectItem value="months" className={lightSelectItemClassName}>
+                  <SelectItem
+                    value="months"
+                    className={lightSelectItemClassName}
+                  >
                     Months
                   </SelectItem>
-                  <SelectItem value="years" className={lightSelectItemClassName}>
+                  <SelectItem
+                    value="years"
+                    className={lightSelectItemClassName}
+                  >
                     Years
                   </SelectItem>
                 </SelectContent>
@@ -166,7 +172,10 @@ export function GymFeeFormDialog({
                   <SelectItem value="none" className={lightSelectItemClassName}>
                     None
                   </SelectItem>
-                  <SelectItem value="percentage" className={lightSelectItemClassName}>
+                  <SelectItem
+                    value="percentage"
+                    className={lightSelectItemClassName}
+                  >
                     Percentage
                   </SelectItem>
                   <SelectItem value="mmk" className={lightSelectItemClassName}>

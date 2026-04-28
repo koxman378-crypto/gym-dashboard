@@ -261,6 +261,9 @@ export default function UsersPage() {
         updateData.name = editFormData.name;
       if (editFormData.phone !== (selectedUser.phone || ""))
         updateData.phone = editFormData.phone;
+      if (currentUser?.role === Role.OWNER && editFormData.password.trim()) {
+        updateData.password = editFormData.password.trim();
+      }
       const normalizedAge =
         editFormData.age === "" ? undefined : editFormData.age;
       if (normalizedAge !== selectedUser.age) updateData.age = normalizedAge;
@@ -390,6 +393,7 @@ export default function UsersPage() {
           formData={editFormData}
           onFormChange={(data) => setEditFormData(data)}
           trainers={trainers}
+          currentUserRole={currentUser?.role}
           onSubmit={handleUpdateUser}
         />
 

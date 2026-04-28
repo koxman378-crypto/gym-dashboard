@@ -35,6 +35,7 @@ export interface EditFormData {
   name: string;
   phone: string;
   age: number | "" | undefined;
+  password: string;
   assignedTrainer: string;
   bodyMeasurements?: {
     height?: number;
@@ -54,6 +55,7 @@ interface UserEditDialogProps {
   formData: EditFormData;
   onFormChange: (data: EditFormData) => void;
   trainers: User[];
+  currentUserRole?: Role;
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -74,6 +76,7 @@ export function UserEditDialog({
   formData,
   onFormChange,
   trainers,
+  currentUserRole,
   onSubmit,
 }: UserEditDialogProps) {
   return (
@@ -132,10 +135,10 @@ export function UserEditDialog({
                   className={lightInputClassName}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-age" className="text-foreground">
-                  Age
-                </Label>
+            <div className="space-y-2">
+              <Label htmlFor="edit-age" className="text-foreground">
+                Age
+              </Label>
                 <Input
                   id="edit-age"
                   type="number"
@@ -151,6 +154,27 @@ export function UserEditDialog({
                 />
               </div>
             </div>
+
+            {currentUserRole === Role.OWNER && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-password" className="text-foreground">
+                  New Password
+                </Label>
+                <Input
+                  id="edit-password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    onFormChange({ ...formData, password: e.target.value })
+                  }
+                  placeholder="Leave blank to keep current password"
+                  className={lightInputClassName}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Owner only. Leave empty if you do not want to change it.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label className="text-foreground">Role</Label>
