@@ -79,6 +79,7 @@ type NavItem = {
   roles: Role[];
   badge?: "notifications" | "payments";
   children?: NavItem[]; // For nested items
+  hidden?: boolean;
 };
 
 type NavGroup = {
@@ -120,13 +121,15 @@ const ownerNavGroups: NavGroup[] = [
         icon: Wallet,
         roles: [Role.OWNER],
         badge: "payments",
+        hidden: true,
       },
-      // {
-      //   tKey: "nav.expenses",
-      //   href: "/expenses",
-      //   icon: ReceiptText,
-      //   roles: [Role.OWNER],
-      // },
+      {
+        tKey: "nav.expenses",
+        href: "/expenses",
+        icon: ReceiptText,
+        roles: [Role.OWNER],
+        hidden: true,
+      },
       {
         tKey: "nav.gymPrices",
         href: "/custom-fees/gym-prices",
@@ -211,6 +214,7 @@ const cashierNavItems: NavItem[] = [
     icon: Wallet,
     roles: [Role.CASHIER],
     badge: "payments",
+    hidden: true,
   },
   {
     tKey: "nav.expiryPresets",
@@ -236,12 +240,13 @@ const cashierNavItems: NavItem[] = [
     icon: UserCheck,
     roles: [Role.CASHIER],
   },
-  // {
-  //   tKey: "nav.expenses",
-  //   href: "/expenses",
-  //   icon: ReceiptText,
-  //   roles: [Role.CASHIER],
-  // },
+  {
+    tKey: "nav.expenses",
+    href: "/expenses",
+    icon: ReceiptText,
+    roles: [Role.CASHIER],
+    hidden: true,
+  },
   {
     tKey: "nav.attendanceHistory",
     href: "/attendance",
@@ -565,23 +570,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <Collapsible
                       key={group.groupKey}
                       defaultOpen
-                      className="group/collapsible mb-5"
+                      className="group/collapsible mb-3"
                     >
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
                             tooltip={t(group.groupKey)}
-                            className="cursor-pointer rounded-lg px-2 py-1.5 hover:bg-transparent active:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent"
+                            className="hover:bg-transparent hover:text-foreground font-semibold cursor-pointer"
                           >
-                            <span className="group-data-[collapsible=icon]:hidden text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                            <span className="group-data-[collapsible=icon]:hidden text-xs uppercase tracking-wide text-muted-foreground">
                               {t(group.groupKey)}
                             </span>
                             <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                          <SidebarMenuSub className="mt-2 max-h-75 gap-1.5 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-500">
-                            {group.items.map((item) => (
+                          <SidebarMenuSub className="max-h-75 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
+                            {group.items
+                              .filter((item) => !item.hidden)
+                              .map((item) => (
                               <SidebarMenuSubItem key={item.href + item.tKey}>
                                 <SidebarMenuSubButton
                                   asChild
@@ -590,11 +597,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                       ? pathname?.startsWith("/subscriptions")
                                       : pathname === item.href
                                   }
-                                  className="rounded-md border border-transparent transition-colors hover:bg-gray-100 hover:border-gray-200 hover:text-gray-900 data-[active=true]:bg-[hsl(215,25%,27%)] data-[active=true]:text-white data-[active=true]:border-transparent"
+                                  className="hover:bg-[hsl(215,25%,27%)] hover:text-white transition-colors"
                                 >
                                   <Link href={item.href}>
                                     <item.icon className="h-3.5 w-3.5 shrink-0" />
-                                    <span className="text-[10px]">
+                                    <span className="text-xs">
                                       {t(item.tKey)}
                                     </span>
                                     {item.badge === "notifications" &&
@@ -624,7 +631,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   ))
                 ) : user?.role === Role.CASHIER ? (
                   // Flat navigation for Cashier
-                  cashierNavItems.map((item) => (
+                  cashierNavItems.filter((item) => !item.hidden).map((item) => (
                     <SidebarMenuItem key={item.href + item.tKey}>
                       <SidebarMenuButton
                         asChild
@@ -662,6 +669,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 ) : (
                   navItems
                     .filter((item) => item.roles.includes(user?.role as Role))
+                    .filter((item) => !item.hidden)
                     .map((item) => (
                       <SidebarMenuItem key={item.href + item.tKey}>
                         <SidebarMenuButton

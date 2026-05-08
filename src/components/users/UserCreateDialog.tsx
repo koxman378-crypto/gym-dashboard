@@ -42,7 +42,11 @@ interface UserCreateDialogProps {
   onCreate: (data: CreateUserDto) => Promise<void>;
 }
 
-const buildDefaultForm = (defaultGymId?: string | null): CreateUserDto => ({
+type UserCreateFormData = CreateUserDto & {
+  salaryAmount?: number;
+};
+
+const buildDefaultForm = (defaultGymId?: string | null): UserCreateFormData => ({
   email: "",
   password: "",
   name: "",
@@ -59,7 +63,7 @@ const buildDefaultForm = (defaultGymId?: string | null): CreateUserDto => ({
 
 const isPhoneValid = (phone: string) => /^\d{9,11}$/.test(phone.trim());
 
-const validateForm = (formData: CreateUserDto) => {
+const validateForm = (formData: UserCreateFormData) => {
   const errors: string[] = [];
 
   if (!formData.name.trim()) errors.push("Name");
@@ -98,7 +102,7 @@ export function UserCreateDialog({
   onGymFilterChange?: (id: string | null) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<CreateUserDto>(
+  const [formData, setFormData] = useState<UserCreateFormData>(
     buildDefaultForm(defaultGymId),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -143,7 +147,7 @@ export function UserCreateDialog({
       return;
     }
 
-    const cleanedFormData = {
+    const cleanedFormData: UserCreateFormData = {
       ...formData,
       email: formData.email.trim(),
     };
@@ -154,9 +158,11 @@ export function UserCreateDialog({
       if (!hasAny) cleanedFormData.bodyMeasurements = undefined;
     }
 
+    const { salaryAmount: _salaryAmount, ...createPayload } = cleanedFormData;
+
     setIsSubmitting(true);
     try {
-      await onCreate(cleanedFormData);
+      await onCreate(createPayload);
       toast.success("User created successfully!");
       handleClose();
     } catch (error: any) {

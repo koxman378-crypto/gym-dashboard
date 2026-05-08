@@ -488,11 +488,15 @@ export default function NotificationsPage() {
   const { data: countData } = useGetUnreadCountQuery(
     branchQuery ? { gymId: branchQuery } : undefined,
   );
+  const notificationsGroup =
+    activeTab === "expenses" ? undefined : activeTab;
   const { data, isLoading } = useGetNotificationsQuery({
     page,
     limit: PAGE_SIZE,
-    group: activeTab,
+    group: notificationsGroup,
     gymId: branchQuery,
+  }, {
+    skip: activeTab === "expenses",
   });
 
   const [markRead] = useMarkReadMutation();
