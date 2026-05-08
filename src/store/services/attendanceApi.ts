@@ -57,7 +57,24 @@ export const attendanceApi = api.injectEndpoints({
       }),
       providesTags: ["Attendance"],
     }),
-
+    // [OWNER/CASHIER] Get all users' attendance history (global)
+    getAllAttendanceHistory: builder.query<
+      AttendanceHistoryResponse,
+      {
+        userId?: string;
+        startDate?: string;
+        endDate?: string;
+        page?: number;
+        limit?: number;
+        name?: string;
+      }
+    >({
+      query: ({ userId, startDate, endDate, page = 1, limit = 10, name }) => ({
+        url: "/attendance/all-history",
+        params: { userId, startDate, endDate, page, limit, name },
+      }),
+      providesTags: ["Attendance"],
+    }),
     // Update auto-close duration
     updateAutoClose: builder.mutation<Attendance, UpdateAutoCloseDto>({
       query: (data) => ({
@@ -105,4 +122,5 @@ export const {
   useUpdateAutoCloseMutation,
   useGetMonthlyStatsQuery,
   useGetUserMonthAttendanceQuery,
+  useGetAllAttendanceHistoryQuery,
 } = attendanceApi;

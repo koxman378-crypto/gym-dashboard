@@ -10,9 +10,18 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarInset,
   SidebarFooter,
 } from "@/src/components/sidebar/page";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/src/components/ui/collapsible";
+import { ChevronRight } from "lucide-react";
 import { TooltipProvider } from "@/src/components/ui/tooltip";
 import Link from "next/link";
 import {
@@ -31,6 +40,9 @@ import {
   Timer,
   Bell,
   Wallet,
+  CalendarOff,
+  Gift,
+  ReceiptText,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { useAppSelector } from "@/src/store/hooks";
@@ -60,7 +72,192 @@ import {
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
 
-const menuItems = [
+type NavItem = {
+  tKey: string;
+  href: string;
+  icon: React.ElementType;
+  roles: Role[];
+  badge?: "notifications" | "payments";
+  children?: NavItem[]; // For nested items
+};
+
+type NavGroup = {
+  groupKey: string;
+  items: NavItem[];
+};
+
+// Grouped navigation for Owner role
+const ownerNavGroups: NavGroup[] = [
+  {
+    groupKey: "nav.groupUsersSubscriptions",
+    items: [
+      {
+        tKey: "nav.users",
+        href: "/users",
+        icon: Users,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.subscriptions",
+        href: "/subscriptions",
+        icon: Calendar,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.attendanceHistory",
+        href: "/attendance",
+        icon: Clock,
+        roles: [Role.OWNER],
+      },
+    ],
+  },
+  {
+    groupKey: "nav.groupFinancial",
+    items: [
+      {
+        tKey: "nav.paymentRequests",
+        href: "/payment-requests",
+        icon: Wallet,
+        roles: [Role.OWNER],
+        badge: "payments",
+      },
+      // {
+      //   tKey: "nav.expenses",
+      //   href: "/expenses",
+      //   icon: ReceiptText,
+      //   roles: [Role.OWNER],
+      // },
+      {
+        tKey: "nav.gymPrices",
+        href: "/custom-fees/gym-prices",
+        icon: DollarSign,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.otherServices",
+        href: "/custom-fees/other-services",
+        icon: Package,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.trainerFees",
+        href: "/custom-fees/trainer-fees",
+        icon: UserCheck,
+        roles: [Role.OWNER],
+      },
+    ],
+  },
+  {
+    groupKey: "nav.groupSettings",
+    items: [
+      {
+        tKey: "nav.gymProfile",
+        href: "/profile",
+        icon: Building2,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.expiryPresets",
+        href: "/expiry-presets",
+        icon: Timer,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.offDays",
+        href: "/off-days",
+        icon: CalendarOff,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.faqs",
+        href: "/faqs",
+        icon: MessageCircleQuestion,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.birthdayWish",
+        href: "/birthday-wish",
+        icon: Gift,
+        roles: [Role.OWNER],
+      },
+      {
+        tKey: "nav.notifications",
+        href: "/notifications",
+        icon: Bell,
+        roles: [Role.OWNER],
+        badge: "notifications",
+      },
+    ],
+  },
+];
+
+// Flat navigation for Cashier and other roles
+const cashierNavItems: NavItem[] = [
+  {
+    tKey: "nav.users",
+    href: "/users",
+    icon: Users,
+    roles: [Role.CASHIER],
+  },
+  {
+    tKey: "nav.subscriptions",
+    href: "/subscriptions",
+    icon: Calendar,
+    roles: [Role.CASHIER],
+  },
+  {
+    tKey: "nav.paymentRequests",
+    href: "/payment-requests",
+    icon: Wallet,
+    roles: [Role.CASHIER],
+    badge: "payments",
+  },
+  {
+    tKey: "nav.expiryPresets",
+    href: "/expiry-presets",
+    icon: Timer,
+    roles: [Role.CASHIER],
+  },
+  {
+    tKey: "nav.gymPrices",
+    href: "/custom-fees/gym-prices",
+    icon: DollarSign,
+    roles: [Role.CASHIER],
+  },
+  {
+    tKey: "nav.otherServices",
+    href: "/custom-fees/other-services",
+    icon: Package,
+    roles: [Role.CASHIER],
+  },
+  {
+    tKey: "nav.trainerFees",
+    href: "/custom-fees/trainer-fees",
+    icon: UserCheck,
+    roles: [Role.CASHIER],
+  },
+  // {
+  //   tKey: "nav.expenses",
+  //   href: "/expenses",
+  //   icon: ReceiptText,
+  //   roles: [Role.CASHIER],
+  // },
+  {
+    tKey: "nav.attendanceHistory",
+    href: "/attendance",
+    icon: Clock,
+    roles: [Role.CASHIER],
+  },
+  {
+    tKey: "nav.notifications",
+    href: "/notifications",
+    icon: Bell,
+    roles: [Role.CASHIER],
+    badge: "notifications",
+  },
+];
+
+const navItems: NavItem[] = [
   {
     tKey: "nav.users",
     href: "/users",
@@ -68,22 +265,23 @@ const menuItems = [
     roles: [Role.OWNER, Role.CASHIER, Role.TRAINER],
   },
   {
-    tKey: "nav.gymProfile",
-    href: "/profile",
-    icon: Building2,
-    roles: [Role.OWNER],
+    tKey: "nav.subscriptions",
+    href: "/subscriptions",
+    icon: Calendar,
+    roles: [Role.OWNER, Role.CASHIER],
   },
   {
-    tKey: "nav.faqs",
-    href: "/faqs",
-    icon: MessageCircleQuestion,
-    roles: [Role.OWNER],
+    tKey: "nav.paymentRequests",
+    href: "/payment-requests",
+    icon: Wallet,
+    roles: [Role.OWNER, Role.CASHIER],
+    badge: "payments",
   },
   {
     tKey: "nav.expiryPresets",
     href: "/expiry-presets",
     icon: Timer,
-    roles: [Role.OWNER],
+    roles: [Role.OWNER, Role.CASHIER],
   },
   {
     tKey: "nav.gymPrices",
@@ -104,23 +302,47 @@ const menuItems = [
     roles: [Role.OWNER, Role.CASHIER],
   },
   {
-    tKey: "nav.subscriptions",
-    href: "/subscriptions",
-    icon: Calendar,
+    tKey: "nav.expenses",
+    href: "/expenses",
+    icon: ReceiptText,
     roles: [Role.OWNER, Role.CASHIER],
   },
   {
-    tKey: "nav.paymentRequests",
-    href: "/payment-requests",
-    icon: Wallet,
+    tKey: "nav.attendanceHistory",
+    href: "/attendance",
+    icon: Clock,
     roles: [Role.OWNER, Role.CASHIER],
   },
-
+  {
+    tKey: "nav.offDays",
+    href: "/off-days",
+    icon: CalendarOff,
+    roles: [Role.OWNER],
+  },
+  {
+    tKey: "nav.gymProfile",
+    href: "/profile",
+    icon: Building2,
+    roles: [Role.OWNER],
+  },
+  {
+    tKey: "nav.faqs",
+    href: "/faqs",
+    icon: MessageCircleQuestion,
+    roles: [Role.OWNER],
+  },
+  {
+    tKey: "nav.birthdayWish",
+    href: "/birthday-wish",
+    icon: Gift,
+    roles: [Role.OWNER],
+  },
   {
     tKey: "nav.notifications",
     href: "/notifications",
     icon: Bell,
     roles: [Role.OWNER, Role.CASHIER],
+    badge: "notifications",
   },
   {
     tKey: "nav.attendance",
@@ -294,7 +516,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         setSelectedGymId(value === "all" ? null : value)
                       }
                     >
-                    <SelectTrigger className="h-9 w-[11rem] cursor-pointer border border-gray-200 bg-white text-sm shadow-sm transition-colors hover:bg-gray-50 focus:ring-0 focus-visible:ring-0">
+                      <SelectTrigger className="h-9 w-44 cursor-pointer border border-gray-200 bg-white text-sm shadow-sm transition-colors hover:bg-gray-50 focus:ring-0 focus-visible:ring-0">
                         <SelectValue placeholder="All Branches" />
                       </SelectTrigger>
                       <SelectContent className="border border-gray-200 bg-white shadow-lg">
@@ -319,64 +541,164 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
               </div>
             </SidebarHeader>
-            <SidebarContent className="px-3 py-4">
-              <SidebarMenu>
-                {menuItems
-                  .filter(
-                    (item) =>
-                      !item.roles || item.roles.includes(user?.role as Role),
-                  )
-                  .map((item) => (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                        tooltip={t(item.tKey)}
-                        className="px-3 py-2.5 hover:bg-[hsl(215,25%,20%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
-                      >
-                        <Link
-                          href={item.href}
-                          className="flex items-center gap-3"
-                        >
-                          <item.icon className="h-5 w-5" />
-                          <span className="group-data-[collapsible=icon]:hidden font-medium flex-1">
-                            {t(item.tKey)}
-                          </span>
-                          {item.href === "/notifications" &&
-                            unreadNotiCount > 0 && (
-                              <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
-                                {unreadNotiCount > 99 ? "99+" : unreadNotiCount}
-                              </span>
-                            )}
-                          {item.href === "/payment-requests" &&
-                            pendingPaymentCount > 0 && (
-                              <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
-                                {pendingPaymentCount > 99 ? "99+" : pendingPaymentCount}
-                              </span>
-                            )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                {user?.role === Role.TRAINER && (
+            <SidebarContent>
+              <SidebarMenu className="px-2 py-2 gap-0.5">
+                {user?.role === Role.TRAINER ? (
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       asChild
                       isActive={pathname?.startsWith("/subscriptions")}
                       tooltip={t("nav.mySubscriptions")}
-                      className="px-3 py-2.5 hover:bg-sidebar-accent hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
+                      className="hover:bg-[hsl(215,25%,20%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
                     >
-                      <Link
-                        href={subscriptionsMenuHref}
-                        className="flex items-center gap-3"
-                      >
-                        <Calendar className="h-5 w-5" />
-                        <span className="group-data-[collapsible=icon]:hidden font-medium">
+                      <Link href={subscriptionsMenuHref}>
+                        <Calendar className="h-4 w-4 shrink-0" />
+                        <span className="group-data-[collapsible=icon]:hidden">
                           {t("nav.mySubscriptions")}
                         </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                ) : user?.role === Role.OWNER ? (
+                  // Collapsible grouped navigation for Owner
+                  ownerNavGroups.map((group) => (
+                    <Collapsible
+                      key={group.groupKey}
+                      defaultOpen
+                      className="group/collapsible mb-5"
+                    >
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={t(group.groupKey)}
+                            className="cursor-pointer rounded-lg px-2 py-1.5 hover:bg-transparent active:bg-transparent focus:bg-transparent data-[active=true]:bg-transparent"
+                          >
+                            <span className="group-data-[collapsible=icon]:hidden text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+                              {t(group.groupKey)}
+                            </span>
+                            <ChevronRight className="ml-auto h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub className="mt-2 max-h-75 gap-1.5 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-gray-500">
+                            {group.items.map((item) => (
+                              <SidebarMenuSubItem key={item.href + item.tKey}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={
+                                    item.href === "/subscriptions"
+                                      ? pathname?.startsWith("/subscriptions")
+                                      : pathname === item.href
+                                  }
+                                  className="rounded-md border border-transparent transition-colors hover:bg-gray-100 hover:border-gray-200 hover:text-gray-900 data-[active=true]:bg-[hsl(215,25%,27%)] data-[active=true]:text-white data-[active=true]:border-transparent"
+                                >
+                                  <Link href={item.href}>
+                                    <item.icon className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="text-[10px]">
+                                      {t(item.tKey)}
+                                    </span>
+                                    {item.badge === "notifications" &&
+                                      unreadNotiCount > 0 && (
+                                        <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                                          {unreadNotiCount > 99
+                                            ? "99+"
+                                            : unreadNotiCount}
+                                        </span>
+                                      )}
+                                    {item.badge === "payments" &&
+                                      pendingPaymentCount > 0 && (
+                                        <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                                          {pendingPaymentCount > 99
+                                            ? "99+"
+                                            : pendingPaymentCount}
+                                        </span>
+                                      )}
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  ))
+                ) : user?.role === Role.CASHIER ? (
+                  // Flat navigation for Cashier
+                  cashierNavItems.map((item) => (
+                    <SidebarMenuItem key={item.href + item.tKey}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={
+                          item.href === "/subscriptions"
+                            ? pathname?.startsWith("/subscriptions")
+                            : pathname === item.href
+                        }
+                        tooltip={t(item.tKey)}
+                        className="hover:bg-[hsl(215,25%,20%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
+                      >
+                        <Link href={item.href}>
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          <span className="group-data-[collapsible=icon]:hidden">
+                            {t(item.tKey)}
+                          </span>
+                          {item.badge === "notifications" &&
+                            unreadNotiCount > 0 && (
+                              <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                                {unreadNotiCount > 99 ? "99+" : unreadNotiCount}
+                              </span>
+                            )}
+                          {item.badge === "payments" &&
+                            pendingPaymentCount > 0 && (
+                              <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                                {pendingPaymentCount > 99
+                                  ? "99+"
+                                  : pendingPaymentCount}
+                              </span>
+                            )}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))
+                ) : (
+                  navItems
+                    .filter((item) => item.roles.includes(user?.role as Role))
+                    .map((item) => (
+                      <SidebarMenuItem key={item.href + item.tKey}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={
+                            item.href === "/subscriptions"
+                              ? pathname?.startsWith("/subscriptions")
+                              : pathname === item.href
+                          }
+                          tooltip={t(item.tKey)}
+                          className="hover:bg-[hsl(215,25%,20%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
+                        >
+                          <Link href={item.href}>
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            <span className="group-data-[collapsible=icon]:hidden">
+                              {t(item.tKey)}
+                            </span>
+                            {item.badge === "notifications" &&
+                              unreadNotiCount > 0 && (
+                                <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                                  {unreadNotiCount > 99
+                                    ? "99+"
+                                    : unreadNotiCount}
+                                </span>
+                              )}
+                            {item.badge === "payments" &&
+                              pendingPaymentCount > 0 && (
+                                <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                                  {pendingPaymentCount > 99
+                                    ? "99+"
+                                    : pendingPaymentCount}
+                                </span>
+                              )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
                 )}
               </SidebarMenu>
             </SidebarContent>

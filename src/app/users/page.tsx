@@ -268,6 +268,20 @@ export default function UsersPage() {
         editFormData.age === "" ? undefined : editFormData.age;
       if (normalizedAge !== selectedUser.age) updateData.age = normalizedAge;
 
+      // Birthday
+      const newBirthday = editFormData.birthday || undefined;
+      const existingBirthday = selectedUser.birthday
+        ? typeof selectedUser.birthday === "string"
+          ? selectedUser.birthday.split("T")[0]
+          : new Date(selectedUser.birthday).toISOString().split("T")[0]
+        : undefined;
+      if (newBirthday !== existingBirthday) updateData.birthday = newBirthday ?? null;
+
+      // Gender
+      const newGender = editFormData.gender || undefined;
+      if (newGender !== (selectedUser.gender ?? undefined))
+        updateData.gender = newGender ?? null;
+
       const currentTrainerId = getAssignedTrainerId(
         selectedUser.assignedTrainer,
       );

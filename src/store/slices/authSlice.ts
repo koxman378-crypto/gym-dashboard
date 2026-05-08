@@ -8,6 +8,7 @@ export type AuthUser = {
   name: string;
   nickname?: string;
   role: Role;
+  gymId?: string;
   avatar?: string;
   createdAt?: string;
   updatedAt?: string;

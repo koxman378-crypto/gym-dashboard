@@ -20,6 +20,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Role, type User, canDeleteRole } from "@/src/types/type";
 import { DeleteAlertDialog } from "@/src/components/ui/delete-alert-dialog";
+import { useRouter } from "next/navigation";
 
 interface UserActionsDropdownProps {
   user: User;

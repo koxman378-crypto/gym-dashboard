@@ -22,7 +22,89 @@ const translations = {
     loggingOut: { en: "Logging out...", mm: "ထွက်နေသည်..." },
     dashboard: { en: "Dashboard", mm: "ဒက်ရှ်ဘုတ်" },
     notifications: { en: "Notifications", mm: "အသိပေးချက်များ" },
-    paymentRequests: { en: "Payment Requests", mm: "ငွေပေးချေမှု တောင်းဆိုချက်များ" },
+    paymentRequests: {
+      en: "Payment Requests",
+      mm: "ငွေပေးချေမှု တောင်းဆိုချက်များ",
+    },
+    offDays: { en: "Official Off Days", mm: "ရုံးပိတ်ရက်များ" },
+    birthdayWish: { en: "Birthday Wish", mm: "မွေးနေ့ ဆုမွန်ကောင်း" },
+    expenses: { en: "Expenses", mm: "ကုန်ကျစရိတ်များ" },
+    // Sidebar group headers for Owner
+    groupUsersSubscriptions: {
+      en: "Users & Subscriptions",
+      mm: "အသုံးပြုသူများ & အသင်းဝင်",
+    },
+    groupFinancial: { en: "Financial Management", mm: "ဘဏ္ဍာရေး စီမံခန့်ခွဲမှု" },
+    groupSettings: {
+      en: "Settings & Customization",
+      mm: "ဆက်တင်များ & စိတ်ကြိုက်ပြင်ဆင်မှု",
+    },
+    // sidebar group labels (old)
+    groupOverview: { en: "Overview", mm: "အနှစ်ချုပ်" },
+    groupMembers: { en: "Members", mm: "အဖွဲ့ဝင်များ" },
+    groupFinance: { en: "Finance", mm: "ဘဏ္ဍာရေး" },
+    groupConfig: { en: "Configuration", mm: "သတ်မှတ်ချက်များ" },
+    group: {
+      people: { en: "People", mm: "အဖွဲ့ဝင်များ" },
+      subscriptions: { en: "Subscriptions", mm: "အသင်းဝင်မှတ်တမ်း" },
+      fees: { en: "Fees & Pricing", mm: "ကြေးနှုန်းများ" },
+      attendance: { en: "Attendance", mm: "တက်ရောက်မှု" },
+      gym: { en: "Gym Settings", mm: "ဂျင်မ် ဆက်တင်များ" },
+      comms: { en: "Communications", mm: "ဆက်သွယ်ရေး" },
+      myAccount: { en: "My Account", mm: "ကျွန်ုပ်အကောင့်" },
+    },
+  },
+  expenses: {
+    title: { en: "Expenses", mm: "ကုန်ကျစရိတ်များ" },
+    subtitle: {
+      en: "Submit and manage gym expense requests. Owner reviews and approves.",
+      mm: "ဂျင်မ် ကုန်ကျစရိတ် တောင်းဆိုချက်များ တင်သွင်းပြီး စီမံပါ။ Owner မှ စစ်ဆေးအတည်ပြုမည်။",
+    },
+    newExpense: { en: "New Expense", mm: "ကုန်ကျစရိတ် အသစ်" },
+    title_field: { en: "Title", mm: "ခေါင်းစဉ်" },
+    amount: { en: "Amount (MMK)", mm: "ပမာဏ (ကျပ်)" },
+    category: { en: "Category", mm: "အမျိုးအစား" },
+    note: { en: "Note", mm: "မှတ်ချက်" },
+    proofImages: { en: "Proof Images", mm: "သက်သေပုံများ" },
+    addImage: { en: "+ Add Image", mm: "+ ပုံ ထည့်မည်" },
+    uploading: { en: "Uploading...", mm: "တင်နေသည်..." },
+    submit: { en: "Submit Expense", mm: "တင်သွင်းမည်" },
+    submitting: { en: "Submitting...", mm: "တင်သွင်းနေသည်..." },
+    submitted: {
+      en: "Expense submitted!",
+      mm: "ကုန်ကျစရိတ် တင်သွင်းပြီးပါပြီ!",
+    },
+    pending: { en: "Pending", mm: "စောင့်ဆိုင်းဆဲ" },
+    approved: { en: "Approved", mm: "အတည်ပြုပြီး" },
+    rejected: { en: "Rejected", mm: "ပယ်ချပြီး" },
+    approve: { en: "Approve", mm: "အတည်ပြုမည်" },
+    reject: { en: "Reject", mm: "ပယ်ချမည်" },
+    reviewNote: {
+      en: "Review Note (optional)",
+      mm: "မှတ်ချက် (ရှိမည်ဆိုလျှင်)",
+    },
+    submittedBy: { en: "Submitted by", mm: "တင်သွင်းသူ" },
+    submittedAt: { en: "Submitted", mm: "တင်သွင်းသည့်ရက်" },
+    reviewedBy: { en: "Reviewed by", mm: "စစ်ဆေးသူ" },
+    noExpenses: {
+      en: "No expenses found.",
+      mm: "ကုန်ကျစရိတ် မှတ်တမ်း မရှိပါ။",
+    },
+    cat_maintenance: { en: "Maintenance", mm: "ပြုပြင်ထိန်းသိမ်းမှု" },
+    cat_utilities: { en: "Utilities", mm: "ပရိဘောဂ / ဝန်ဆောင်မှု" },
+    cat_equipment: { en: "Equipment", mm: "ကိရိယာပစ္စည်းများ" },
+    cat_salary: { en: "Salary", mm: "လစာ" },
+    cat_rent: { en: "Rent", mm: "ငှားရမ်းခ" },
+    cat_other: { en: "Other", mm: "အခြား" },
+    filterAll: { en: "All", mm: "အားလုံး" },
+    allExpenses: { en: "All Expenses", mm: "ကုန်ကျစရိတ်အားလုံး" },
+    pendingReview: { en: "Pending Review", mm: "စစ်ဆေးစောင့်ဆိုင်းဆဲ" },
+    monthlyHistory: { en: "Monthly History", mm: "လစဉ် မှတ်တမ်း" },
+    totalThisMonth: { en: "Total this month", mm: "ဤလ စုစုပေါင်း" },
+    expenses_count: { en: "expenses", mm: "ခုကုန်ကျ" },
+    year: { en: "Year", mm: "နှစ်" },
+    viewExpenses: { en: "View expenses", mm: "ကြည့်ရှုမည်" },
+    monthlyTotal: { en: "Monthly Total", mm: "လစဉ် စုစုပေါင်း" },
   },
   gymPrices: {
     title: { en: "Gym Prices", mm: "ဂျင်မ် စျေးနှုန်းများ" },
@@ -191,7 +273,10 @@ const translations = {
     },
     unread: { en: "Unread", mm: "မဖတ်ရသေးသော" },
     all: { en: "All", mm: "အားလုံး" },
-    markAllRead: { en: "Mark all read", mm: "အားလုံးကို ဖတ်ပြီးသားအဖြစ် မှတ်ရန်" },
+    markAllRead: {
+      en: "Mark all read",
+      mm: "အားလုံးကို ဖတ်ပြီးသားအဖြစ် မှတ်ရန်",
+    },
     markRead: { en: "Mark as read", mm: "ဖတ်ပြီးသားအဖြစ် မှတ်ရန်" },
     noNotifications: {
       en: "No notifications",
@@ -220,8 +305,61 @@ const translations = {
     viewSubscription: { en: "View Subscription", mm: "အသင်းဝင်မှုကြည့်ရန်" },
     markReadDone: { en: "Marked as read", mm: "ဖတ်ပြီးသားအဖြစ် မှတ်ပြီးပါပြီ" },
   },
+  offDays: {
+    title: { en: "Official Off Days", mm: "ရုံးပိတ်ရက်များ" },
+    subtitle: {
+      en: "Add official off days (e.g. Thingyan, Tazaungdaing). All active subscriptions will be extended accordingly.",
+      mm: "ရုံးပိတ်ရက်များ (သင်္ကြန်၊ တန်ဆောင်တိုင်း စသည်) ထည့်ပါ။ အသက်ဝင်နေသည့် မှတ်တမ်းအားလုံး သက်တမ်းတိုးမည်ဖြစ်သည်။",
+    },
+    addOffDay: { en: "Add Off Days", mm: "ပိတ်ရက် ထည့်မည်" },
+    name: { en: "Holiday Name", mm: "ပိတ်ရက် အမည်" },
+    note: { en: "Note (optional)", mm: "မှတ်ချက် (ရှိမည်ဆိုလျှင်)" },
+    daysCount: { en: "Number of Days", mm: "ပိတ်ရက် အရေအတွက်" },
+    affected: {
+      en: "Subscriptions Extended",
+      mm: "သက်တမ်းတိုးထားသော မှတ်တမ်းများ",
+    },
+    createdBy: { en: "Added By", mm: "ထည့်သူ" },
+    noData: {
+      en: "No off days recorded yet.",
+      mm: "ရုံးပိတ်ရက် မှတ်တမ်း မရှိသေးပါ။",
+    },
+    deleteConfirm: {
+      en: "This will reverse the subscription extension for all affected members. Continue?",
+      mm: "ဒါကို ဖျက်လျှင် သက်ဆိုင်သော အဖွဲ့ဝင်များ၏ သက်တမ်းတိုးမှုကို ပြန်ဖျက်မည်။ ဆက်လုပ်မလား?",
+    },
+    days: { en: "days", mm: "ရက်" },
+  },
+  birthdayWish: {
+    title: { en: "Birthday Wish Template", mm: "မွေးနေ့ ဆုမွန်ကောင်း စာသား" },
+    subtitle: {
+      en: "Set a personalized birthday wish message. It will be sent automatically every day to members whose birthday falls on that day.",
+      mm: "မွေးနေ့ ဆုမွန်ကောင်း စာသားကို သတ်မှတ်ပါ။ တစ်နေ့တစ်ခါ မွေးနေ့ကျသောဝင်များထံ အလိုအလျောက် ပေးပို့မည်ဖြစ်သည်။",
+    },
+    currentMessage: {
+      en: "Current Wish Message",
+      mm: "လက်ရှိ ဆုမွန်ကောင်း စာသား",
+    },
+    messagePlaceholder: {
+      en: "Happy Birthday! Wishing you strength, health and joy on your special day! 🎂",
+      mm: "မွေးနေ့မဂ္ဂလာပါ! သင်၏ အထူးနေ့ကို ကျန်းမာချမ်းသာ ပြည့်ဝပါစေ! 🎂",
+    },
+    saveMessage: { en: "Save Message", mm: "စာသား သိမ်းဆည်းမည်" },
+    saving: { en: "Saving...", mm: "သိမ်းနေသည်..." },
+    saved: {
+      en: "Birthday wish message saved!",
+      mm: "မွေးနေ့ ဆုမွန်ကောင်း စာသား သိမ်းပြီးပါပြီ!",
+    },
+    noMessage: {
+      en: "No wish message set yet.",
+      mm: "ဆုမွန်ကောင်း စာသား မရှိသေးပါ။",
+    },
+    history: { en: "Previous Messages", mm: "ယခင် စာသားများ" },
+    noHistory: { en: "No previous messages.", mm: "ယခင် မှတ်တမ်း မရှိပါ။" },
+    updatedBy: { en: "Updated by", mm: "ပြင်ဆင်သူ" },
+    messageLabel: { en: "Wish Message", mm: "ဆုမွန်ကောင်း စာသား" },
+  },
 } as const;
 
 export type Translations = typeof translations;
 export default translations;
-

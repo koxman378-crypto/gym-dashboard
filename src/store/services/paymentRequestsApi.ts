@@ -5,7 +5,15 @@ export interface PaymentRequest {
   customerId: string;
   customerName: string;
   customerAvatar?: string | null;
-  subscriptionId: string | { _id: string; grandTotal: number; paidAmount: number; paymentStatus: string };
+  customerEmail?: string | null;
+  subscriptionId:
+    | string
+    | {
+        _id: string;
+        grandTotal: number;
+        paidAmount: number;
+        paymentStatus: string;
+      };
   amount: number;
   proofImage?: string | null;
   note?: string | null;
@@ -29,12 +37,19 @@ export const paymentRequestsApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getPaymentRequests: builder.query<
       PaymentRequestsResponse,
-      { page?: number; limit?: number; status?: string; customerId?: string; gymId?: string }
+      {
+        page?: number;
+        limit?: number;
+        status?: string;
+        customerId?: string;
+        gymId?: string;
+      }
     >({
       query: (params = {}) => {
         const search = new URLSearchParams();
         if (params.page !== undefined) search.set("page", String(params.page));
-        if (params.limit !== undefined) search.set("limit", String(params.limit));
+        if (params.limit !== undefined)
+          search.set("limit", String(params.limit));
         if (params.status) search.set("status", params.status);
         if (params.customerId) search.set("customerId", params.customerId);
         if (params.gymId) search.set("gymId", params.gymId);

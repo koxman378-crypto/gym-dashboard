@@ -85,6 +85,8 @@ export interface User {
   assignedTrainer?: User | string | null;
   trainerFees?: TrainerFeeItem[];
   gymId?: string | null;
+  birthday?: string | Date | null;
+  gender?: "male" | "female" | "other" | null;
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
   notes?: string | null;
@@ -106,6 +108,8 @@ export interface CreateUserDto {
   emergencyPhone?: string;
   notes?: string;
   gymId?: string;
+  birthday?: string;
+  gender?: "male" | "female" | "other";
   // Body measurements (optional nested object, defaults to null if not provided)
   bodyMeasurements?: BodyMeasurementDto;
   isActive?: boolean;
@@ -125,6 +129,8 @@ export interface UpdateUserDto {
   emergencyContact?: string;
   emergencyPhone?: string;
   notes?: string;
+  birthday?: string;
+  gender?: "male" | "female" | "other";
   password?: string;
 }
 
@@ -164,6 +170,7 @@ export interface GymProfile {
   facebook?: string | null;
   instagram?: string | null;
   tiktok?: string | null;
+  images?: string[];
   multiGyms?: MultiGymItem[];
   isActive?: boolean;
   createdAt?: Date | string;
@@ -192,6 +199,7 @@ export interface UpdateGymProfileDto {
   facebook?: string;
   instagram?: string;
   tiktok?: string;
+  images?: string[];
   multiGyms?: MultiGymItem[];
   isActive?: boolean;
 }

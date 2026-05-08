@@ -191,7 +191,7 @@ export function DataTable<TData>({
 
       <div
         className={cn(
-          "relative overflow-hidden rounded-lg border",
+          "relative overflow-hidden rounded-lg border border-zinc-200",
           tableWrapperClassName,
         )}
       >

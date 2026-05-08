@@ -247,6 +247,25 @@ export interface TrainerSnapshot {
   finalPrice: number;
 }
 
+// ===== SALARY EXPENSES =====
+export interface SalaryExpenseItem {
+  staffId: string;
+  name: string;
+  email: string;
+  avatar?: string | null;
+  amount: number;
+  proofImage?: string | null;
+}
+
+export interface SalaryExpenseItemDto {
+  staffId: string;
+  name: string;
+  email: string;
+  avatar?: string | null;
+  amount: number;
+  proofImage: string;
+}
+
 // ===== SUBSCRIPTION STRUCTURE (matching backend schema) =====
 export interface Subscription {
   _id: string;

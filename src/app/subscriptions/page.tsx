@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { Filter, Plus, Calendar, History, List } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -112,6 +112,35 @@ export default function SubscriptionsPage() {
     searchParams.get("trainerId") ||
     (currentUser?.role === Role.TRAINER ? (currentUser._id ?? "all") : "all");
 
+  // Customer filter (search combobox)
+  const customerIdParam = searchParams.get("customerId") ?? null;
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerComboOpen, setCustomerComboOpen] = useState(false);
+  const customerComboRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (customerComboRef.current && !customerComboRef.current.contains(e.target as Node)) {
+        setCustomerComboOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCustomerFilterChange = (customerId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!customerId) {
+      params.delete("customerId");
+    } else {
+      params.set("customerId", customerId);
+    }
+    const query = params.toString();
+    router.push(query ? `/subscriptions?${query}` : "/subscriptions");
+    setCustomerComboOpen(false);
+    setCustomerSearch("");
+  };
+
   const getServiceUnitPrice = (
     service: OtherServiceItem,
     durationUnit: DurationUnit,
@@ -198,6 +227,7 @@ export default function SubscriptionsPage() {
     page,
     limit,
     trainerId: trainerIdFilter || undefined,
+    customer: customerIdParam || undefined,
     gymId: branchQuery,
   });
   const subscriptions = subscriptionsData?.data ?? [];
@@ -776,7 +806,7 @@ export default function SubscriptionsPage() {
                     const v = e.target.value;
                     setGymFeeExpiryDays(v === "" ? "" : Number(v));
                   }}
-                  className="w-28 border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20"
+                  className="w-28 border border-gray-200 bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-0"
                 />
               </div>
 
@@ -1954,57 +1984,71 @@ export default function SubscriptionsPage() {
               )}
             </div>
 
-            {/* Customer History Selector */}
+            {/* Customer Filter Combobox */}
             <div className="flex items-center gap-3">
               <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-2.5">
-                <History className="h-5 w-5 text-muted-foreground" />
+                <Filter className="h-5 w-5 text-muted-foreground" />
               </div>
               <span className="text-sm font-semibold text-foreground">
-                View History:
+                Customer:
               </span>
-              <Select
-                value=""
-                onValueChange={(customerId) => {
-                  if (customerId) {
-                    router.push(`/subscriptions/customer/${customerId}`);
-                  }
-                }}
-              >
-                <SelectTrigger
-                  className={`w-64 ${lightSelectTriggerClassName}`}
-                >
-                  <SelectValue placeholder="Select a customer" />
-                </SelectTrigger>
-                <SelectContent className={lightSelectContentClassName}>
-                  {isLoadingCustomers ? (
-                    <SelectItem
-                      value="loading"
-                      disabled
-                      className={lightSelectItemClassName}
+              <div className="relative w-64" ref={customerComboRef}>
+                <div className="flex items-center rounded-xl border border-zinc-200 bg-white px-3 py-2 shadow-sm focus-within:border-zinc-400">
+                  <input
+                    className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                    placeholder={customerIdParam ? (customers.find(c => c._id === customerIdParam)?.name ?? "Customer") : "Search customer…"}
+                    value={customerSearch}
+                    onChange={(e) => {
+                      setCustomerSearch(e.target.value);
+                      setCustomerComboOpen(true);
+                    }}
+                    onFocus={() => setCustomerComboOpen(true)}
+                  />
+                  {customerIdParam && (
+                    <button
+                      type="button"
+                      className="ml-2 shrink-0 rounded-full p-0.5 text-zinc-400 hover:text-zinc-700"
+                      onClick={() => handleCustomerFilterChange(null)}
                     >
-                      Loading customers...
-                    </SelectItem>
-                  ) : customers.length === 0 ? (
-                    <SelectItem
-                      value="empty"
-                      disabled
-                      className={lightSelectItemClassName}
-                    >
-                      No customers found
-                    </SelectItem>
-                  ) : (
-                    customers.map((customer) => (
-                      <SelectItem
-                        key={customer._id}
-                        value={customer._id}
-                        className={lightSelectItemClassName}
-                      >
-                        {customer.name} ({customer.email})
-                      </SelectItem>
-                    ))
+                      ✕
+                    </button>
                   )}
-                </SelectContent>
-              </Select>
+                </div>
+                {customerComboOpen && (
+                  <div className="absolute left-0 top-full z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-lg">
+                    {(() => {
+                      const q = customerSearch.trim().toLowerCase();
+                      const filtered = q
+                        ? customers.filter(c =>
+                            c.name.toLowerCase().includes(q) ||
+                            c.email.toLowerCase().includes(q)
+                          ).slice(0, 30)
+                        : customers.slice(0, 30);
+                      if (isLoadingCustomers) {
+                        return <div className="px-4 py-3 text-sm text-muted-foreground">Loading…</div>;
+                      }
+                      if (filtered.length === 0) {
+                        return <div className="px-4 py-3 text-sm text-muted-foreground">No customers found</div>;
+                      }
+                      return filtered.map((c) => (
+                        <button
+                          key={c._id}
+                          type="button"
+                          className={[
+                            "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-zinc-50",
+                            customerIdParam === c._id ? "bg-zinc-100 font-semibold" : "",
+                          ].join(" ")}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => handleCustomerFilterChange(c._id)}
+                        >
+                          <span className="flex-1 truncate font-medium text-foreground">{c.name}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">{c.email}</span>
+                        </button>
+                      ));
+                    })()}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

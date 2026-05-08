@@ -234,33 +234,15 @@ function RequestRow({ request }: { request: PaymentRequest }) {
   const handleConfirm = async (note: string) => {
     if (!reviewAction) return;
     if (reviewAction === "approve") {
-      console.log("[PaymentReview] approve clicked", {
-        requestId: request._id,
-        customerName: request.customerName,
-        amount: request.amount,
-        subscriptionId:
-          typeof request.subscriptionId === "object"
-            ? request.subscriptionId._id
-            : request.subscriptionId,
-        note,
-      });
-      const result = await approve({
+      await approve({
         id: request._id,
         reviewNote: note || undefined,
       }).unwrap();
-      console.log("[PaymentReview] approve done", result);
     } else {
-      console.log("[PaymentReview] reject clicked", {
-        requestId: request._id,
-        customerName: request.customerName,
-        amount: request.amount,
-        note,
-      });
-      const result = await reject({
+      await reject({
         id: request._id,
         reviewNote: note || undefined,
       }).unwrap();
-      console.log("[PaymentReview] reject done", result);
     }
     setReviewAction(null);
   };
@@ -294,6 +276,11 @@ function RequestRow({ request }: { request: PaymentRequest }) {
                 <p className="font-semibold text-foreground">
                   {request.customerName}
                 </p>
+                {request.customerEmail && (
+                  <p className="text-xs text-muted-foreground">
+                    {request.customerEmail}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   {formatDate(request.createdAt)}
                 </p>

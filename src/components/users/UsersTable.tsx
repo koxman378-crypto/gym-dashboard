@@ -20,7 +20,7 @@ import {
   getRoleTextClass,
 } from "./users.constants";
 import type { MultiGymItem } from "@/src/types/type";
-
+import { FaUserCircle } from "react-icons/fa";
 interface Meta {
   page: number;
   limit: number;
@@ -121,9 +121,7 @@ export function UsersTable({
                         className="h-9 w-9 shrink-0 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-muted-foreground">
-                        <UserRound className="h-4 w-4" />
-                      </div>
+                      <FaUserCircle className="h-10 text-zinc-400 w-10" />
                     )}
                     <div className="min-w-0">
                       <p className="truncate font-medium leading-none text-foreground">

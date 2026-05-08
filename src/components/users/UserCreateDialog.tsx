@@ -51,7 +51,10 @@ const buildDefaultForm = (defaultGymId?: string | null): CreateUserDto => ({
   age: undefined,
   role: Role.CUSTOMER,
   gymId: defaultGymId ?? undefined,
+  birthday: undefined,
+  gender: undefined,
   bodyMeasurements: undefined,
+  salaryAmount: undefined,
 });
 
 const isPhoneValid = (phone: string) => /^\d{9,11}$/.test(phone.trim());
@@ -336,6 +339,70 @@ export function UserCreateDialog({
                 className={lightInputClassName}
               />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="create-birthday" className="text-foreground">
+                  Birthday
+                </Label>
+                <Input
+                  id="create-birthday"
+                  type="date"
+                  value={formData.birthday ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      birthday: e.target.value || undefined,
+                    })
+                  }
+                  className={lightInputClassName}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-gender" className="text-foreground">
+                  Gender
+                </Label>
+                <Select
+                  value={formData.gender ?? "none"}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      gender:
+                        value === "none"
+                          ? undefined
+                          : (value as "male" | "female" | "other"),
+                    })
+                  }
+                >
+                  <SelectTrigger
+                    id="create-gender"
+                    className={lightSelectTriggerClassName}
+                  >
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent className={lightSelectContentClassName}>
+                    <SelectItem value="none" className={lightSelectItemClassName}>
+                      Select gender
+                    </SelectItem>
+                    <SelectItem value="male" className={lightSelectItemClassName}>
+                      Male
+                    </SelectItem>
+                    <SelectItem
+                      value="female"
+                      className={lightSelectItemClassName}
+                    >
+                      Female
+                    </SelectItem>
+                    <SelectItem
+                      value="other"
+                      className={lightSelectItemClassName}
+                    >
+                      Other
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="create-role" className="text-foreground">
                 Role <span className="text-red-500">*</span>
@@ -343,7 +410,14 @@ export function UserCreateDialog({
               <Select
                 value={formData.role}
                 onValueChange={(value: Role) =>
-                  setFormData({ ...formData, role: value })
+                  setFormData({
+                    ...formData,
+                    role: value,
+                    salaryAmount:
+                      value === Role.CUSTOMER
+                        ? undefined
+                        : formData.salaryAmount,
+                  })
                 }
               >
                 <SelectTrigger className={lightSelectTriggerClassName}>
@@ -411,6 +485,36 @@ export function UserCreateDialog({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {/* Body Measurements */}
+            {(formData.role === Role.TRAINER ||
+              formData.role === Role.CASHIER) && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="create-salary"
+                  className="text-foreground"
+                >
+                  Salary Amount (MMK)
+                </Label>
+                <Input
+                  id="create-salary"
+                  type="number"
+                  min={0}
+                  value={formData.salaryAmount ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      salaryAmount:
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value),
+                    })
+                  }
+                  placeholder="e.g. 150000"
+                  className={lightInputClassName}
+                />
               </div>
             )}
 

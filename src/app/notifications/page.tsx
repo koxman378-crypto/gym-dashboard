@@ -13,6 +13,7 @@ import {
   Calendar,
   Trash2,
   UserRound,
+  ReceiptText,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
@@ -26,6 +27,12 @@ import {
   GymNotification,
   NotificationType,
 } from "@/src/store/services/notificationsApi";
+import {
+  useGetExpensesQuery,
+  useApproveExpenseMutation,
+  useRejectExpenseMutation,
+  type Expense,
+} from "@/src/store/services/expensesApi";
 import { cn } from "@/src/lib/utils";
 import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
 import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
@@ -343,12 +350,133 @@ function NotificationRow({
   );
 }
 
+const EXPENSE_CATEGORY_COLORS: Record<string, string> = {
+  maintenance: "bg-blue-100 text-blue-700",
+  utilities: "bg-yellow-100 text-yellow-700",
+  equipment: "bg-purple-100 text-purple-700",
+  salary: "bg-green-100 text-green-700",
+  rent: "bg-orange-100 text-orange-700",
+  other: "bg-gray-100 text-gray-600",
+};
+
+function PendingExpenseRow({
+  expense,
+  onApprove,
+  onReject,
+}: {
+  expense: Expense;
+  onApprove: (id: string) => void;
+  onReject: (id: string, note: string) => void;
+}) {
+  const [showReject, setShowReject] = useState(false);
+  const [rejectNote, setRejectNote] = useState("");
+
+  const submittedBy =
+    typeof expense.submittedBy === "string"
+      ? expense.submittedBy
+      : (expense.submittedBy?.name ?? expense.submittedByName ?? "Unknown");
+
+  const categoryColor =
+    EXPENSE_CATEGORY_COLORS[expense.category] ?? EXPENSE_CATEGORY_COLORS.other;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-100 bg-[#FCFCFC] shadow-sm transition-all hover:shadow">
+      <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-400">
+            <ReceiptText className="h-5 w-5" />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-800 truncate">
+              {expense.title}
+            </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
+                  categoryColor,
+                )}
+              >
+                {expense.category}
+              </span>
+              <span className="text-[11px] text-gray-400">
+                by {submittedBy}
+              </span>
+            </div>
+            <p className="mt-2 text-xl font-black text-slate-900">
+              {Number(expense.amount).toLocaleString()} MMK
+            </p>
+            {expense.note ? (
+              <p className="mt-1 text-xs text-gray-400 line-clamp-2">
+                {expense.note}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        {showReject ? (
+          <div className="space-y-2">
+            <input
+              type="text"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400"
+              placeholder="Reject reason (optional)"
+              value={rejectNote}
+              onChange={(e) => setRejectNote(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="flex-1 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                onClick={() => {
+                  onReject(expense._id, rejectNote);
+                  setShowReject(false);
+                  setRejectNote("");
+                }}
+              >
+                Confirm Reject
+              </button>
+              <button
+                type="button"
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-50"
+                onClick={() => {
+                  setShowReject(false);
+                  setRejectNote("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="flex-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+              onClick={() => onApprove(expense._id)}
+            >
+              ✓ Approve
+            </button>
+            <button
+              type="button"
+              className="flex-1 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+              onClick={() => setShowReject(true)}
+            >
+              ✕ Reject
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const PAGE_SIZE = 20;
 
 export default function NotificationsPage() {
   const { t } = useLanguage();
   const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<"payment" | "expiry">("payment");
+  const [activeTab, setActiveTab] = useState<"payment" | "expiry" | "expenses">("payment");
   const [deleteTarget, setDeleteTarget] = useState<NotificationListItem | null>(
     null,
   );
@@ -371,6 +499,25 @@ export default function NotificationsPage() {
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllReadMutation();
   const [deleteNotification, { isLoading: isDeleting }] =
     useDeleteNotificationMutation();
+
+  const [approveExpense] = useApproveExpenseMutation();
+  const [rejectExpense] = useRejectExpenseMutation();
+
+  const { data: pendingExpensesData, isLoading: expensesLoading } =
+    useGetExpensesQuery(
+      { gymId: branchQuery, status: "pending", page: 1, limit: 100 },
+      { skip: !isOwner },
+    );
+
+  const pendingExpenses: Expense[] = pendingExpensesData?.data ?? [];
+
+  const handleApproveExpense = async (id: string) => {
+    await approveExpense({ id });
+  };
+
+  const handleRejectExpense = async (id: string, reviewNote: string) => {
+    await rejectExpense({ id, reviewNote: reviewNote || undefined });
+  };
 
   const notifications: GymNotification[] = data?.data ?? [];
   const listItems = buildNotificationListItems(notifications);
@@ -492,10 +639,65 @@ export default function NotificationsPage() {
             Subscription Ends{" "}
             {typeof expiryCount === "number" ? `(${expiryCount})` : ""}
           </button>
+          {isOwner && (
+            <button
+              type="button"
+              className={cn(
+                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+                activeTab === "expenses"
+                  ? "border-gray-300 bg-gray-100 text-gray-800"
+                  : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+              )}
+              onClick={() => {
+                setActiveTab("expenses");
+                setPage(1);
+              }}
+            >
+              Expense Requests{" "}
+              {activeTab === "expenses" && pendingExpenses.length > 0
+                ? `(${pendingExpenses.length})`
+                : pendingExpenses.length > 0
+                  ? `(${pendingExpenses.length})`
+                  : ""}
+            </button>
+          )}
         </div>
       </div>
 
-      {isLoading ? (
+      {activeTab === "expenses" ? (
+        expensesLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-[#FCFCFC] px-4 py-4 shadow-sm">
+                <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-gray-200" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+                  <div className="h-2.5 w-1/2 animate-pulse rounded bg-gray-100" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : pendingExpenses.length === 0 ? (
+          <div className="rounded-xl border border-gray-100 bg-[#FCFCFC] px-6 py-14 text-center shadow-sm">
+            <ReceiptText className="mx-auto mb-3 h-8 w-8 text-gray-300" />
+            <p className="text-sm font-medium text-gray-400">
+              No pending expense requests right now.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {pendingExpenses.map((expense, index) => (
+              <AnimatedNotificationItem key={expense._id} index={index}>
+                <PendingExpenseRow
+                  expense={expense}
+                  onApprove={handleApproveExpense}
+                  onReject={handleRejectExpense}
+                />
+              </AnimatedNotificationItem>
+            ))}
+          </div>
+        )
+      ) : isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-[#FCFCFC] px-4 py-4 shadow-sm">

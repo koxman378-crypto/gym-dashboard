@@ -8,6 +8,8 @@ export interface UsersEditFormData {
   age: number | "";
   password: string;
   assignedTrainer: string;
+  birthday?: string;
+  gender?: "male" | "female" | "other" | "";
   bodyMeasurements?: {
     height?: number;
     weight?: number;
@@ -26,6 +28,8 @@ const defaultEditForm: UsersEditFormData = {
   age: "",
   password: "",
   assignedTrainer: "none",
+  birthday: undefined,
+  gender: undefined,
   bodyMeasurements: undefined,
 };
 
@@ -99,6 +103,12 @@ const usersSlice = createSlice({
         age: user.age ?? "",
         password: "",
         assignedTrainer: assignedTrainerId,
+        birthday: user.birthday
+          ? typeof user.birthday === "string"
+            ? user.birthday.split("T")[0]
+            : new Date(user.birthday).toISOString().split("T")[0]
+          : undefined,
+        gender: (user.gender as "male" | "female" | "other" | undefined) ?? undefined,
         bodyMeasurements: user.bodyMeasurements
           ? {
               height: user.bodyMeasurements.height ?? undefined,

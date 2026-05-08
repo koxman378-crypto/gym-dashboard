@@ -4,11 +4,49 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Attendance, AttendanceStatus } from "@/src/types/attendance";
 import { Badge } from "@/src/components/ui/badge";
 import { Clock, Calendar } from "lucide-react";
+import { FaUserCircle } from "react-icons/fa";
+import type { User } from "@/src/types/type";
 
 export const createAttendanceColumns = (): ColumnDef<Attendance>[] => [
   {
+    accessorKey: "user",
+    header: "User",
+    cell: ({ row }) => {
+      const user = row.original.user;
+      if (typeof user === "string" || !user) {
+        return (
+          <span className="text-muted-foreground text-sm">
+            {typeof user === "string" ? user : "-"}
+          </span>
+        );
+      }
+      const u = user as User;
+      return (
+        <div className="flex items-center gap-3">
+          {u.avatar ? (
+            <img
+              src={u.avatar}
+              alt={u.name}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <FaUserCircle className="h-9 w-9 text-zinc-400 shrink-0" />
+          )}
+          <div className="min-w-0">
+            <p className="truncate font-medium leading-none text-foreground">
+              {u.name}
+            </p>
+            <p className="mt-0.5 truncate text-sm text-muted-foreground">
+              {u.email}
+            </p>
+          </div>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "date",
-    header: ({ column }) => {
+    header: () => {
       return (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4" />
@@ -17,6 +55,10 @@ export const createAttendanceColumns = (): ColumnDef<Attendance>[] => [
       );
     },
     cell: ({ row }) => {
+      if (!row.original.date) {
+        return <span className="text-muted-foreground text-sm">-</span>;
+      }
+
       const date = new Date(row.original.date);
       return (
         <div className="font-medium">
@@ -34,7 +76,12 @@ export const createAttendanceColumns = (): ColumnDef<Attendance>[] => [
     accessorKey: "checkInTime",
     header: "Check In",
     cell: ({ row }) => {
-      const time = new Date(row.original.checkInTime);
+      const checkInTime = row.original.checkInTime;
+      if (!checkInTime) {
+        return <span className="text-muted-foreground text-sm">-</span>;
+      }
+
+      const time = new Date(checkInTime);
       return (
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-green-600" />
@@ -75,13 +122,13 @@ export const createAttendanceColumns = (): ColumnDef<Attendance>[] => [
     header: "Duration",
     cell: ({ row }) => {
       const duration = row.original.duration;
-      const hours = Math.floor(duration / 60);
-      const minutes = duration % 60;
-      
-      if (duration === 0) {
+      if (!duration || duration === 0) {
         return <span className="text-muted-foreground text-sm">-</span>;
       }
-      
+
+      const hours = Math.floor(duration / 60);
+      const minutes = duration % 60;
+
       return (
         <div className="font-medium">
           {hours > 0 && <span>{hours}h </span>}
@@ -95,7 +142,12 @@ export const createAttendanceColumns = (): ColumnDef<Attendance>[] => [
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.status;
-      
+      if (!status) {
+        return (
+          <Badge className="bg-gray-100 text-gray-700">No attendance</Badge>
+        );
+      }
+
       const statusConfig = {
         [AttendanceStatus.ACTIVE]: {
           label: "Active",
@@ -124,12 +176,11 @@ export const createAttendanceColumns = (): ColumnDef<Attendance>[] => [
     header: "Auto Close",
     cell: ({ row }) => {
       const autoCloseAfter = row.original.autoCloseAfter;
+      if (!autoCloseAfter) {
+        return <span className="text-muted-foreground text-sm">-</span>;
+      }
       const hours = autoCloseAfter / 60;
-      return (
-        <div className="text-sm text-muted-foreground">
-          {hours}h
-        </div>
-      );
+      return <div className="text-sm text-muted-foreground">{hours}h</div>;
     },
   },
 ];

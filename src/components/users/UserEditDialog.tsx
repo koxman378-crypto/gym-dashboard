@@ -37,6 +37,8 @@ export interface EditFormData {
   age: number | "" | undefined;
   password: string;
   assignedTrainer: string;
+  birthday?: string;
+  gender?: "male" | "female" | "other" | "";
   bodyMeasurements?: {
     height?: number;
     weight?: number;
@@ -152,6 +154,76 @@ export function UserEditDialog({
                   placeholder="0000"
                   className={lightInputClassName}
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="edit-birthday" className="text-foreground">
+                  Birthday
+                </Label>
+                <Input
+                  id="edit-birthday"
+                  type="date"
+                  value={formData.birthday ?? ""}
+                  onChange={(e) =>
+                    onFormChange({
+                      ...formData,
+                      birthday: e.target.value || undefined,
+                    })
+                  }
+                  className={lightInputClassName}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-gender" className="text-foreground">
+                  Gender
+                </Label>
+                <Select
+                  value={formData.gender ?? "none"}
+                  onValueChange={(value) =>
+                    onFormChange({
+                      ...formData,
+                      gender:
+                        value === "none"
+                          ? undefined
+                          : (value as "male" | "female" | "other"),
+                    })
+                  }
+                >
+                  <SelectTrigger
+                    id="edit-gender"
+                    className={lightSelectTriggerClassName}
+                  >
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent className={lightSelectContentClassName}>
+                    <SelectItem
+                      value="none"
+                      className={lightSelectItemClassName}
+                    >
+                      Select gender
+                    </SelectItem>
+                    <SelectItem
+                      value="male"
+                      className={lightSelectItemClassName}
+                    >
+                      Male
+                    </SelectItem>
+                    <SelectItem
+                      value="female"
+                      className={lightSelectItemClassName}
+                    >
+                      Female
+                    </SelectItem>
+                    <SelectItem
+                      value="other"
+                      className={lightSelectItemClassName}
+                    >
+                      Other
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

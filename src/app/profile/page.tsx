@@ -16,6 +16,7 @@ import { GymProfileFormFields } from "@/src/components/profile/GymProfileFormFie
 import { MultiGymCrudBox } from "@/src/components/profile/MultiGymCrudBox";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
+import { ImagePlus, Trash2 } from "lucide-react";
 
 type GymProfileFormState = {
   name: string;
@@ -137,13 +138,17 @@ export default function GymProfilePage() {
 
   const [state, dispatch] = React.useReducer(gymProfileReducer, emptyFormState);
   const [multiGyms, setMultiGyms] = React.useState<MultiGymItem[]>([]);
+  const [galleryImages, setGalleryImages] = React.useState<string[]>([]);
+  const [uploadingGallery, setUploadingGallery] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const galleryInputRef = React.useRef<HTMLInputElement>(null);
 
   const isFormLocked = !state.isEditing || isUpdating;
 
   React.useEffect(() => {
     dispatch({ type: "hydrate", payload: profileData });
     setMultiGyms(profileData?.multiGyms ?? []);
+    setGalleryImages(profileData?.images ?? []);
   }, [profileData]);
 
   const handleLogout = async () => {
@@ -303,6 +308,7 @@ export default function GymProfilePage() {
         latitude: parsedLatitude,
         longitude: parsedLongitude,
         isActive: state.isActive,
+        images: galleryImages,
         multiGyms: multiGyms
           .map((branch) => ({
             ...(branch._id ? { _id: branch._id } : {}),
@@ -392,6 +398,46 @@ export default function GymProfilePage() {
   const handleStartEditing = () => {
     dispatch({ type: "set_error", value: null });
     dispatch({ type: "set_success", value: null });
+    dispatch({ type: "set_editing", value: true });
+  };
+
+  const handleGalleryUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      dispatch({ type: "set_error", value: "Please select an image file" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      dispatch({ type: "set_error", value: "Image size must be less than 5MB" });
+      return;
+    }
+    setUploadingGallery(true);
+    dispatch({ type: "set_error", value: null });
+    try {
+      const response = await generatePresignedUrl({
+        fileName: file.name,
+        contentType: file.type,
+      }).unwrap();
+      const uploadResponse = await fetch(response.uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!uploadResponse.ok) throw new Error(`S3 upload failed: ${uploadResponse.status}`);
+      setGalleryImages((prev) => [...prev, response.publicUrl]);
+      dispatch({ type: "set_editing", value: true });
+    } catch (error: any) {
+      dispatch({
+        type: "set_error",
+        value: error?.message ?? "Failed to upload gallery image.",
+      });
+    } finally {
+      setUploadingGallery(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
     dispatch({ type: "set_editing", value: true });
   };
 
@@ -510,12 +556,8 @@ export default function GymProfilePage() {
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-foreground">Branches</h3>
-
-            <span className="text-xs text-gray-500">
-              Manage your gym branches
-            </span>
+            <span className="text-xs text-gray-500">Manage your gym branches</span>
           </div>
-
           <MultiGymCrudBox
             branches={multiGyms}
             disabled={isFormLocked}
@@ -524,6 +566,80 @@ export default function GymProfilePage() {
               dispatch({ type: "set_editing", value: true });
             }}
           />
+        </div>
+
+        {/* Gallery Images */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Gallery</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Photos displayed on the gym profile — add as many as you like.
+              </p>
+            </div>
+            <div>
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleGalleryUpload(file);
+                }}
+              />
+              <Button
+                type="button"
+                disabled={uploadingGallery || !state.isEditing}
+                onClick={() => galleryInputRef.current?.click()}
+                className="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+              >
+                <ImagePlus className="h-4 w-4" />
+                {uploadingGallery ? "Uploading..." : "Add Image"}
+              </Button>
+            </div>
+          </div>
+
+          {galleryImages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-12 text-center">
+              <ImagePlus className="h-10 w-10 text-gray-300 mb-3" />
+              <p className="text-sm text-gray-400">No gallery images yet.</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Click &quot;Add Image&quot; while in edit mode to upload photos.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              {galleryImages.map((url, index) => (
+                <div key={index} className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200">
+                  <img
+                    src={url}
+                    alt={`Gallery ${index + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                  {state.isEditing && (
+                    <button
+                      onClick={() => handleRemoveGalleryImage(index)}
+                      className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {/* Add more button inline */}
+              {state.isEditing && (
+                <button
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={uploadingGallery}
+                  className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-gray-300 hover:text-gray-500 transition-colors disabled:opacity-50"
+                >
+                  <ImagePlus className="h-6 w-6" />
+                  <span className="text-xs">Add more</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

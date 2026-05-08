@@ -176,6 +176,10 @@ export const api = createApi({
     "ExpiryPreset",
     "Notification",
     "PaymentRequest",
+    "OffDay",
+    "BirthdayWish",
+    "BirthdayUser",
+    "Expense",
   ],
   endpoints: () => ({}),
 });

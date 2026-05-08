@@ -4,9 +4,11 @@ export enum AttendanceStatus {
   AUTO_CLOSED = "auto_closed",
 }
 
+import type { User } from "./type";
+
 export interface Attendance {
   _id: string;
-  user: string;
+  user: string | User; // string for normal, User for global (populated)
   checkInTime: string;
   checkOutTime?: string;
   duration: number; // in minutes
