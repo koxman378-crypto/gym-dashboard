@@ -192,6 +192,7 @@ const subscriptionsSlice = createSlice({
           | "none",
         trainerPromotionValue: (sub.trainer as any)?.promotionValue ?? "",
         notes: sub.notes || null,
+        proofImage: sub.proofImage ?? null,
       };
       state.selectedGymFeeId =
         sub.gymFee && typeof sub.gymFee === "object"
