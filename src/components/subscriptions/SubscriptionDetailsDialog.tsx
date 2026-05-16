@@ -454,7 +454,7 @@ export const SubscriptionDetailsDialog = ({
           </div>
 
           {/* Additional Information */}
-          {(subscription.notes || createdBy) && (
+          {(subscription.notes || subscription.proofImage || createdBy) && (
             <div className="space-y-2">
               <h3 className="font-semibold flex items-center gap-2">
                 <Activity className="h-4 w-4" />
@@ -477,6 +477,21 @@ export const SubscriptionDetailsDialog = ({
                     <p className="text-sm mt-1 whitespace-pre-wrap">
                       {subscription.notes}
                     </p>
+                  </div>
+                )}
+                {subscription.proofImage && (
+                  <div className="pt-2">
+                    <span className={detailMutedTextClassName}>
+                      Payment Proof:
+                    </span>
+                    <div className="mt-2">
+                      <img
+                        src={subscription.proofImage}
+                        alt="Payment proof"
+                        className="max-w-full h-auto rounded-lg border border-zinc-200"
+                        style={{ maxHeight: "300px" }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>

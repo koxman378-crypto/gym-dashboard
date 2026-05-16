@@ -26,6 +26,7 @@ export interface SubscriptionFormData {
   trainerPromotionType: Exclude<PromotionType, null> | "none";
   trainerPromotionValue: number | "";
   notes: string | null;
+  proofImage: string | null;
 }
 
 export interface SubscriptionsUiState {
@@ -58,6 +59,7 @@ const defaultFormData: SubscriptionFormData = {
   trainerPromotionType: "none",
   trainerPromotionValue: "",
   notes: null,
+  proofImage: null,
 };
 
 const initialState: SubscriptionsUiState = {
@@ -182,12 +184,12 @@ const subscriptionsSlice = createSlice({
         trainerId: resolveTrainerId(sub.trainer),
         trainerFeeRowId: resolveTrainerFeeId(sub.trainer),
         trainerDuration: (sub.trainer as any)?.duration ?? 1,
-        trainerDurationUnit:
-          (((sub.trainer as any)?.durationUnit as DurationUnit) ??
-            "months") as DurationUnit,
-        trainerPromotionType:
-          ((((sub.trainer as any)?.promotionType as PromotionType) ??
-            "none") as Exclude<PromotionType, null> | "none"),
+        trainerDurationUnit: (((sub.trainer as any)
+          ?.durationUnit as DurationUnit) ?? "months") as DurationUnit,
+        trainerPromotionType: (((sub.trainer as any)
+          ?.promotionType as PromotionType) ?? "none") as
+          | Exclude<PromotionType, null>
+          | "none",
         trainerPromotionValue: (sub.trainer as any)?.promotionValue ?? "",
         notes: sub.notes || null,
       };

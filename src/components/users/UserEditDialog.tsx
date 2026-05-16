@@ -1,5 +1,7 @@
 "use client";
 
+import { CalendarDays } from "lucide-react";
+
 import { Role, type User } from "@/src/types/type";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -39,6 +41,8 @@ export interface EditFormData {
   assignedTrainer: string;
   birthday?: string;
   gender?: "male" | "female" | "other" | "";
+  salaryAmount?: number | "";
+  trainerFee?: number | "";
   bodyMeasurements?: {
     height?: number;
     weight?: number;
@@ -162,18 +166,21 @@ export function UserEditDialog({
                 <Label htmlFor="edit-birthday" className="text-foreground">
                   Birthday
                 </Label>
-                <Input
-                  id="edit-birthday"
-                  type="date"
-                  value={formData.birthday ?? ""}
-                  onChange={(e) =>
-                    onFormChange({
-                      ...formData,
-                      birthday: e.target.value || undefined,
-                    })
-                  }
-                  className={lightInputClassName}
-                />
+                <div className="relative">
+                  <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="edit-birthday"
+                    type="date"
+                    value={formData.birthday ?? ""}
+                    onChange={(e) =>
+                      onFormChange({
+                        ...formData,
+                        birthday: e.target.value || undefined,
+                      })
+                    }
+                    className={`pl-10 ${lightInputClassName}`}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-gender" className="text-foreground">
@@ -248,6 +255,53 @@ export function UserEditDialog({
               </div>
             )}
 
+            {(selectedUser.role === Role.TRAINER ||
+              selectedUser.role === Role.CASHIER) && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-salary" className="text-foreground">
+                  Salary Amount (MMK)
+                </Label>
+                <Input
+                  id="edit-salary"
+                  type="number"
+                  min={0}
+                  value={formData.salaryAmount ?? ""}
+                  onChange={(e) =>
+                    onFormChange({
+                      ...formData,
+                      salaryAmount:
+                        e.target.value === "" ? "" : Number(e.target.value),
+                    })
+                  }
+                  placeholder="e.g. 150000"
+                  className={lightInputClassName}
+                />
+              </div>
+            )}
+
+            {selectedUser.role === Role.TRAINER && (
+              <div className="space-y-2">
+                <Label htmlFor="edit-trainer-fee" className="text-foreground">
+                  Trainer Fee (MMK)
+                </Label>
+                <Input
+                  id="edit-trainer-fee"
+                  type="number"
+                  min={0}
+                  value={formData.trainerFee ?? ""}
+                  onChange={(e) =>
+                    onFormChange({
+                      ...formData,
+                      trainerFee:
+                        e.target.value === "" ? "" : Number(e.target.value),
+                    })
+                  }
+                  placeholder="e.g. 30000"
+                  className={lightInputClassName}
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label className="text-foreground">Role</Label>
               <Input
@@ -307,7 +361,7 @@ export function UserEditDialog({
                   Body Measurements (Optional)
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Update the customer's body measurements
+                  Update the customer&apos;s body measurements
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   {MEASUREMENT_FIELDS.map(({ id, label, placeholder }) => (

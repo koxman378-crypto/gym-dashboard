@@ -14,6 +14,12 @@ import {
   Trash2,
   UserRound,
   ReceiptText,
+  Wrench,
+  Zap,
+  Dumbbell,
+  Banknote,
+  Home,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
@@ -47,10 +53,22 @@ import {
 
 type NotificationListItem = {
   key: string;
-  primary: GymNotification;
+  subscriptionId: string;
+  customerId: string;
+  customerName: string;
+  customerAvatar?: string | null;
+  expiryItems: Array<{
+    notification: GymNotification;
+    type: NotificationType;
+    targetName: string | null;
+    daysLeft: number;
+  }>;
   payment?: GymNotification;
   relatedIds: string[];
   isUnread: boolean;
+  offDayName?: string | null;
+  offDayDaysAdded?: number | null;
+  offDayAppliedAt?: string | null;
 };
 
 function AnimatedNotificationItem({
@@ -135,62 +153,170 @@ function getDaysSummary(daysLeft: number, t: (k: string) => string): string {
   return `${daysLeft} ${t("notifications.daysLeft")}`;
 }
 
+function expandExpiryItems(notification: GymNotification): Array<{
+  notification: GymNotification;
+  type: NotificationType;
+  targetName: string | null;
+  daysLeft: number;
+}> {
+  if (notification.type !== "subscription_end") {
+    return [
+      {
+        notification,
+        type: notification.type,
+        targetName: notification.targetName,
+        daysLeft: notification.daysLeft,
+      },
+    ];
+  }
+
+  const hasAggregatedSnapshot =
+    notification.subscriptionDaysLeft !== undefined ||
+    notification.gymFeeDaysLeft !== undefined ||
+    notification.trainerDaysLeft !== undefined ||
+    (notification.serviceDaysLeft?.length ?? 0) > 0;
+
+  if (!hasAggregatedSnapshot) {
+    return [
+      {
+        notification,
+        type: notification.type,
+        targetName: notification.targetName,
+        daysLeft: notification.daysLeft,
+      },
+    ];
+  }
+
+  const items: Array<{
+    notification: GymNotification;
+    type: NotificationType;
+    targetName: string | null;
+    daysLeft: number;
+  }> = [];
+
+  if (typeof notification.subscriptionDaysLeft === "number") {
+    items.push({
+      notification,
+      type: "subscription_end",
+      targetName: "Subscription",
+      daysLeft: notification.subscriptionDaysLeft,
+    });
+  }
+
+  if (typeof notification.gymFeeDaysLeft === "number") {
+    items.push({
+      notification,
+      type: "gym_fee_end",
+      targetName: "Gym Fee",
+      daysLeft: notification.gymFeeDaysLeft,
+    });
+  }
+
+  if (typeof notification.trainerDaysLeft === "number") {
+    items.push({
+      notification,
+      type: "trainer_end",
+      targetName: "Trainer",
+      daysLeft: notification.trainerDaysLeft,
+    });
+  }
+
+  for (const service of notification.serviceDaysLeft ?? []) {
+    items.push({
+      notification,
+      type: "service_end",
+      targetName: service.name,
+      daysLeft: service.daysLeft,
+    });
+  }
+
+  if (items.length === 0) {
+    items.push({
+      notification,
+      type: notification.type,
+      targetName: notification.targetName,
+      daysLeft: notification.daysLeft,
+    });
+  }
+
+  return items;
+}
+
 function buildNotificationListItems(
   notifications: GymNotification[],
 ): NotificationListItem[] {
-  const paymentBySubscription = new Map<string, GymNotification>();
-  const hasNonPaymentBySubscription = new Map<string, boolean>();
+  // Group notifications by subscription
+  const bySubscription = new Map<
+    string,
+    {
+      expiry: GymNotification[];
+      payment?: GymNotification;
+    }
+  >();
 
   for (const notification of notifications) {
-    if (notification.type === "payment_overdue") {
-      paymentBySubscription.set(notification.subscriptionId, notification);
-      continue;
+    const subId = notification.subscriptionId;
+    if (!bySubscription.has(subId)) {
+      bySubscription.set(subId, { expiry: [] });
     }
+    const group = bySubscription.get(subId)!;
 
-    hasNonPaymentBySubscription.set(notification.subscriptionId, true);
+    if (notification.type === "payment_overdue") {
+      group.payment = notification;
+    } else {
+      group.expiry.push(notification);
+    }
   }
 
+  // Build list items
   const items: NotificationListItem[] = [];
-  const seenKeys = new Set<string>();
 
-  for (const notification of notifications) {
-    if (notification.type === "payment_overdue") {
-      if (hasNonPaymentBySubscription.get(notification.subscriptionId)) {
-        continue;
-      }
-
-      const paymentOnlyKey = `payment:${notification.subscriptionId}`;
-      if (seenKeys.has(paymentOnlyKey)) {
-        continue;
-      }
-
-      seenKeys.add(paymentOnlyKey);
+  for (const [subId, group] of bySubscription) {
+    // If payment-only (no expiry items), create separate item
+    if (group.expiry.length === 0 && group.payment) {
       items.push({
-        key: paymentOnlyKey,
-        primary: notification,
-        relatedIds: [notification._id],
-        isUnread: !notification.isRead,
+        key: `payment:${subId}`,
+        subscriptionId: subId,
+        customerId: group.payment.customerId,
+        customerName: group.payment.customerName,
+        customerAvatar: group.payment.customerAvatar,
+        expiryItems: [],
+        payment: group.payment,
+        relatedIds: [group.payment._id],
+        isUnread: !group.payment.isRead,
       });
       continue;
     }
 
-    const payment = paymentBySubscription.get(notification.subscriptionId);
-    const key = notification._id;
+    // If expiry items exist, group them all together
+    if (group.expiry.length > 0) {
+      const first = group.expiry[0];
+      const expiryItems = group.expiry.flatMap((n) => expandExpiryItems(n));
 
-    if (seenKeys.has(key)) {
-      continue;
+      const allIds = [
+        ...group.expiry.map((n) => n._id),
+        ...(group.payment ? [group.payment._id] : []),
+      ];
+
+      const hasUnread =
+        group.expiry.some((n) => !n.isRead) ||
+        Boolean(group.payment && !group.payment.isRead);
+
+      items.push({
+        key: `expiry:${subId}`,
+        subscriptionId: subId,
+        customerId: first.customerId,
+        customerName: first.customerName,
+        customerAvatar: first.customerAvatar,
+        expiryItems,
+        payment: group.payment,
+        relatedIds: allIds,
+        isUnread: hasUnread,
+        offDayName: first.offDayName ?? null,
+        offDayDaysAdded: first.offDayDaysAdded ?? null,
+        offDayAppliedAt: first.offDayAppliedAt ?? null,
+      });
     }
-
-    seenKeys.add(key);
-    items.push({
-      key,
-      primary: notification,
-      payment,
-      relatedIds: payment
-        ? [notification._id, payment._id]
-        : [notification._id],
-      isUnread: !notification.isRead || Boolean(payment && !payment.isRead),
-    });
   }
 
   return items;
@@ -244,81 +370,128 @@ function NotificationRow({
   onDelete: (item: NotificationListItem) => void;
   t: (k: string) => string;
 }) {
-  const { primary, payment, isUnread, relatedIds } = item;
-  const isPaymentOverdue = primary.type === "payment_overdue";
-  const showPaymentStatus = Boolean(payment && payment._id !== primary._id);
-  const paymentDaysLeft = payment?.daysLeft ?? -1;
-  const remainingAmount = payment?.remainingAmount ?? primary.remainingAmount;
+  const {
+    expiryItems,
+    payment,
+    isUnread,
+    relatedIds,
+    customerName,
+    customerAvatar,
+    offDayName,
+    offDayDaysAdded,
+    offDayAppliedAt,
+  } = item;
+  const isPaymentOnly = expiryItems.length === 0 && payment;
+  const remainingAmount = payment?.remainingAmount;
   const formattedRemaining =
     remainingAmount != null ? `${remainingAmount.toLocaleString()} MMK` : null;
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-100 bg-[#FCFCFC] shadow-sm transition-all hover:shadow">
       <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
-
         {/* Unread indicator strip */}
         {isUnread && (
           <div className="-mx-4 -mt-4 mb-1 flex items-center gap-2 border-b border-gray-100 bg-white px-4 py-2 sm:-mx-5 sm:px-5">
             <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Unread</span>
+            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
+              Unread
+            </span>
           </div>
         )}
 
         <div className="flex min-w-0 flex-1 items-start gap-3 text-left">
-          <CustomerAvatar
-            name={primary.customerName}
-            avatar={primary.customerAvatar}
-          />
+          <CustomerAvatar name={customerName} avatar={customerAvatar} />
 
           <div className="min-w-0 flex-1">
             {/* Customer name */}
-            <p className="text-sm font-semibold text-gray-800">{primary.customerName}</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {customerName}
+            </p>
 
-            {/* Type tag */}
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
-                <TypeIcon type={primary.type} />
-                {typeLabel(primary.type, primary.targetName, t)}
-              </span>
-
-              {isPaymentOverdue && formattedRemaining && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
-                  <Wallet className="h-3 w-3" />
-                  Left: {formattedRemaining}
-                </span>
-              )}
-            </div>
-
-            {/* Days / payment info */}
-            {isPaymentOverdue ? (
-              <p className="mt-2 text-xs text-gray-400">
-                Remaining: {formattedRemaining ?? "-"}
-              </p>
-            ) : (
+            {/* Payment-only notification */}
+            {isPaymentOnly && payment && (
               <>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span
-                    className={cn(
-                      "inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium",
-                      getDaysBadgeVariant(primary.daysLeft),
-                    )}
-                  >
-                    {getDaysSummary(primary.daysLeft, t)}
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
+                    <Wallet className="h-3 w-3" />
+                    Payment Overdue
                   </span>
-                  {showPaymentStatus && (
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium",
-                        getDaysBadgeVariant(paymentDaysLeft),
-                      )}
-                    >
-                      {getDaysSummary(paymentDaysLeft, t)}
+                  {formattedRemaining && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
+                      Left: {formattedRemaining}
                     </span>
                   )}
                 </div>
-                <p className="mt-1.5 text-xs text-gray-400">
-                  {`Ends in ${getDaysSummary(primary.daysLeft, t)}`}
+                <p className="mt-2 text-xs text-gray-400">
+                  Remaining: {formattedRemaining ?? "-"}
                 </p>
+              </>
+            )}
+
+            {/* Expiry items (grouped) */}
+            {expiryItems.length > 0 && (
+              <>
+                <p className="mt-1 text-xs text-gray-500">
+                  {expiryItems.length}{" "}
+                  {expiryItems.length === 1 ? "item" : "items"} expiring
+                </p>
+
+                {typeof offDayDaysAdded === "number" && offDayDaysAdded > 0 && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                      Off-day +{offDayDaysAdded} day{offDayDaysAdded > 1 ? "s" : ""}
+                    </span>
+                    {offDayName ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
+                        {offDayName}
+                      </span>
+                    ) : null}
+                    {offDayAppliedAt ? (
+                      <span className="text-[11px] text-gray-400">
+                        {new Date(offDayAppliedAt).toLocaleDateString()}
+                      </span>
+                    ) : null}
+                  </div>
+                )}
+
+                <div className="mt-2 space-y-2">
+                  {expiryItems.map((exp, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between rounded-lg border border-gray-100 bg-white px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <TypeIcon type={exp.type} />
+                        <span className="text-xs font-medium text-gray-700">
+                          {typeLabel(exp.type, exp.targetName, t)}
+                        </span>
+                      </div>
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                          getDaysBadgeVariant(exp.daysLeft),
+                        )}
+                      >
+                        {getDaysSummary(exp.daysLeft, t)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Payment info if exists */}
+                {payment && formattedRemaining && (
+                  <div className="mt-2 flex items-center justify-between rounded-lg border border-orange-100 bg-orange-50 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4 text-orange-600" />
+                      <span className="text-xs font-medium text-orange-700">
+                        Payment Overdue
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold text-orange-800">
+                      {formattedRemaining} left
+                    </span>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -351,13 +524,31 @@ function NotificationRow({
 }
 
 const EXPENSE_CATEGORY_COLORS: Record<string, string> = {
-  maintenance: "bg-blue-100 text-blue-700",
-  utilities: "bg-yellow-100 text-yellow-700",
-  equipment: "bg-purple-100 text-purple-700",
-  salary: "bg-green-100 text-green-700",
-  rent: "bg-orange-100 text-orange-700",
-  other: "bg-gray-100 text-gray-600",
+  maintenance: "text-gray-600",
+  utilities: "text-gray-600",
+  equipment: "text-gray-600",
+  salary: "text-gray-600",
+  rent: "text-gray-600",
+  other: "text-gray-600",
 };
+
+function getCategoryIcon(category: string) {
+  const cls = "h-4 w-4";
+  switch (category.toLowerCase()) {
+    case "maintenance":
+      return <Wrench className={cls} />;
+    case "utilities":
+      return <Zap className={cls} />;
+    case "equipment":
+      return <Dumbbell className={cls} />;
+    case "salary":
+      return <Banknote className={cls} />;
+    case "rent":
+      return <Home className={cls} />;
+    default:
+      return <AlertCircle className={cls} />;
+  }
+}
 
 function PendingExpenseRow({
   expense,
@@ -383,51 +574,66 @@ function PendingExpenseRow({
     <div className="overflow-hidden rounded-xl border border-gray-100 bg-[#FCFCFC] shadow-sm transition-all hover:shadow">
       <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
         <div className="flex min-w-0 flex-1 items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-400">
-            <ReceiptText className="h-5 w-5" />
+          {/* Category Icon */}
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500">
+            {getCategoryIcon(expense.category)}
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-gray-800 truncate">
+            {/* Title */}
+            <p className="text-sm font-semibold text-gray-800">
               {expense.title}
             </p>
+
+            {/* Category & Submitter */}
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                  categoryColor,
-                )}
-              >
+              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500 capitalize">
+                {getCategoryIcon(expense.category)}
                 {expense.category}
               </span>
               <span className="text-[11px] text-gray-400">
                 by {submittedBy}
               </span>
             </div>
-            <p className="mt-2 text-xl font-black text-slate-900">
+
+            {/* Amount */}
+            <p className="mt-2 text-base font-bold text-gray-900">
               {Number(expense.amount).toLocaleString()} MMK
             </p>
-            {expense.note ? (
-              <p className="mt-1 text-xs text-gray-400 line-clamp-2">
+
+            {/* Note */}
+            {expense.note && (
+              <p className="mt-1.5 text-xs text-gray-400 line-clamp-2">
                 {expense.note}
               </p>
-            ) : null}
+            )}
           </div>
         </div>
 
+        {/* Actions */}
         {showReject ? (
           <div className="space-y-2">
-            <input
-              type="text"
-              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-400"
-              placeholder="Reject reason (optional)"
+            <textarea
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-gray-300 resize-none"
+              rows={2}
+              placeholder="Reason for rejection (optional)..."
               value={rejectNote}
               onChange={(e) => setRejectNote(e.target.value)}
             />
             <div className="flex gap-2">
               <button
                 type="button"
-                className="flex-1 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 active:scale-[0.98]"
+                onClick={() => {
+                  setShowReject(false);
+                  setRejectNote("");
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600 active:scale-[0.98]"
                 onClick={() => {
                   onReject(expense._id, rejectNote);
                   setShowReject(false);
@@ -436,30 +642,20 @@ function PendingExpenseRow({
               >
                 Confirm Reject
               </button>
-              <button
-                type="button"
-                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-50"
-                onClick={() => {
-                  setShowReject(false);
-                  setRejectNote("");
-                }}
-              >
-                Cancel
-              </button>
             </div>
           </div>
         ) : (
           <div className="flex gap-2">
             <button
               type="button"
-              className="flex-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+              className="flex-1 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600 active:scale-[0.98]"
               onClick={() => onApprove(expense._id)}
             >
               ✓ Approve
             </button>
             <button
               type="button"
-              className="flex-1 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50 active:scale-[0.98]"
               onClick={() => setShowReject(true)}
             >
               ✕ Reject
@@ -476,7 +672,9 @@ const PAGE_SIZE = 20;
 export default function NotificationsPage() {
   const { t } = useLanguage();
   const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<"payment" | "expiry" | "expenses">("payment");
+  const [activeTab, setActiveTab] = useState<"payment" | "expiry" | "expenses">(
+    "payment",
+  );
   const [deleteTarget, setDeleteTarget] = useState<NotificationListItem | null>(
     null,
   );
@@ -488,15 +686,11 @@ export default function NotificationsPage() {
   const { data: countData } = useGetUnreadCountQuery(
     branchQuery ? { gymId: branchQuery } : undefined,
   );
-  const notificationsGroup =
-    activeTab === "expenses" ? undefined : activeTab;
   const { data, isLoading } = useGetNotificationsQuery({
     page,
     limit: PAGE_SIZE,
-    group: notificationsGroup,
+    group: activeTab === "expenses" ? undefined : activeTab,
     gymId: branchQuery,
-  }, {
-    skip: activeTab === "expenses",
   });
 
   const [markRead] = useMarkReadMutation();
@@ -527,7 +721,9 @@ export default function NotificationsPage() {
   const listItems = buildNotificationListItems(notifications);
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 1;
-  const unreadCount = countData?.count ?? 0;
+  const notificationUnreadCount = countData?.count ?? 0;
+  const expenseUnreadCount = isOwner ? pendingExpenses.length : 0;
+  const unreadCount = notificationUnreadCount + expenseUnreadCount;
   const paymentCount = activeTab === "payment" ? total : undefined;
   const expiryCount = activeTab === "expiry" ? total : undefined;
 
@@ -541,11 +737,14 @@ export default function NotificationsPage() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    const id = deleteTarget.primary._id ?? deleteTarget.primary._id;
-    if (!id) return;
+
+    // Delete the first notification from the expiry items or payment
+    const firstNotification =
+      deleteTarget.expiryItems[0]?.notification ?? deleteTarget.payment;
+    if (!firstNotification?._id) return;
 
     await deleteNotification({
-      id,
+      id: firstNotification._id,
       gymId: branchQuery ?? null,
     });
     setDeleteTarget(null);
@@ -672,7 +871,10 @@ export default function NotificationsPage() {
         expensesLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-[#FCFCFC] px-4 py-4 shadow-sm">
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-xl border border-gray-100 bg-[#FCFCFC] px-4 py-4 shadow-sm"
+              >
                 <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-gray-200" />
                 <div className="flex-1 space-y-2">
                   <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
@@ -704,7 +906,10 @@ export default function NotificationsPage() {
       ) : isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-[#FCFCFC] px-4 py-4 shadow-sm">
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-xl border border-gray-100 bg-[#FCFCFC] px-4 py-4 shadow-sm"
+            >
               <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-gray-200" />
               <div className="flex-1 space-y-2">
                 <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
@@ -751,7 +956,7 @@ export default function NotificationsPage() {
         title="Delete notification?"
         description={
           deleteTarget
-            ? `This will remove the alert for ${deleteTarget.primary.customerName}. This cannot be undone.`
+            ? `This will remove the alert for ${deleteTarget.customerName}. This cannot be undone.`
             : "This will remove the selected alert. This cannot be undone."
         }
         confirmLabel="Delete"

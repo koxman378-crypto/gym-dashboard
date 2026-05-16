@@ -11,7 +11,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Users2, Building2 } from "lucide-react";
+import { Users2 } from "lucide-react";
 import {
   useGetAllStaffQuery,
   useGetAllTrainersQuery,
@@ -22,6 +22,7 @@ import {
   useUpdateUserMutation,
   useDeleteUserMutation,
   useUpdateBodyMeasurementsMutation,
+  useAddTrainerFeeItemMutation,
 } from "@/src/store/services/usersApi";
 import { Role, type User, type CreateUserDto } from "@/src/types/type";
 import { useAppSelector } from "@/src/store/hooks";
@@ -29,27 +30,31 @@ import { useUsersState } from "@/src/store/hooks/useUsersState";
 import { useRouter } from "next/navigation";
 
 import { UserCreateDialog } from "@/src/components/users/UserCreateDialog";
-import {
-  UserEditDialog,
-  type EditFormData,
-} from "@/src/components/users/UserEditDialog";
+import { UserEditDialog } from "@/src/components/users/UserEditDialog";
 import { UserSearchFilters } from "@/src/components/users/UserSearchFilters";
 import { UserStatisticsCards } from "@/src/components/users/UserStatisticsCards";
 import { UsersTable } from "@/src/components/users/UsersTable";
 import { UserAttendanceHistoryDialog } from "@/src/components/users/UserAttendanceHistoryDialog";
 import { lightSurfaceClassName } from "@/src/components/users/users.constants";
 import { useLanguage } from "@/src/components/language/LanguageContext";
+import { OwnerBranchSelect } from "@/src/components/layout/OwnerBranchSelect";
 import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
 
 export default function UsersPage() {
+  const getErrorState = (error: unknown) => {
+    const candidate = error as {
+      status?: number;
+      message?: string;
+      data?: { status?: number; message?: string };
+    };
+    return {
+      status: candidate?.status ?? candidate?.data?.status,
+      message:
+        candidate?.data?.message ?? candidate?.message ?? "Unknown error",
+    };
+  };
+
   const router = useRouter();
   const { t } = useLanguage();
 
@@ -107,7 +112,7 @@ export default function UsersPage() {
     totalPages: manageableUsersData?.totalPages ?? 1,
   };
 
-  const { data: staff = [], isLoading: staffLoading } = useGetAllStaffQuery(
+  const { isLoading: staffLoading } = useGetAllStaffQuery(
     { gymId: branchQuery },
     {
       skip:
@@ -140,6 +145,7 @@ export default function UsersPage() {
   const [updateUser] = useUpdateUserMutation();
   const [deleteUser] = useDeleteUserMutation();
   const [updateBodyMeasurements] = useUpdateBodyMeasurementsMutation();
+  const [addTrainerFeeItem] = useAddTrainerFeeItemMutation();
   const [attendanceHistoryUser, setAttendanceHistoryUser] =
     useState<User | null>(null);
 
@@ -170,7 +176,7 @@ export default function UsersPage() {
       customers: fallbackCustomers,
       staff: fallbackStaff,
     };
-  }, [manageableMeta.total, manageableUsers, statistics]);
+  }, [currentUser?.role, manageableMeta.total, manageableUsers, statistics]);
 
   if (isLoading && manageableUsers.length === 0) {
     return <PageLoadingState headerActionCount={1} itemCount={5} />;
@@ -192,14 +198,22 @@ export default function UsersPage() {
   // Handlers
   const handleCreateUser = async (data: CreateUserDto) => {
     try {
+      const { trainerFee, ...restData } = data;
       const normalizedData = {
-        ...data,
-        email: data.email.trim(),
+        ...restData,
+        email: restData.email.trim(),
       };
+      let createdUser: User;
       if (data.role === Role.CUSTOMER) {
-        await createCustomer(normalizedData).unwrap();
+        createdUser = await createCustomer(normalizedData).unwrap();
       } else {
-        await createStaff(normalizedData).unwrap();
+        createdUser = await createStaff(normalizedData).unwrap();
+      }
+      if (data.role === Role.TRAINER && trainerFee && trainerFee > 0 && createdUser._id) {
+        await addTrainerFeeItem({
+          trainerId: createdUser._id,
+          feeData: { amount: trainerFee, isActive: true },
+        }).unwrap();
       }
     } catch (error) {
       throw error;
@@ -219,10 +233,9 @@ export default function UsersPage() {
         id: user._id,
         data: { isActive: !user.isActive },
       }).unwrap();
-    } catch (error: any) {
-      alert(
-        `Failed to update user: ${error?.data?.message || error?.message || "Unknown error"}`,
-      );
+    } catch (error) {
+      const { message } = getErrorState(error);
+      alert(`Failed to update user: ${message}`);
     }
   };
 
@@ -237,10 +250,9 @@ export default function UsersPage() {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await deleteUser(userId).unwrap();
-      } catch (error: any) {
-        alert(
-          `Failed to delete user: ${error?.data?.message || error?.message || "Unknown error"}`,
-        );
+      } catch (error) {
+        const { message } = getErrorState(error);
+        alert(`Failed to delete user: ${message}`);
       }
     }
   };
@@ -275,7 +287,8 @@ export default function UsersPage() {
           ? selectedUser.birthday.split("T")[0]
           : new Date(selectedUser.birthday).toISOString().split("T")[0]
         : undefined;
-      if (newBirthday !== existingBirthday) updateData.birthday = newBirthday ?? null;
+      if (newBirthday !== existingBirthday)
+        updateData.birthday = newBirthday ?? null;
 
       // Gender
       const newGender = editFormData.gender || undefined;
@@ -296,6 +309,39 @@ export default function UsersPage() {
         await updateUser({ id: selectedUser._id, data: updateData }).unwrap();
       }
 
+      // Salary update for trainer/cashier
+      if (
+        (selectedUser.role === Role.TRAINER ||
+          selectedUser.role === Role.CASHIER) &&
+        editFormData.salaryAmount !== undefined
+      ) {
+        const newSalary =
+          typeof editFormData.salaryAmount === "number" ? editFormData.salaryAmount : undefined;
+        if (newSalary !== (selectedUser.salaryAmount ?? undefined)) {
+          await updateUser({
+            id: selectedUser._id,
+            data: { salaryAmount: newSalary },
+          }).unwrap();
+        }
+      }
+
+      // Trainer fee update
+      if (selectedUser.role === Role.TRAINER && editFormData.trainerFee !== undefined) {
+        const newFee =
+          typeof editFormData.trainerFee === "number" ? editFormData.trainerFee : undefined;
+        if (newFee !== undefined && newFee > 0) {
+          const existingFee =
+            selectedUser.trainerFees?.find((f) => f.isActive) ??
+            selectedUser.trainerFees?.[0];
+          if (!existingFee || existingFee.amount !== newFee) {
+            await addTrainerFeeItem({
+              trainerId: selectedUser._id,
+              feeData: { amount: newFee, isActive: true },
+            }).unwrap();
+          }
+        }
+      }
+
       if (
         selectedUser.role === Role.CUSTOMER &&
         editFormData.bodyMeasurements
@@ -312,9 +358,8 @@ export default function UsersPage() {
       }
 
       closeEditDialog();
-    } catch (error: any) {
-      const status = error?.status ?? error?.data?.status;
-      const message = error?.data?.message || error?.message || "Unknown error";
+    } catch (error) {
+      const { status, message } = getErrorState(error);
       if (status === 409 || /already exists|duplicate|email/i.test(message)) {
         alert("Email already exists. Please use a different email.");
         return;
@@ -354,33 +399,15 @@ export default function UsersPage() {
             </div>
             <div className="flex flex-wrap items-center gap-3 self-start xl:self-auto">
               {isOwner && branches.length > 0 && (
-                <Select
-                  value={selectedGymId ?? "all"}
-                  onValueChange={(value) =>
-                    setSelectedGymId(value === "all" ? null : value)
-                  }
-                >
-                  <SelectTrigger className="h-12 -mt-4 w-44 cursor-pointer border border-gray-200 bg-white text-sm shadow-sm transition-colors hover:bg-gray-50 focus:ring-0 focus-visible:ring-0">
-                    <SelectValue placeholder="All Branches" />
-                  </SelectTrigger>
-                  <SelectContent className="border border-gray-200 bg-white shadow-lg">
-                    <SelectItem
-                      value="all"
-                      className="cursor-pointer focus:bg-gray-100"
-                    >
-                      All Branches
-                    </SelectItem>
-                    {branches.map((branch) => (
-                      <SelectItem
-                        key={branch._id}
-                        value={String(branch._id)}
-                        className="cursor-pointer focus:bg-gray-100"
-                      >
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <OwnerBranchSelect
+                  branches={branches}
+                  selectedGymId={selectedGymId}
+                  onChange={(gymId) => {
+                    setSelectedGymId(gymId);
+                    setUserPage(1);
+                  }}
+                  className="min-w-45"
+                />
               )}
 
               {currentUser &&

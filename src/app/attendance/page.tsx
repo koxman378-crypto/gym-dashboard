@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { Clock, Calendar, User as UserIcon } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
@@ -24,6 +24,60 @@ import { DataTablePagination } from "@/src/components/data-table/data-table-pagi
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { Search } from "lucide-react";
 
+interface AttendanceLocalState {
+  limit: number;
+  selectedUserId: string;
+  selectedDate: string;
+  searchName: string;
+  currentDuration: number;
+  nowTs: number;
+}
+
+function formatSelectedDate(date: string) {
+  if (!date) return "";
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+type AttendanceLocalAction =
+  | { type: "setLimit"; payload: number }
+  | { type: "setSelectedUserId"; payload: string }
+  | { type: "setSelectedDate"; payload: string }
+  | { type: "setSearchName"; payload: string }
+  | { type: "setCurrentDuration"; payload: number }
+  | { type: "setNowTs"; payload: number }
+  | { type: "resetFilters" };
+
+function attendanceLocalReducer(
+  state: AttendanceLocalState,
+  action: AttendanceLocalAction,
+): AttendanceLocalState {
+  switch (action.type) {
+    case "setLimit":
+      return { ...state, limit: action.payload };
+    case "setSelectedUserId":
+      return { ...state, selectedUserId: action.payload };
+    case "setSelectedDate":
+      return { ...state, selectedDate: action.payload };
+    case "setSearchName":
+      return { ...state, searchName: action.payload };
+    case "setCurrentDuration":
+      return { ...state, currentDuration: action.payload };
+    case "setNowTs":
+      return { ...state, nowTs: action.payload };
+    case "resetFilters":
+      return { ...state, selectedUserId: "", selectedDate: "", searchName: "" };
+    default:
+      return state;
+  }
+}
+
 export default function AttendancePage() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -37,16 +91,26 @@ export default function AttendancePage() {
     setSelectedYear,
     setPage,
   } = useAttendanceState();
-  const [limit, setLimit] = useState<number>(10);
+  const [localState, dispatch] = useReducer(attendanceLocalReducer, {
+    limit: 10,
+    selectedUserId: "",
+    selectedDate: "",
+    searchName: "",
+    currentDuration: 0,
+    nowTs: Date.now(),
+  });
+  const {
+    limit,
+    selectedUserId,
+    selectedDate,
+    searchName,
+    currentDuration,
+    nowTs,
+  } = localState;
 
   const { isAuthenticated, user: currentUser } = useAppSelector(
     (state) => state.auth,
   );
-
-  // User/date/name filter state
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [searchName, setSearchName] = useState<string>("");
 
   // Fetch manageable users for filter dropdown
   const { data: manageableUsersData } = useGetManageableUsersQuery(
@@ -84,9 +148,6 @@ export default function AttendancePage() {
   const [checkOut, { isLoading: isCheckingOut }] = useCheckOutMutation();
 
   // Calculate current session duration
-  const [currentDuration, setCurrentDuration] = useState<number>(0);
-  const [nowTs, setNowTs] = useState<number>(() => Date.now());
-
   // Fetch active attendance
   const { data: activeAttendance, refetch: refetchActive } =
     useGetActiveAttendanceQuery(undefined, {
@@ -102,7 +163,7 @@ export default function AttendancePage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setNowTs(Date.now());
+      dispatch({ type: "setNowTs", payload: Date.now() });
     }, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -116,7 +177,7 @@ export default function AttendancePage() {
         const checkInTime = new Date(activeAttendance.checkInTime).getTime();
         const now = Date.now();
         const durationInMinutes = Math.floor((now - checkInTime) / 1000 / 60);
-        setCurrentDuration(durationInMinutes);
+        dispatch({ type: "setCurrentDuration", payload: durationInMinutes });
       }, 1000);
       return () => clearInterval(interval);
     }
@@ -170,6 +231,10 @@ export default function AttendancePage() {
   const remainingCheckIns = Math.max(2 - recentCheckInCount, 0);
 
   const columns = createAttendanceColumns();
+  const hasAnyFilters = Boolean(selectedUserId || selectedDate || searchName);
+  const emptyMessage = selectedDate
+    ? `No attendances for ${formatSelectedDate(selectedDate)}`
+    : "No attendance records found.";
 
   return (
     <div className="min-h-screen bg-zinc-50 text-foreground">
@@ -189,16 +254,6 @@ export default function AttendancePage() {
               <p className="text-muted-foreground text-lg">
                 {t("attendance.subtitle")}
               </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => router.push("/measurements")}
-                className="bg-gray-100 hover:bg-gray-200 text-foreground border border-gray-300"
-                size="lg"
-              >
-                <UserIcon className="h-5 w-5 mr-2" />
-                {t("attendance.myMeasurements")}
-              </Button>
             </div>
           </div>
         </div>
@@ -252,7 +307,10 @@ export default function AttendancePage() {
                     className="w-full pl-9 pr-3 py-2 rounded-lg bg-white text-gray-900 border border-zinc-200 shadow-none hover:border-zinc-300 focus:outline-none focus:border-zinc-300 focus:ring-2 focus:ring-black/5 text-sm"
                     value={searchName}
                     onChange={(e) => {
-                      setSearchName(e.target.value);
+                      dispatch({
+                        type: "setSearchName",
+                        payload: e.target.value,
+                      });
                       setPage(1);
                     }}
                   />
@@ -266,7 +324,10 @@ export default function AttendancePage() {
                   className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 border border-zinc-200 shadow-none hover:border-zinc-300 focus:outline-none focus:border-zinc-300 focus:ring-2 focus:ring-black/5 text-sm"
                   value={selectedUserId}
                   onChange={(e) => {
-                    setSelectedUserId(e.target.value);
+                    dispatch({
+                      type: "setSelectedUserId",
+                      payload: e.target.value,
+                    });
                     setPage(1);
                   }}
                 >
@@ -287,20 +348,21 @@ export default function AttendancePage() {
                   className="w-full rounded-lg px-3 py-2 bg-white text-gray-900 border border-zinc-200 shadow-none hover:border-zinc-300 focus:outline-none focus:border-zinc-300 focus:ring-2 focus:ring-black/5 text-sm"
                   value={selectedDate}
                   onChange={(e) => {
-                    setSelectedDate(e.target.value);
+                    dispatch({
+                      type: "setSelectedDate",
+                      payload: e.target.value,
+                    });
                     setPage(1);
                   }}
                 />
               </div>
-              {(selectedUserId || selectedDate || searchName) && (
+              {hasAnyFilters && (
                 <div className="flex-none">
                   <button
                     type="button"
-                    className="px-4 py-2 rounded-lg border border-zinc-200 bg-white text-sm font-medium text-gray-700 hover:bg-zinc-50 shadow-none transition-colors"
+                    className="px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-sm font-medium text-gray-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-900 shadow-none transition-colors"
                     onClick={() => {
-                      setSelectedUserId("");
-                      setSelectedDate("");
-                      setSearchName("");
+                      dispatch({ type: "resetFilters" });
                       setPage(1);
                     }}
                   >
@@ -322,21 +384,13 @@ export default function AttendancePage() {
           </div>
           {/* Active filter indicator */}
           {isGlobal && selectedDate && (
-            <div className="px-6 py-3 border-b border-zinc-100 bg-zinc-50 flex items-center gap-2">
+            <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 flex items-center gap-2">
               <Calendar className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">
                 Showing attendances for:
               </span>
-              <span className="text-sm font-semibold text-blue-700">
-                {new Date(selectedDate + "T00:00:00").toLocaleDateString(
-                  "en-US",
-                  {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  },
-                )}
+              <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                {formatSelectedDate(selectedDate)}
               </span>
             </div>
           )}
@@ -345,7 +399,7 @@ export default function AttendancePage() {
             data={records}
             isLoading={isLoading}
             getRowId={(row) => row._id}
-            emptyMessage="No attendance records found."
+            emptyMessage={emptyMessage}
           />
           {pagination && (
             <div className="p-4 border-t border-zinc-200 bg-white">
@@ -358,7 +412,7 @@ export default function AttendancePage() {
                 }}
                 onPageChange={(p) => setPage(p)}
                 onPageSizeChange={(s) => {
-                  setLimit(s);
+                  dispatch({ type: "setLimit", payload: s });
                   setPage(1);
                 }}
                 isLoading={isLoading}

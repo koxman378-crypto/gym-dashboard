@@ -5,7 +5,15 @@ export type NotificationType =
   | "gym_fee_end"
   | "service_end"
   | "trainer_end"
-  | "payment_overdue";
+  | "payment_overdue"
+  | "subscription_extended"
+  | "payment_approved"
+  | "payment_rejected";
+
+export interface ServiceDaysLeftItem {
+  name: string;
+  daysLeft: number;
+}
 
 export interface GymNotification {
   _id: string;
@@ -17,8 +25,17 @@ export interface GymNotification {
   targetId: string | null;
   targetName: string | null;
   daysLeft: number;
+  subscriptionDaysLeft?: number | null;
+  gymFeeDaysLeft?: number | null;
+  trainerDaysLeft?: number | null;
+  serviceDaysLeft?: ServiceDaysLeftItem[];
+  offDayName?: string | null;
+  offDayDaysAdded?: number | null;
+  offDayAppliedAt?: string | null;
   isRead: boolean;
   remainingAmount: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
   createdAt: string;
   updatedAt: string;
 }

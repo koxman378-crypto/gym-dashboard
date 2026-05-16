@@ -299,6 +299,17 @@ export const subscriptionsApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Subscription", "Statistics"],
     }),
+
+    getPaymentProofUploadUrl: builder.mutation<
+      { uploadUrl: string; publicUrl: string; objectKey: string },
+      { fileName: string; contentType: string }
+    >({
+      query: (body) => ({
+        url: "/upload/payment-proof",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
   overrideExisting: true,
 });
@@ -313,4 +324,5 @@ export const {
   useUpdateSubscriptionMutation,
   useCancelSubscriptionMutation,
   useDeleteSubscriptionMutation,
+  useGetPaymentProofUploadUrlMutation,
 } = subscriptionsApi;

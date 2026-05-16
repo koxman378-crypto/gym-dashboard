@@ -133,10 +133,11 @@ export default function GymPricesPage() {
   };
 
   return (
-    <div className="min-h-screen p-6 text-foreground" style={{ backgroundColor: '#FCFCFC' }}>
-      <div
-        className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm"
-      >
+    <div
+      className="min-h-screen p-6 text-foreground"
+      style={{ backgroundColor: "#FCFCFC" }}
+    >
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
         <div>
           <h1 className="text-3xl font-bold">{t("gymPrices.title")}</h1>
           <p className="mt-1 text-muted-foreground">

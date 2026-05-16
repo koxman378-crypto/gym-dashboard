@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useReducer } from "react";
 import {
   Search,
   User as UserIcon,
@@ -16,6 +16,43 @@ import { Role, type User } from "@/src/types/type";
 
 const PAGE_LIMIT = 12;
 
+interface AttendanceHistoryState {
+  search: string;
+  debouncedSearch: string;
+  page: number;
+  selectedUser: User | null;
+}
+
+type AttendanceHistoryAction =
+  | { type: "setSearch"; payload: string }
+  | { type: "setDebouncedSearch"; payload: string }
+  | { type: "setPage"; payload: number }
+  | { type: "prevPage" }
+  | { type: "nextPage" }
+  | { type: "setSelectedUser"; payload: User | null };
+
+function attendanceHistoryReducer(
+  state: AttendanceHistoryState,
+  action: AttendanceHistoryAction,
+): AttendanceHistoryState {
+  switch (action.type) {
+    case "setSearch":
+      return { ...state, search: action.payload };
+    case "setDebouncedSearch":
+      return { ...state, debouncedSearch: action.payload };
+    case "setPage":
+      return { ...state, page: action.payload };
+    case "prevPage":
+      return { ...state, page: Math.max(1, state.page - 1) };
+    case "nextPage":
+      return { ...state, page: state.page + 1 };
+    case "setSelectedUser":
+      return { ...state, selectedUser: action.payload };
+    default:
+      return state;
+  }
+}
+
 export default function AttendanceHistoryPage() {
   const { t } = useLanguage();
   const {
@@ -24,18 +61,21 @@ export default function AttendanceHistoryPage() {
     user: currentUser,
   } = useAppSelector((state) => state.auth);
 
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [state, dispatch] = useReducer(attendanceHistoryReducer, {
+    search: "",
+    debouncedSearch: "",
+    page: 1,
+    selectedUser: null,
+  });
+  const { search, debouncedSearch, page, selectedUser } = state;
 
   // Debounce search
   const handleSearchChange = (value: string) => {
-    setSearch(value);
+    dispatch({ type: "setSearch", payload: value });
     clearTimeout((window as any).__attSearchTimer);
     (window as any).__attSearchTimer = setTimeout(() => {
-      setDebouncedSearch(value);
-      setPage(1);
+      dispatch({ type: "setDebouncedSearch", payload: value });
+      dispatch({ type: "setPage", payload: 1 });
     }, 350);
   };
 
@@ -99,7 +139,10 @@ export default function AttendanceHistoryPage() {
                 <button
                   key={u._id}
                   onClick={() =>
-                    setSelectedUser(selectedUser?._id === u._id ? null : u)
+                    dispatch({
+                      type: "setSelectedUser",
+                      payload: selectedUser?._id === u._id ? null : u,
+                    })
                   }
                   className={[
                     "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
@@ -137,7 +180,7 @@ export default function AttendanceHistoryPage() {
             <div className="flex items-center justify-between pt-1">
               <button
                 disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
+                onClick={() => dispatch({ type: "prevPage" })}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-40"
               >
                 <ChevronLeft className="h-3 w-3" />
@@ -148,7 +191,7 @@ export default function AttendanceHistoryPage() {
               </span>
               <button
                 disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => dispatch({ type: "nextPage" })}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-40"
               >
                 {t("attendance.next")}
@@ -184,7 +227,9 @@ export default function AttendanceHistoryPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setSelectedUser(null)}
+                  onClick={() =>
+                    dispatch({ type: "setSelectedUser", payload: null })
+                  }
                   className="text-muted-foreground hover:text-foreground"
                 >
                   <X className="h-4 w-4" />

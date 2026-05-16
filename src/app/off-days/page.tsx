@@ -59,7 +59,7 @@ export default function OffDaysPage() {
     if (!confirm(t("offDays.deleteConfirm"))) return;
     setDeletingId(id);
     try {
-      await deleteOffDay({ id, gymId: gymId ?? '' }).unwrap();
+      await deleteOffDay({ id, gymId: gymId ?? "" }).unwrap();
       toast.success("Off day removed and subscriptions reversed.");
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to remove off day");
@@ -83,7 +83,7 @@ export default function OffDaysPage() {
         </div>
         <Button
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 cursor-pointer bg-gray-100"
         >
           <Plus className="w-4 h-4" />
           {t("offDays.addOffDay")}
@@ -131,9 +131,7 @@ export default function OffDaysPage() {
                   <td className="px-4 py-3 font-semibold text-zinc-800">
                     {od.name}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500">
-                    {od.note ?? "—"}
-                  </td>
+                  <td className="px-4 py-3 text-zinc-500">{od.note ?? "—"}</td>
                   <td className="px-4 py-3 text-center">
                     <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium text-xs">
                       +{od.daysCount} {t("offDays.days")}
@@ -143,9 +141,7 @@ export default function OffDaysPage() {
                     {od.affectedCount}
                   </td>
                   <td className="px-4 py-3 text-zinc-600">
-                    {typeof od.createdBy === "object"
-                      ? od.createdBy.name
-                      : "—"}
+                    {typeof od.createdBy === "object" ? od.createdBy.name : "—"}
                   </td>
                   <td className="px-4 py-3 text-zinc-500 text-xs">
                     {new Date(od.createdAt).toLocaleDateString()}
@@ -169,7 +165,15 @@ export default function OffDaysPage() {
       </div>
 
       {/* Create Dialog */}
-      <Dialog open={open} onOpenChange={(v) => { if (!v) { setForm({ name: "", note: "", daysCount: "" }); } setOpen(v); }}>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          if (!v) {
+            setForm({ name: "", note: "", daysCount: "" });
+          }
+          setOpen(v);
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -186,7 +190,9 @@ export default function OffDaysPage() {
               <input
                 type="text"
                 value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name: e.target.value }))
+                }
                 placeholder="e.g. သင်္ကြန်, တန်ဆောင်တိုင်း"
                 className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -224,7 +230,9 @@ export default function OffDaysPage() {
               </label>
               <textarea
                 value={form.note}
-                onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, note: e.target.value }))
+                }
                 placeholder="Optional note..."
                 rows={3}
                 className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -235,14 +243,22 @@ export default function OffDaysPage() {
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => { setForm({ name: "", note: "", daysCount: "" }); setOpen(false); }}
+              onClick={() => {
+                setForm({ name: "", note: "", daysCount: "" });
+                setOpen(false);
+              }}
               disabled={isCreating}
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreate}
-              disabled={isCreating || !form.name.trim() || !form.daysCount || parseInt(form.daysCount) < 1}
+              disabled={
+                isCreating ||
+                !form.name.trim() ||
+                !form.daysCount ||
+                parseInt(form.daysCount) < 1
+              }
             >
               {isCreating ? "Adding..." : t("offDays.addOffDay")}
             </Button>

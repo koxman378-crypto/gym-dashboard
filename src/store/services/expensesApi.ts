@@ -16,6 +16,14 @@ export interface Expense {
   category: ExpenseCategory;
   note?: string | null;
   proofImages: string[];
+  salaryItems?: {
+    staffId: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+    amount: number;
+    proofImage?: string | null;
+  }[];
   status: ExpenseStatus;
   submittedBy: { _id: string; name: string; avatar?: string } | string;
   submittedByName: string;
@@ -42,6 +50,14 @@ export interface CreateExpenseDto {
   note?: string;
   proofImages?: string[];
   gymId?: string;
+  salaryItems?: {
+    staffId: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+    amount: number;
+    proofImage: string;
+  }[];
 }
 
 export interface ReviewExpenseDto {
@@ -68,7 +84,11 @@ export const expensesApi = api.injectEndpoints({
       {
         gymId?: string;
         status?: string;
+        category?: string;
         submittedBy?: string;
+        from?: string;
+        to?: string;
+        months?: number;
         page?: number;
         limit?: number;
       }
@@ -77,7 +97,11 @@ export const expensesApi = api.injectEndpoints({
         const qs = new URLSearchParams();
         if (params.gymId) qs.set("gymId", params.gymId);
         if (params.status) qs.set("status", params.status);
+        if (params.category) qs.set("category", params.category);
         if (params.submittedBy) qs.set("submittedBy", params.submittedBy);
+        if (params.from) qs.set("from", params.from);
+        if (params.to) qs.set("to", params.to);
+        if (params.months !== undefined) qs.set("months", String(params.months));
         if (params.page !== undefined) qs.set("page", String(params.page));
         if (params.limit !== undefined) qs.set("limit", String(params.limit));
         const s = qs.toString();
@@ -96,13 +120,14 @@ export const expensesApi = api.injectEndpoints({
 
     getExpenseSummary: build.query<
       ExpenseSummary,
-      { gymId?: string; from?: string; to?: string }
+      { gymId?: string; from?: string; to?: string; months?: number }
     >({
       query: (params = {}) => {
         const qs = new URLSearchParams();
         if (params.gymId) qs.set("gymId", params.gymId);
         if (params.from) qs.set("from", params.from);
         if (params.to) qs.set("to", params.to);
+        if (params.months !== undefined) qs.set("months", String(params.months));
         const s = qs.toString();
         return `/expenses/summary${s ? `?${s}` : ""}`;
       },

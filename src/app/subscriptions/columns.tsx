@@ -14,6 +14,7 @@ import {
   Activity,
   UserCheck,
   Clock,
+  Image,
 } from "lucide-react";
 import { FaUserCircle } from "react-icons/fa";
 
@@ -191,7 +192,9 @@ export const createSubscriptionColumns = ({
       const date = row.getValue("endDate") as string | Date;
       const today = new Date();
       const endDate = new Date(date);
-      const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / 86400000);
+      const daysLeft = Math.ceil(
+        (endDate.getTime() - today.getTime()) / 86400000,
+      );
       const isExpired = daysLeft < 0;
       const isSoon = daysLeft >= 0 && daysLeft <= 7;
       const color = isExpired
@@ -203,8 +206,12 @@ export const createSubscriptionColumns = ({
         <div className={`flex items-center gap-2 font-medium ${color}`}>
           <Calendar className="h-4 w-4" />
           {formatDate(date)}
-          {isExpired && <span className="text-xs font-semibold">(Expired)</span>}
-          {isSoon && !isExpired && <span className="text-xs font-semibold">({daysLeft}d)</span>}
+          {isExpired && (
+            <span className="text-xs font-semibold">(Expired)</span>
+          )}
+          {isSoon && !isExpired && (
+            <span className="text-xs font-semibold">({daysLeft}d)</span>
+          )}
         </div>
       );
     },
@@ -219,6 +226,7 @@ export const createSubscriptionColumns = ({
     ),
     cell: ({ row }) => {
       const paymentStatus = row.getValue("paymentStatus") as string;
+      const hasProofImage = row.original.proofImage;
       const variants: Record<string, any> = {
         paid: "success",
         unpaid: "destructive",
@@ -226,10 +234,17 @@ export const createSubscriptionColumns = ({
         refunded: "inactive",
       };
       return (
-        <Badge variant={variants[paymentStatus] || "secondary"}>
-          <DollarSign className="h-3 w-3 mr-1" />
-          {paymentStatus.toUpperCase()}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={variants[paymentStatus] || "secondary"}>
+            <DollarSign className="h-3 w-3 mr-1" />
+            {paymentStatus.toUpperCase()}
+          </Badge>
+          {hasProofImage && (
+            <span title="Has proof image">
+              <Image className="h-4 w-4 text-emerald-600" />
+            </span>
+          )}
+        </div>
       );
     },
   },
@@ -246,12 +261,16 @@ export const createSubscriptionColumns = ({
       const colorMap: Record<string, string> = {
         active: "bg-emerald-100 text-emerald-700 border border-emerald-200",
         expired: "bg-red-100 text-red-700 border border-red-200",
-        cancelled: "bg-zinc-100 text-zinc-500 border border-zinc-200 line-through",
+        cancelled:
+          "bg-zinc-100 text-zinc-500 border border-zinc-200 line-through",
         pending: "bg-amber-100 text-amber-700 border border-amber-200",
       };
-      const cls = colorMap[status] ?? "bg-zinc-100 text-zinc-600 border border-zinc-200";
+      const cls =
+        colorMap[status] ?? "bg-zinc-100 text-zinc-600 border border-zinc-200";
       return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold tracking-wide ${cls}`}>
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold tracking-wide ${cls}`}
+        >
           {status.toUpperCase()}
         </span>
       );

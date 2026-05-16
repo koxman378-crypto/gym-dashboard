@@ -283,6 +283,7 @@ export interface Subscription {
   paymentStatus: "paid" | "pending" | "partial";
   paidAmount: number;
   notes?: string | null;
+  proofImage?: string | null;
   createdBy?: any; // User object or ObjectId
   createdAt?: Date | string;
   updatedAt?: Date | string;
@@ -316,6 +317,7 @@ export interface CreateSubscriptionDto {
   paymentStatus?: "paid" | "pending" | "partial";
   paidAmount?: number;
   notes?: string;
+  proofImage?: string;
 }
 
 export interface UpdateSubscriptionDto {
@@ -339,6 +341,7 @@ export interface UpdateSubscriptionDto {
   paymentStatus?: "paid" | "pending" | "partial";
   paidAmount?: number;
   notes?: string;
+  proofImage?: string;
   status?: "active" | "expired" | "cancelled";
 }
 

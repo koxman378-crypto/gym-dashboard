@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { Role, type CreateUserDto, type MultiGymItem } from "@/src/types/type";
 import { Button } from "@/src/components/ui/button";
@@ -42,11 +42,7 @@ interface UserCreateDialogProps {
   onCreate: (data: CreateUserDto) => Promise<void>;
 }
 
-type UserCreateFormData = CreateUserDto & {
-  salaryAmount?: number;
-};
-
-const buildDefaultForm = (defaultGymId?: string | null): UserCreateFormData => ({
+const buildDefaultForm = (defaultGymId?: string | null): CreateUserDto => ({
   email: "",
   password: "",
   name: "",
@@ -63,7 +59,22 @@ const buildDefaultForm = (defaultGymId?: string | null): UserCreateFormData => (
 
 const isPhoneValid = (phone: string) => /^\d{9,11}$/.test(phone.trim());
 
-const validateForm = (formData: UserCreateFormData) => {
+function getDialogErrorState(error: unknown) {
+  const candidate = error as {
+    status?: number;
+    message?: string;
+    data?: { status?: number; message?: string };
+  };
+  return {
+    status: candidate?.status ?? candidate?.data?.status,
+    message:
+      candidate?.data?.message ??
+      candidate?.message ??
+      "Failed to create user.",
+  };
+}
+
+const validateForm = (formData: CreateUserDto) => {
   const errors: string[] = [];
 
   if (!formData.name.trim()) errors.push("Name");
@@ -102,7 +113,7 @@ export function UserCreateDialog({
   onGymFilterChange?: (id: string | null) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<UserCreateFormData>(
+  const [formData, setFormData] = useState<CreateUserDto>(
     buildDefaultForm(defaultGymId),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -147,7 +158,7 @@ export function UserCreateDialog({
       return;
     }
 
-    const cleanedFormData: UserCreateFormData = {
+    const cleanedFormData = {
       ...formData,
       email: formData.email.trim(),
     };
@@ -158,17 +169,13 @@ export function UserCreateDialog({
       if (!hasAny) cleanedFormData.bodyMeasurements = undefined;
     }
 
-    const { salaryAmount: _salaryAmount, ...createPayload } = cleanedFormData;
-
     setIsSubmitting(true);
     try {
-      await onCreate(createPayload);
+      await onCreate(cleanedFormData);
       toast.success("User created successfully!");
       handleClose();
-    } catch (error: any) {
-      const status = error?.status ?? error?.data?.status;
-      const msg: string =
-        error?.data?.message || error?.message || "Failed to create user.";
+    } catch (error) {
+      const { status, message: msg } = getDialogErrorState(error);
       const isDuplicate =
         status === 409 ||
         msg.toLowerCase().includes("duplicate") ||
@@ -190,35 +197,6 @@ export function UserCreateDialog({
 
   return (
     <div className="flex items-center gap-4 mb-4">
-      {currentUserRole === Role.OWNER &&
-        branches.length > 0 &&
-        onGymFilterChange && (
-          <div className="flex items-center gap-2">
-            <Label className="text-foreground">Branch:</Label>
-            <Select
-              value={gymFilter ?? "all"}
-              onValueChange={(v) => onGymFilterChange(v === "all" ? null : v)}
-            >
-              <SelectTrigger className={lightSelectTriggerClassName + " w-44"}>
-                <SelectValue placeholder="All Branches" />
-              </SelectTrigger>
-              <SelectContent className={lightSelectContentClassName}>
-                <SelectItem value="all" className={lightSelectItemClassName}>
-                  All Branches
-                </SelectItem>
-                {branches.map((b) => (
-                  <SelectItem
-                    key={b._id}
-                    value={b._id!}
-                    className={lightSelectItemClassName}
-                  >
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button
@@ -266,6 +244,43 @@ export function UserCreateDialog({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              {currentUserRole === Role.OWNER && branches.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="create-gym" className="text-foreground">
+                    Branch <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={formData.gymId ?? "none"}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        gymId: value === "none" ? undefined : value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className={lightSelectTriggerClassName}>
+                      <SelectValue placeholder="Select branch" />
+                    </SelectTrigger>
+                    <SelectContent className={lightSelectContentClassName}>
+                      <SelectItem
+                        value="none"
+                        className={lightSelectItemClassName}
+                      >
+                        Select branch
+                      </SelectItem>
+                      {branches.map((branch) => (
+                        <SelectItem
+                          key={branch._id}
+                          value={branch._id ?? branch.name}
+                          className={lightSelectItemClassName}
+                        >
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <Label htmlFor="create-name" className="text-foreground">
                 Name <span className="text-red-500">*</span>
               </Label>
@@ -350,18 +365,21 @@ export function UserCreateDialog({
                 <Label htmlFor="create-birthday" className="text-foreground">
                   Birthday
                 </Label>
-                <Input
-                  id="create-birthday"
-                  type="date"
-                  value={formData.birthday ?? ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      birthday: e.target.value || undefined,
-                    })
-                  }
-                  className={lightInputClassName}
-                />
+                <div className="relative">
+                  <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="create-birthday"
+                    type="date"
+                    value={formData.birthday ?? ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        birthday: e.target.value || undefined,
+                      })
+                    }
+                    className={`pl-10 ${lightInputClassName}`}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="create-gender" className="text-foreground">
@@ -386,10 +404,16 @@ export function UserCreateDialog({
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent className={lightSelectContentClassName}>
-                    <SelectItem value="none" className={lightSelectItemClassName}>
+                    <SelectItem
+                      value="none"
+                      className={lightSelectItemClassName}
+                    >
                       Select gender
                     </SelectItem>
-                    <SelectItem value="male" className={lightSelectItemClassName}>
+                    <SelectItem
+                      value="male"
+                      className={lightSelectItemClassName}
+                    >
                       Male
                     </SelectItem>
                     <SelectItem
@@ -423,6 +447,8 @@ export function UserCreateDialog({
                       value === Role.CUSTOMER
                         ? undefined
                         : formData.salaryAmount,
+                    trainerFee:
+                      value !== Role.TRAINER ? undefined : formData.trainerFee,
                   })
                 }
               >
@@ -456,52 +482,38 @@ export function UserCreateDialog({
                 </SelectContent>
               </Select>
             </div>
-            {currentUserRole === Role.OWNER && branches.length > 0 && (
+
+            {/* Trainer Fee — only for trainer role */}
+            {formData.role === Role.TRAINER && (
               <div className="space-y-2">
-                <Label htmlFor="create-gym" className="text-foreground">
-                  Branch <span className="text-red-500">*</span>
+                <Label htmlFor="create-trainer-fee" className="text-foreground">
+                  Trainer Fee (MMK)
                 </Label>
-                <Select
-                  value={formData.gymId ?? "none"}
-                  onValueChange={(value) =>
+                <Input
+                  id="create-trainer-fee"
+                  type="number"
+                  min={0}
+                  value={formData.trainerFee ?? ""}
+                  onChange={(e) =>
                     setFormData({
                       ...formData,
-                      gymId: value === "none" ? undefined : value,
+                      trainerFee:
+                        e.target.value === ""
+                          ? undefined
+                          : Number(e.target.value),
                     })
                   }
-                >
-                  <SelectTrigger className={lightSelectTriggerClassName}>
-                    <SelectValue placeholder="Select branch" />
-                  </SelectTrigger>
-                  <SelectContent className={lightSelectContentClassName}>
-                    <SelectItem
-                      value="none"
-                      className={lightSelectItemClassName}
-                    >
-                      Select branch
-                    </SelectItem>
-                    {branches.map((branch) => (
-                      <SelectItem
-                        key={branch._id}
-                        value={branch._id ?? branch.name}
-                        className={lightSelectItemClassName}
-                      >
-                        {branch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="e.g. 30000"
+                  className={lightInputClassName}
+                />
               </div>
             )}
 
-            {/* Body Measurements */}
+            {/* Salary — for trainer and cashier */}
             {(formData.role === Role.TRAINER ||
               formData.role === Role.CASHIER) && (
               <div className="space-y-2">
-                <Label
-                  htmlFor="create-salary"
-                  className="text-foreground"
-                >
+                <Label htmlFor="create-salary" className="text-foreground">
                   Salary Amount (MMK)
                 </Label>
                 <Input

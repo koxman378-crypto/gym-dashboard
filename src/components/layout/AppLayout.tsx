@@ -57,13 +57,6 @@ import { useGetUnreadCountQuery } from "@/src/store/services/notificationsApi";
 import { useGetPendingCountQuery } from "@/src/store/services/paymentRequestsApi";
 import { OwnerBranchFilterProvider } from "@/src/components/layout/OwnerBranchFilterContext";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -71,6 +64,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
+import { OwnerBranchSelect } from "@/src/components/layout/OwnerBranchSelect";
 
 type NavItem = {
   tKey: string;
@@ -121,14 +115,12 @@ const ownerNavGroups: NavGroup[] = [
         icon: Wallet,
         roles: [Role.OWNER],
         badge: "payments",
-        hidden: true,
       },
       {
         tKey: "nav.expenses",
         href: "/expenses",
         icon: ReceiptText,
         roles: [Role.OWNER],
-        hidden: true,
       },
       {
         tKey: "nav.gymPrices",
@@ -214,7 +206,6 @@ const cashierNavItems: NavItem[] = [
     icon: Wallet,
     roles: [Role.CASHIER],
     badge: "payments",
-    hidden: true,
   },
   {
     tKey: "nav.expiryPresets",
@@ -245,7 +236,6 @@ const cashierNavItems: NavItem[] = [
     href: "/expenses",
     icon: ReceiptText,
     roles: [Role.CASHIER],
-    hidden: true,
   },
   {
     tKey: "nav.attendanceHistory",
@@ -365,6 +355,10 @@ const navItems: NavItem[] = [
 
 const OWNER_BRANCH_STORAGE_KEY = "owner-branch-filter";
 
+function normalizeExternalUrl(url: string) {
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
   // All hooks must be called before any conditional returns
@@ -475,6 +469,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const selectedBranch = branches.find(
     (branch) => branch._id === selectedGymId,
   );
+  const ownerLinksHref =
+    gymProfile?.facebook ||
+    gymProfile?.instagram ||
+    gymProfile?.tiktok ||
+    gymProfile?.googleMapsUrl ||
+    null;
+  const ownerContactAction = gymProfile?.email
+    ? `mailto:${gymProfile.email}`
+    : gymProfile?.phone
+      ? `tel:${gymProfile.phone}`
+      : null;
+  const openExternalTarget = (url: string | null) => {
+    if (!url) {
+      router.push("/profile");
+      return;
+    }
+
+    if (/^(mailto:|tel:)/i.test(url)) {
+      window.location.href = url;
+      return;
+    }
+
+    window.open(normalizeExternalUrl(url), "_blank", "noopener,noreferrer");
+  };
 
   // For authenticated pages, show sidebar layout
   return (
@@ -512,36 +530,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
                 {isOwner && branches.length > 0 && (
                   <div className="mt-3 group-data-[collapsible=icon]:hidden">
-                    <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                      Viewing Branch
-                    </p>
-                    <Select
-                      value={selectedGymId ?? "all"}
-                      onValueChange={(value) =>
-                        setSelectedGymId(value === "all" ? null : value)
-                      }
-                    >
-                      <SelectTrigger className="h-9 w-44 cursor-pointer border border-gray-200 bg-white text-sm shadow-sm transition-colors hover:bg-gray-50 focus:ring-0 focus-visible:ring-0">
-                        <SelectValue placeholder="All Branches" />
-                      </SelectTrigger>
-                      <SelectContent className="border border-gray-200 bg-white shadow-lg">
-                        <SelectItem
-                          value="all"
-                          className="cursor-pointer focus:bg-gray-100"
-                        >
-                          All Branches
-                        </SelectItem>
-                        {branches.map((branch) => (
-                          <SelectItem
-                            key={branch._id}
-                            value={String(branch._id)}
-                            className="cursor-pointer focus:bg-gray-100"
-                          >
-                            {branch.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <OwnerBranchSelect
+                      branches={branches}
+                      selectedGymId={selectedGymId}
+                      onChange={setSelectedGymId}
+                      variant="compact"
+                      className="px-1 pb-1"
+                    />
                   </div>
                 )}
               </div>
@@ -589,41 +584,42 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             {group.items
                               .filter((item) => !item.hidden)
                               .map((item) => (
-                              <SidebarMenuSubItem key={item.href + item.tKey}>
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={
-                                    item.href === "/subscriptions"
-                                      ? pathname?.startsWith("/subscriptions")
-                                      : pathname === item.href
-                                  }
-                                  className="hover:bg-[hsl(215,25%,27%)] hover:text-white transition-colors"
-                                >
-                                  <Link href={item.href}>
-                                    <item.icon className="h-3.5 w-3.5 shrink-0" />
-                                    <span className="text-xs">
-                                      {t(item.tKey)}
-                                    </span>
-                                    {item.badge === "notifications" &&
-                                      unreadNotiCount > 0 && (
-                                        <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
-                                          {unreadNotiCount > 99
-                                            ? "99+"
-                                            : unreadNotiCount}
-                                        </span>
-                                      )}
-                                    {item.badge === "payments" &&
-                                      pendingPaymentCount > 0 && (
-                                        <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
-                                          {pendingPaymentCount > 99
-                                            ? "99+"
-                                            : pendingPaymentCount}
-                                        </span>
-                                      )}
-                                  </Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
+                                <SidebarMenuSubItem key={item.href + item.tKey}>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={
+                                      item.href === "/subscriptions"
+                                        ? pathname?.startsWith("/subscriptions")
+                                        : pathname === item.href
+                                    }
+                                    tooltip={t(item.tKey)}
+                                    className="hover:bg-[hsl(215,25%,27%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,27%)] data-[active=true]:text-white transition-colors"
+                                  >
+                                    <Link href={item.href}>
+                                      <item.icon className="h-3.5 w-3.5 shrink-0" />
+                                      <span className="text-xs">
+                                        {t(item.tKey)}
+                                      </span>
+                                      {item.badge === "notifications" &&
+                                        unreadNotiCount > 0 && (
+                                          <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                                            {unreadNotiCount > 99
+                                              ? "99+"
+                                              : unreadNotiCount}
+                                          </span>
+                                        )}
+                                      {item.badge === "payments" &&
+                                        pendingPaymentCount > 0 && (
+                                          <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                                            {pendingPaymentCount > 99
+                                              ? "99+"
+                                              : pendingPaymentCount}
+                                          </span>
+                                        )}
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
                           </SidebarMenuSub>
                         </CollapsibleContent>
                       </SidebarMenuItem>
@@ -631,41 +627,45 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   ))
                 ) : user?.role === Role.CASHIER ? (
                   // Flat navigation for Cashier
-                  cashierNavItems.filter((item) => !item.hidden).map((item) => (
-                    <SidebarMenuItem key={item.href + item.tKey}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={
-                          item.href === "/subscriptions"
-                            ? pathname?.startsWith("/subscriptions")
-                            : pathname === item.href
-                        }
-                        tooltip={t(item.tKey)}
-                        className="hover:bg-[hsl(215,25%,20%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
-                      >
-                        <Link href={item.href}>
-                          <item.icon className="h-4 w-4 shrink-0" />
-                          <span className="group-data-[collapsible=icon]:hidden">
-                            {t(item.tKey)}
-                          </span>
-                          {item.badge === "notifications" &&
-                            unreadNotiCount > 0 && (
-                              <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
-                                {unreadNotiCount > 99 ? "99+" : unreadNotiCount}
-                              </span>
-                            )}
-                          {item.badge === "payments" &&
-                            pendingPaymentCount > 0 && (
-                              <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
-                                {pendingPaymentCount > 99
-                                  ? "99+"
-                                  : pendingPaymentCount}
-                              </span>
-                            )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))
+                  cashierNavItems
+                    .filter((item) => !item.hidden)
+                    .map((item) => (
+                      <SidebarMenuItem key={item.href + item.tKey}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={
+                            item.href === "/subscriptions"
+                              ? pathname?.startsWith("/subscriptions")
+                              : pathname === item.href
+                          }
+                          tooltip={t(item.tKey)}
+                          className="hover:bg-[hsl(215,25%,20%)] hover:text-white data-[active=true]:bg-[hsl(215,25%,20%)] data-[active=true]:text-white"
+                        >
+                          <Link href={item.href}>
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            <span className="group-data-[collapsible=icon]:hidden">
+                              {t(item.tKey)}
+                            </span>
+                            {item.badge === "notifications" &&
+                              unreadNotiCount > 0 && (
+                                <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white">
+                                  {unreadNotiCount > 99
+                                    ? "99+"
+                                    : unreadNotiCount}
+                                </span>
+                              )}
+                            {item.badge === "payments" &&
+                              pendingPaymentCount > 0 && (
+                                <span className="group-data-[collapsible=icon]:hidden ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                                  {pendingPaymentCount > 99
+                                    ? "99+"
+                                    : pendingPaymentCount}
+                                </span>
+                              )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
                 ) : (
                   navItems
                     .filter((item) => item.roles.includes(user?.role as Role))

@@ -84,6 +84,7 @@ export interface User {
   measurementHistory?: BodyMeasurement[];
   assignedTrainer?: User | string | null;
   trainerFees?: TrainerFeeItem[];
+  salaryAmount?: number | null;
   gymId?: string | null;
   birthday?: string | Date | null;
   gender?: "male" | "female" | "other" | null;
@@ -107,6 +108,8 @@ export interface CreateUserDto {
   emergencyContact?: string;
   emergencyPhone?: string;
   notes?: string;
+  salaryAmount?: number;
+  trainerFee?: number;
   gymId?: string;
   birthday?: string;
   gender?: "male" | "female" | "other";
@@ -132,6 +135,7 @@ export interface UpdateUserDto {
   birthday?: string;
   gender?: "male" | "female" | "other";
   password?: string;
+  salaryAmount?: number;
 }
 
 export interface BodyMeasurementDto {

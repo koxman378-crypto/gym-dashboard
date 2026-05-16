@@ -10,6 +10,8 @@ export interface UsersEditFormData {
   assignedTrainer: string;
   birthday?: string;
   gender?: "male" | "female" | "other" | "";
+  salaryAmount?: number | "";
+  trainerFee?: number | "";
   bodyMeasurements?: {
     height?: number;
     weight?: number;
@@ -30,6 +32,8 @@ const defaultEditForm: UsersEditFormData = {
   assignedTrainer: "none",
   birthday: undefined,
   gender: undefined,
+  salaryAmount: "",
+  trainerFee: "",
   bodyMeasurements: undefined,
 };
 
@@ -109,6 +113,8 @@ const usersSlice = createSlice({
             : new Date(user.birthday).toISOString().split("T")[0]
           : undefined,
         gender: (user.gender as "male" | "female" | "other" | undefined) ?? undefined,
+        salaryAmount: user.salaryAmount ?? "",
+        trainerFee: user.trainerFees?.find((f) => f.isActive)?.amount ?? user.trainerFees?.[0]?.amount ?? "",
         bodyMeasurements: user.bodyMeasurements
           ? {
               height: user.bodyMeasurements.height ?? undefined,

@@ -23,17 +23,24 @@ export function NotificationToaster() {
           toast(
             `Payment left: ${latest.remainingAmount?.toLocaleString()} MMK`,
           );
-        } else if (
-          [
-            "subscription_end",
-            "gym_fee_end",
-            "trainer_end",
-            "service_end",
-          ].includes(latest.type)
-        ) {
-          toast(
-            `Ends in ${latest.daysLeft} days: ${latest.targetName || latest.type}`,
-          );
+        } else if (latest.type === "subscription_end") {
+          if (latest.offDayDaysAdded) {
+            toast(
+              `Subscription extended by ${latest.offDayDaysAdded} day(s)${latest.offDayName ? `: ${latest.offDayName}` : ""}`,
+            );
+          } else {
+            const allDays = [
+              latest.subscriptionDaysLeft,
+              latest.gymFeeDaysLeft,
+              latest.trainerDaysLeft,
+              ...(latest.serviceDaysLeft?.map((s) => s.daysLeft) ?? []),
+            ].filter((value): value is number => typeof value === "number");
+
+            const nearest = allDays.length > 0 ? Math.min(...allDays) : latest.daysLeft;
+            toast(`Ends in ${nearest} day(s): Subscription timeline updated`);
+          }
+        } else if (["gym_fee_end", "trainer_end", "service_end"].includes(latest.type)) {
+          toast(`Ends in ${latest.daysLeft} days: ${latest.targetName || latest.type}`);
         } else if (
           ["payment_approved", "payment_rejected"].includes(
             latest.type as string,

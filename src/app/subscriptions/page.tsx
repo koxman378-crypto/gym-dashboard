@@ -1,7 +1,16 @@
 "use client";
 
 import { useMemo, useState, useRef, useEffect } from "react";
-import { Filter, Plus, Calendar, History, List } from "lucide-react";
+import {
+  Filter,
+  Plus,
+  Calendar,
+  History,
+  List,
+  ImagePlus,
+  Upload,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { calculateGymFinalPrice } from "@/src/lib/priceCalculations";
@@ -38,6 +47,7 @@ import {
   useUpdateSubscriptionMutation,
   useCancelSubscriptionMutation,
   useDeleteSubscriptionMutation,
+  useGetPaymentProofUploadUrlMutation,
 } from "@/src/store/services/subscriptionsApi";
 import {
   useGetAllGymFeeRecordsQuery,
@@ -117,10 +127,15 @@ export default function SubscriptionsPage() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerComboOpen, setCustomerComboOpen] = useState(false);
   const customerComboRef = useRef<HTMLDivElement>(null);
+  const proofImageInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingProofImage, setUploadingProofImage] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (customerComboRef.current && !customerComboRef.current.contains(e.target as Node)) {
+      if (
+        customerComboRef.current &&
+        !customerComboRef.current.contains(e.target as Node)
+      ) {
         setCustomerComboOpen(false);
       }
     }
@@ -297,6 +312,55 @@ export default function SubscriptionsPage() {
   const [updateSubscription] = useUpdateSubscriptionMutation();
   const [deleteSubscription] = useDeleteSubscriptionMutation();
   const [cancelSubscription] = useCancelSubscriptionMutation();
+  const [getPaymentProofUploadUrl] = useGetPaymentProofUploadUrlMutation();
+
+  // Handle proof image upload
+  const handleProofImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size must be less than 5MB");
+      return;
+    }
+
+    setUploadingProofImage(true);
+
+    try {
+      const response = await getPaymentProofUploadUrl({
+        fileName: file.name,
+        contentType: file.type,
+      }).unwrap();
+
+      if (!response.uploadUrl || !response.publicUrl) {
+        throw new Error("Backend didn't return upload information");
+      }
+
+      const uploadResponse = await fetch(response.uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed with status: ${uploadResponse.status}`);
+      }
+
+      setFormData({ proofImage: response.publicUrl });
+    } catch (error) {
+      console.error("Image upload error:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploadingProofImage(false);
+      if (proofImageInputRef.current) {
+        proofImageInputRef.current.value = "";
+      }
+    }
+  };
 
   // Calculate totals for selected packages
   const calculatedTotals = useMemo(() => {
@@ -425,6 +489,7 @@ export default function SubscriptionsPage() {
           paymentStatus: normalizedPaymentStatus,
           paidAmount: formData.paidAmount,
           notes: formData.notes || undefined,
+          proofImage: formData.proofImage || undefined,
           gymFee:
             selectedGymFeeId && selectedGymFeeId !== "none"
               ? { feeId: selectedGymFeeId }
@@ -480,6 +545,7 @@ export default function SubscriptionsPage() {
           paymentStatus: normalizedPaymentStatus as any,
           paidAmount: formData.paidAmount,
           notes: formData.notes ?? undefined,
+          proofImage: formData.proofImage ?? undefined,
         };
 
         // Add gym fee selection if any
@@ -1697,6 +1763,98 @@ export default function SubscriptionsPage() {
                         />
                       </div>
 
+                      <div className="space-y-2">
+                        <Label>Payment Proof Image (Optional)</Label>
+                        <div className="space-y-3">
+                          <input
+                            ref={proofImageInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleProofImageUpload(file);
+                            }}
+                            disabled={uploadingProofImage}
+                          />
+                          {formData.proofImage ? (
+                            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                              <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-zinc-800">
+                                  <ImagePlus className="h-4 w-4 text-zinc-500" />
+                                  Uploaded Proof
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    proofImageInputRef.current?.click()
+                                  }
+                                  disabled={uploadingProofImage}
+                                  className={`h-8 rounded-full px-3 ${lightButtonClassName}`}
+                                >
+                                  <Upload className="mr-1.5 h-3.5 w-3.5" />
+                                  {uploadingProofImage
+                                    ? "Uploading..."
+                                    : "Replace"}
+                                </Button>
+                              </div>
+                              <div className="bg-zinc-50 p-4">
+                                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+                                  <img
+                                    src={formData.proofImage}
+                                    alt="Payment proof"
+                                    className="max-h-[220px] w-full object-contain"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between px-4 py-3">
+                                <p className="text-xs text-muted-foreground">
+                                  JPG, PNG or GIF. Max size 5MB.
+                                </p>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setFormData({ proofImage: null })
+                                  }
+                                  className="h-8 rounded-full border-red-200 px-3 text-red-600 hover:bg-red-50"
+                                >
+                                  <X className="mr-1.5 h-3.5 w-3.5" />
+                                  Remove
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                proofImageInputRef.current?.click()
+                              }
+                              disabled={uploadingProofImage}
+                              className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-5 py-8 text-center transition hover:border-zinc-400 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-zinc-600 shadow-sm">
+                                <ImagePlus className="h-5 w-5" />
+                              </div>
+                              <p className="text-sm font-semibold text-zinc-800">
+                                {uploadingProofImage
+                                  ? "Uploading image..."
+                                  : "Upload payment proof"}
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Click to choose an image file
+                              </p>
+                              <p className="mt-3 text-[11px] text-muted-foreground">
+                                JPG, PNG or GIF. Max size 5MB.
+                              </p>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
                       {/* TOTAL SUMMARY */}
                       {calculatedTotals.grandTotal > 0 && (
                         <div className="space-y-3 rounded-xl border border-zinc-200 bg-white p-5">
@@ -1996,7 +2154,12 @@ export default function SubscriptionsPage() {
                 <div className="flex items-center rounded-xl border border-zinc-200 bg-white px-3 py-2 shadow-sm focus-within:border-zinc-400">
                   <input
                     className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                    placeholder={customerIdParam ? (customers.find(c => c._id === customerIdParam)?.name ?? "Customer") : "Search customer…"}
+                    placeholder={
+                      customerIdParam
+                        ? (customers.find((c) => c._id === customerIdParam)
+                            ?.name ?? "Customer")
+                        : "Search customer…"
+                    }
                     value={customerSearch}
                     onChange={(e) => {
                       setCustomerSearch(e.target.value);
@@ -2019,16 +2182,27 @@ export default function SubscriptionsPage() {
                     {(() => {
                       const q = customerSearch.trim().toLowerCase();
                       const filtered = q
-                        ? customers.filter(c =>
-                            c.name.toLowerCase().includes(q) ||
-                            c.email.toLowerCase().includes(q)
-                          ).slice(0, 30)
+                        ? customers
+                            .filter(
+                              (c) =>
+                                c.name.toLowerCase().includes(q) ||
+                                c.email.toLowerCase().includes(q),
+                            )
+                            .slice(0, 30)
                         : customers.slice(0, 30);
                       if (isLoadingCustomers) {
-                        return <div className="px-4 py-3 text-sm text-muted-foreground">Loading…</div>;
+                        return (
+                          <div className="px-4 py-3 text-sm text-muted-foreground">
+                            Loading…
+                          </div>
+                        );
                       }
                       if (filtered.length === 0) {
-                        return <div className="px-4 py-3 text-sm text-muted-foreground">No customers found</div>;
+                        return (
+                          <div className="px-4 py-3 text-sm text-muted-foreground">
+                            No customers found
+                          </div>
+                        );
                       }
                       return filtered.map((c) => (
                         <button
@@ -2036,13 +2210,19 @@ export default function SubscriptionsPage() {
                           type="button"
                           className={[
                             "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-zinc-50",
-                            customerIdParam === c._id ? "bg-zinc-100 font-semibold" : "",
+                            customerIdParam === c._id
+                              ? "bg-zinc-100 font-semibold"
+                              : "",
                           ].join(" ")}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleCustomerFilterChange(c._id)}
                         >
-                          <span className="flex-1 truncate font-medium text-foreground">{c.name}</span>
-                          <span className="shrink-0 text-xs text-muted-foreground">{c.email}</span>
+                          <span className="flex-1 truncate font-medium text-foreground">
+                            {c.name}
+                          </span>
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {c.email}
+                          </span>
                         </button>
                       ));
                     })()}

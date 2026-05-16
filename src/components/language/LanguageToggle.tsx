@@ -37,7 +37,7 @@ export function LanguageToggle({ compact = false }: LanguageToggleProps) {
           onClick={() => setLang(option.value)}
           aria-pressed={lang === option.value}
           title={option.label}
-          className="p-0 ml-1 cursor-pointer opacity-70 hover:opacity-100 active:opacity-100 focus:opacity-100 bg-transparent border-none outline-none"
+          className="p-0 ml-1 cursor-pointer opacity-50 hover:opacity-100 active:opacity-100 focus:opacity-100 bg-transparent border-none outline-none"
           style={{ boxShadow: "none", border: "none", background: "none" }}
         >
           <Image

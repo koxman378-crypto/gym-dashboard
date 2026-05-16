@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/ui/button";
-import { LogOut, Pencil, Save } from "lucide-react";
+import { ImagePlus, LogOut, Pencil, Save, Trash2 } from "lucide-react";
 import { useLogoutMutation } from "@/src/store/services/authApi";
 import { useGeneratePresignedUrlMutation } from "@/src/store/services/usersApi";
 import {
@@ -16,7 +16,6 @@ import { GymProfileFormFields } from "@/src/components/profile/GymProfileFormFie
 import { MultiGymCrudBox } from "@/src/components/profile/MultiGymCrudBox";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
-import { ImagePlus, Trash2 } from "lucide-react";
 
 type GymProfileFormState = {
   name: string;
@@ -36,27 +35,43 @@ type GymProfileFormState = {
   isActive: boolean;
   isEditing: boolean;
   uploadingImage: boolean;
+  uploadingGallery: boolean;
   uploadError: string | null;
   successMessage: string | null;
+  multiGyms: MultiGymItem[];
+  galleryImages: string[];
 };
+
+type EditableGymProfileField = keyof Omit<
+  GymProfileFormState,
+  | "isEditing"
+  | "uploadingImage"
+  | "uploadingGallery"
+  | "uploadError"
+  | "successMessage"
+  | "multiGyms"
+  | "galleryImages"
+>;
 
 type GymProfileAction =
   | { type: "hydrate"; payload?: GymProfile }
   | {
       type: "set_field";
-      field: keyof Omit<
-        GymProfileFormState,
-        "isEditing" | "uploadingImage" | "uploadError" | "successMessage"
-      >;
+      field: EditableGymProfileField;
       value: string | boolean;
     }
   | { type: "set_editing"; value: boolean }
   | { type: "set_uploading"; value: boolean }
+  | { type: "set_uploading_gallery"; value: boolean }
   | { type: "set_error"; value: string | null }
   | { type: "set_success"; value: string | null }
+  | { type: "set_branches"; value: MultiGymItem[] }
+  | { type: "set_gallery"; value: string[] }
+  | { type: "add_gallery_image"; value: string }
+  | { type: "remove_gallery_image"; index: number }
   | { type: "reset"; payload?: GymProfile };
 
-const emptyFormState = {
+const emptyFormState: GymProfileFormState = {
   name: "",
   email: "",
   phone: "",
@@ -74,9 +89,30 @@ const emptyFormState = {
   isActive: true,
   isEditing: false,
   uploadingImage: false,
+  uploadingGallery: false,
   uploadError: null,
   successMessage: null,
+  multiGyms: [],
+  galleryImages: [],
 };
+
+function getErrorState(error: unknown, fallbackMessage: string) {
+  const candidate = error as {
+    status?: number;
+    message?: string;
+    data?: { status?: number; message?: string | string[] };
+  };
+
+  const nestedMessage = candidate?.data?.message;
+  const message = Array.isArray(nestedMessage)
+    ? nestedMessage.join(", ")
+    : nestedMessage ?? candidate?.message ?? fallbackMessage;
+
+  return {
+    status: candidate?.status ?? candidate?.data?.status,
+    message,
+  };
+}
 
 function gymProfileReducer(
   state: GymProfileFormState,
@@ -110,6 +146,8 @@ function gymProfileReducer(
         instagram: action.payload?.instagram || "",
         tiktok: action.payload?.tiktok || "",
         isActive: action.payload?.isActive ?? true,
+        multiGyms: action.payload?.multiGyms ?? [],
+        galleryImages: action.payload?.images ?? [],
       };
     case "set_field":
       return { ...state, [action.field]: action.value };
@@ -117,10 +155,28 @@ function gymProfileReducer(
       return { ...state, isEditing: action.value };
     case "set_uploading":
       return { ...state, uploadingImage: action.value };
+    case "set_uploading_gallery":
+      return { ...state, uploadingGallery: action.value };
     case "set_error":
       return { ...state, uploadError: action.value };
     case "set_success":
       return { ...state, successMessage: action.value };
+    case "set_branches":
+      return { ...state, multiGyms: action.value };
+    case "set_gallery":
+      return { ...state, galleryImages: action.value };
+    case "add_gallery_image":
+      return {
+        ...state,
+        galleryImages: [...state.galleryImages, action.value],
+      };
+    case "remove_gallery_image":
+      return {
+        ...state,
+        galleryImages: state.galleryImages.filter(
+          (_, index) => index !== action.index,
+        ),
+      };
     default:
       return state;
   }
@@ -137,9 +193,6 @@ export default function GymProfilePage() {
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
 
   const [state, dispatch] = React.useReducer(gymProfileReducer, emptyFormState);
-  const [multiGyms, setMultiGyms] = React.useState<MultiGymItem[]>([]);
-  const [galleryImages, setGalleryImages] = React.useState<string[]>([]);
-  const [uploadingGallery, setUploadingGallery] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const galleryInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -147,8 +200,6 @@ export default function GymProfilePage() {
 
   React.useEffect(() => {
     dispatch({ type: "hydrate", payload: profileData });
-    setMultiGyms(profileData?.multiGyms ?? []);
-    setGalleryImages(profileData?.images ?? []);
   }, [profileData]);
 
   const handleLogout = async () => {
@@ -208,27 +259,25 @@ export default function GymProfilePage() {
         type: "set_success",
         value: "Logo uploaded! Click 'Save Changes' to update the gym profile.",
       });
-    } catch (error: any) {
-      if (error?.status === 404) {
+    } catch (error) {
+      const { status, message } = getErrorState(
+        error,
+        "Failed to upload image. Please try again.",
+      );
+
+      if (status === 404) {
         dispatch({
           type: "set_error",
           value:
             "Upload endpoint not found. Please restart the backend server.",
         });
-      } else if (error?.data?.message) {
-        dispatch({
-          type: "set_error",
-          value: `Upload failed: ${error.data.message}`,
-        });
-      } else if (error?.message) {
-        dispatch({
-          type: "set_error",
-          value: `Upload failed: ${error.message}`,
-        });
       } else {
         dispatch({
           type: "set_error",
-          value: "Failed to upload image. Please try again.",
+          value:
+            message === "Failed to upload image. Please try again."
+              ? message
+              : `Upload failed: ${message}`,
         });
       }
     } finally {
@@ -308,8 +357,8 @@ export default function GymProfilePage() {
         latitude: parsedLatitude,
         longitude: parsedLongitude,
         isActive: state.isActive,
-        images: galleryImages,
-        multiGyms: multiGyms
+        images: state.galleryImages,
+        multiGyms: state.multiGyms
           .map((branch) => ({
             ...(branch._id ? { _id: branch._id } : {}),
             name: branch.name.trim(),
@@ -373,6 +422,14 @@ export default function GymProfilePage() {
           value: String(updatedProfile.longitude),
         });
       }
+      dispatch({
+        type: "set_branches",
+        value: updatedProfile?.multiGyms ?? state.multiGyms,
+      });
+      dispatch({
+        type: "set_gallery",
+        value: updatedProfile?.images ?? state.galleryImages,
+      });
 
       dispatch({ type: "set_editing", value: false });
       dispatch({
@@ -380,18 +437,15 @@ export default function GymProfilePage() {
         value: "Gym profile updated successfully!",
       });
       setTimeout(() => dispatch({ type: "set_success", value: null }), 3000);
-    } catch (error: any) {
-      if (error?.data?.message) {
-        const errorMsg = Array.isArray(error.data.message)
-          ? error.data.message.join(", ")
-          : error.data.message;
-        dispatch({ type: "set_error", value: `Update failed: ${errorMsg}` });
-      } else {
-        dispatch({
-          type: "set_error",
-          value: "Failed to update gym profile. Please try again.",
-        });
-      }
+    } catch (error) {
+      const fallbackMessage = "Failed to update gym profile. Please try again.";
+      const { message } = getErrorState(error, fallbackMessage);
+
+      dispatch({
+        type: "set_error",
+        value:
+          message === fallbackMessage ? message : `Update failed: ${message}`,
+      });
     }
   };
 
@@ -407,46 +461,59 @@ export default function GymProfilePage() {
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      dispatch({ type: "set_error", value: "Image size must be less than 5MB" });
+      dispatch({
+        type: "set_error",
+        value: "Image size must be less than 5MB",
+      });
       return;
     }
-    setUploadingGallery(true);
+    dispatch({ type: "set_uploading_gallery", value: true });
     dispatch({ type: "set_error", value: null });
     try {
       const response = await generatePresignedUrl({
         fileName: file.name,
         contentType: file.type,
       }).unwrap();
+
+      if (!response.uploadUrl || !response.publicUrl) {
+        throw new Error("Backend didn't return upload information");
+      }
+
       const uploadResponse = await fetch(response.uploadUrl, {
         method: "PUT",
         body: file,
         headers: { "Content-Type": file.type },
       });
-      if (!uploadResponse.ok) throw new Error(`S3 upload failed: ${uploadResponse.status}`);
-      setGalleryImages((prev) => [...prev, response.publicUrl]);
+
+      if (!uploadResponse.ok) {
+        throw new Error(`S3 upload failed: ${uploadResponse.status}`);
+      }
+
+      dispatch({ type: "add_gallery_image", value: response.publicUrl });
       dispatch({ type: "set_editing", value: true });
-    } catch (error: any) {
+    } catch (error) {
+      const fallbackMessage = "Failed to upload gallery image.";
+      const { message } = getErrorState(error, fallbackMessage);
+
       dispatch({
         type: "set_error",
-        value: error?.message ?? "Failed to upload gallery image.",
+        value:
+          message === fallbackMessage ? message : `Upload failed: ${message}`,
       });
     } finally {
-      setUploadingGallery(false);
+      dispatch({ type: "set_uploading_gallery", value: false });
       if (galleryInputRef.current) galleryInputRef.current.value = "";
     }
   };
 
   const handleRemoveGalleryImage = (index: number) => {
-    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+    dispatch({ type: "remove_gallery_image", index });
     dispatch({ type: "set_editing", value: true });
   };
 
   const setField =
     (
-      field: keyof Omit<
-        GymProfileFormState,
-        "isEditing" | "uploadingImage" | "uploadError" | "successMessage"
-      >,
+      field: EditableGymProfileField,
     ) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch({ type: "set_field", field, value: e.target.value });
@@ -559,10 +626,10 @@ export default function GymProfilePage() {
             <span className="text-xs text-gray-500">Manage your gym branches</span>
           </div>
           <MultiGymCrudBox
-            branches={multiGyms}
+            branches={state.multiGyms}
             disabled={isFormLocked}
             onChange={(nextBranches) => {
-              setMultiGyms(nextBranches);
+              dispatch({ type: "set_branches", value: nextBranches });
               dispatch({ type: "set_editing", value: true });
             }}
           />
@@ -590,17 +657,17 @@ export default function GymProfilePage() {
               />
               <Button
                 type="button"
-                disabled={uploadingGallery || !state.isEditing}
+                disabled={state.uploadingGallery || !state.isEditing}
                 onClick={() => galleryInputRef.current?.click()}
                 className="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
               >
                 <ImagePlus className="h-4 w-4" />
-                {uploadingGallery ? "Uploading..." : "Add Image"}
+                {state.uploadingGallery ? "Uploading..." : "Add Image"}
               </Button>
             </div>
           </div>
 
-          {galleryImages.length === 0 ? (
+          {state.galleryImages.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-12 text-center">
               <ImagePlus className="h-10 w-10 text-gray-300 mb-3" />
               <p className="text-sm text-gray-400">No gallery images yet.</p>
@@ -610,7 +677,7 @@ export default function GymProfilePage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-              {galleryImages.map((url, index) => (
+              {state.galleryImages.map((url, index) => (
                 <div key={index} className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200">
                   <img
                     src={url}
@@ -619,6 +686,7 @@ export default function GymProfilePage() {
                   />
                   {state.isEditing && (
                     <button
+                      type="button"
                       onClick={() => handleRemoveGalleryImage(index)}
                       className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow"
                     >
@@ -630,8 +698,9 @@ export default function GymProfilePage() {
               {/* Add more button inline */}
               {state.isEditing && (
                 <button
+                  type="button"
                   onClick={() => galleryInputRef.current?.click()}
-                  disabled={uploadingGallery}
+                  disabled={state.uploadingGallery}
                   className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-gray-300 hover:text-gray-500 transition-colors disabled:opacity-50"
                 >
                   <ImagePlus className="h-6 w-6" />

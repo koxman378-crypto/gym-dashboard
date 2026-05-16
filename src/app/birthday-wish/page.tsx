@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useReducer } from "react";
 import { motion } from "motion/react";
 import {
   Gift,
@@ -27,6 +27,37 @@ import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 import { toast } from "sonner";
 import { ManualSendDialog } from "@/src/components/birthday/ManualSendDialog";
 
+interface BirthdayWishState {
+  message: string;
+  initialized: boolean;
+  selectedUser: BirthdayUser | null;
+  isDialogOpen: boolean;
+}
+
+type BirthdayWishAction =
+  | { type: "setMessage"; payload: string }
+  | { type: "initializeMessage"; payload: string }
+  | { type: "openDialog"; payload: BirthdayUser }
+  | { type: "closeDialog" };
+
+function birthdayWishReducer(
+  state: BirthdayWishState,
+  action: BirthdayWishAction,
+): BirthdayWishState {
+  switch (action.type) {
+    case "setMessage":
+      return { ...state, message: action.payload };
+    case "initializeMessage":
+      return { ...state, initialized: true, message: action.payload };
+    case "openDialog":
+      return { ...state, selectedUser: action.payload, isDialogOpen: true };
+    case "closeDialog":
+      return { ...state, selectedUser: null, isDialogOpen: false };
+    default:
+      return state;
+  }
+}
+
 export default function BirthdayWishPage() {
   const { t } = useLanguage();
   const { user } = useAppSelector((state) => state.auth);
@@ -41,16 +72,20 @@ export default function BirthdayWishPage() {
   } = useGetTodayBirthdaysQuery(gymId);
   const [manualSend] = useManualSendBirthdayWishMutation();
 
-  const [message, setMessage] = useState<string>("");
-  const [initialized, setInitialized] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<BirthdayUser | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [state, dispatch] = useReducer(birthdayWishReducer, {
+    message: "",
+    initialized: false,
+    selectedUser: null,
+    isDialogOpen: false,
+  });
+  const { message, initialized, selectedUser, isDialogOpen } = state;
 
   // Initialize textarea once data arrives
-  if (!initialized && !wishLoading) {
-    setMessage(wish?.message ?? "");
-    setInitialized(true);
-  }
+  useEffect(() => {
+    if (!initialized && !wishLoading) {
+      dispatch({ type: "initializeMessage", payload: wish?.message ?? "" });
+    }
+  }, [initialized, wishLoading, wish?.message]);
 
   const handleSave = async () => {
     const trimmed = message.trim();
@@ -64,8 +99,7 @@ export default function BirthdayWishPage() {
   };
 
   const handleOpenDialog = (user: BirthdayUser) => {
-    setSelectedUser(user);
-    setIsDialogOpen(true);
+    dispatch({ type: "openDialog", payload: user });
   };
 
   const handleManualSend = async (
@@ -76,7 +110,7 @@ export default function BirthdayWishPage() {
     try {
       await manualSend({ userId, message, imageUrl }).unwrap();
       toast.success("Birthday wish sent successfully!");
-      setIsDialogOpen(false);
+      dispatch({ type: "closeDialog" });
       refetch();
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to send birthday wish");
@@ -124,7 +158,9 @@ export default function BirthdayWishPage() {
           <Textarea
             rows={4}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) =>
+              dispatch({ type: "setMessage", payload: e.target.value })
+            }
             placeholder={t("birthdayWish.messagePlaceholder")}
             className="resize-none text-zinc-800 border-zinc-300 focus:border-orange-400 focus:ring-orange-400"
           />
@@ -167,9 +203,6 @@ export default function BirthdayWishPage() {
                     </p>
                     <p className="text-xs text-zinc-400">
                       {new Date(entry.updatedAt).toLocaleString()}{" "}
-                      {entry.updatedBy
-                        ? `· ${t("birthdayWish.updatedBy")} ${entry.updatedBy}`
-                        : ""}
                     </p>
                   </li>
                 ))}
@@ -263,7 +296,10 @@ export default function BirthdayWishPage() {
       {selectedUser && (
         <ManualSendDialog
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={(open) => {
+            if (open) return;
+            dispatch({ type: "closeDialog" });
+          }}
           user={selectedUser}
           defaultMessage={wish?.message || ""}
           onSend={handleManualSend}
