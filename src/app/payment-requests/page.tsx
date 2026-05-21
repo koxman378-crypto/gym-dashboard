@@ -14,7 +14,11 @@ import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { cn } from "@/src/lib/utils";
 import { useAppSelector } from "@/src/store/hooks";
-import { Role } from "@/src/types/type";
+import {
+  Role,
+  type PaymentRequestStatusFilter,
+  type PaymentRequestStatusFilterAction,
+} from "@/src/types/type";
 import {
   useGetPaymentRequestsQuery,
   useGetPendingCountQuery,
@@ -35,14 +39,10 @@ import {
 } from "@/src/components/ui/select";
 
 const DEFAULT_PAGE_SIZE = 12;
-type StatusFilter = "" | "pending" | "approved" | "rejected";
-
-type StatusFilterAction = { type: "set"; value: StatusFilter };
-
 function statusFilterReducer(
-  _state: StatusFilter,
-  action: StatusFilterAction,
-): StatusFilter {
+  _state: PaymentRequestStatusFilter,
+  action: PaymentRequestStatusFilterAction,
+): PaymentRequestStatusFilter {
   if (action.type === "set") return action.value;
   return "";
 }
@@ -546,7 +546,7 @@ export default function PaymentRequestsPage() {
                 onClick={() => {
                   dispatchStatusFilter({
                     type: "set",
-                    value: f.value as StatusFilter,
+                    value: f.value as PaymentRequestStatusFilter,
                   });
                   setPage(1);
                 }}

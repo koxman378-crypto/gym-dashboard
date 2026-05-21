@@ -11,7 +11,15 @@ import {
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import type { CreateOtherServiceDto } from "@/src/types/extended-types";
+import type { MultiGymItem } from "@/src/types/type";
 
 const lightInputClassName =
   "border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20";
@@ -24,6 +32,10 @@ const lightButtonClassName =
 interface OtherServiceFormDialogProps {
   open: boolean;
   isEdit: boolean;
+  isOwner: boolean;
+  branches: MultiGymItem[];
+  selectedGymId: string;
+  onSelectedGymIdChange: (gymId: string) => void;
   formData: CreateOtherServiceDto;
   onOpenChange: (open: boolean) => void;
   onChange: (data: CreateOtherServiceDto) => void;
@@ -33,6 +45,10 @@ interface OtherServiceFormDialogProps {
 export function OtherServiceFormDialog({
   open,
   isEdit,
+  isOwner,
+  branches,
+  selectedGymId,
+  onSelectedGymIdChange,
   formData,
   onOpenChange,
   onChange,
@@ -50,6 +66,32 @@ export function OtherServiceFormDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
+          {!isEdit && isOwner && branches.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-foreground">
+                Branch <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={selectedGymId}
+                onValueChange={onSelectedGymIdChange}
+              >
+                <SelectTrigger className={lightInputClassName}>
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Select branch</SelectItem>
+                  {branches.map((branch) => (
+                    <SelectItem
+                      key={branch._id ?? branch.name}
+                      value={branch._id ?? branch.name}
+                    >
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-foreground">
               Name

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -27,8 +28,11 @@ const lightButtonClassName =
 
 export default function GymPricesPage() {
   const { t } = useLanguage();
-  const { isOwner, selectedGymId } = useOwnerBranchFilter();
+  const { isOwner, selectedGymId, branches } = useOwnerBranchFilter();
   const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
+  const [createGymId, setCreateGymId] = useState<string>(
+    selectedGymId ?? "none",
+  );
   const {
     isCreateDialogOpen,
     isEditDialogOpen,
@@ -57,6 +61,14 @@ export default function GymPricesPage() {
 
   const handleCreate = async () => {
     try {
+      const targetGymId =
+        isOwner && createGymId !== "none" ? createGymId : branchQuery;
+
+      if (isOwner && branches.length > 0 && !targetGymId) {
+        alert("Please select a gym branch before creating a gym fee.");
+        return;
+      }
+
       const payload: CreateGymFeeRecordDto = {
         name: formData.name.trim(),
         amount: Number(formData.amount || 0),
@@ -72,9 +84,10 @@ export default function GymPricesPage() {
             : Number(formData.promotionValue),
         isActive: formData.isActive,
       };
-      await createFee({ data: payload, gymId: branchQuery }).unwrap();
+      await createFee({ data: payload, gymId: targetGymId }).unwrap();
       closeCreateDialog();
       resetForm();
+      setCreateGymId(selectedGymId ?? "none");
     } catch (error: any) {
       alert(error?.data?.message || "Failed to create gym fee");
     }
@@ -145,7 +158,10 @@ export default function GymPricesPage() {
           </p>
         </div>
         <Button
-          onClick={() => openCreateDialog()}
+          onClick={() => {
+            setCreateGymId(selectedGymId ?? "none");
+            openCreateDialog();
+          }}
           className={`cursor-pointer gap-2 px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
         >
           <Plus className="h-4 w-4" />
@@ -166,11 +182,18 @@ export default function GymPricesPage() {
       <GymFeeFormDialog
         open={isCreateDialogOpen || isEditDialogOpen}
         isEdit={isEditDialogOpen}
+        isOwner={isOwner}
+        branches={branches}
+        selectedGymId={createGymId}
+        onSelectedGymIdChange={setCreateGymId}
         formData={formData}
         onOpenChange={(open) => {
           if (!open) {
             if (isEditDialogOpen) closeEditDialog();
-            else closeCreateDialog();
+            else {
+              closeCreateDialog();
+              setCreateGymId(selectedGymId ?? "none");
+            }
           }
         }}
         onChange={(data) => setFormData(data)}

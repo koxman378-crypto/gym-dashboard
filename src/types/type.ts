@@ -1,4 +1,14 @@
 import type { TrainerFeeItem } from "./extended-types";
+import type {
+  Expense,
+  ExpenseCategory,
+  ExpenseStatus,
+} from "@/src/store/services/expensesApi";
+import type { BirthdayUser } from "@/src/store/services/birthdayWishApi";
+import type {
+  GymNotification,
+  NotificationType,
+} from "@/src/store/services/notificationsApi";
 
 export enum Role {
   OWNER = "owner",
@@ -242,3 +252,157 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 }
+
+// Expenses page local types
+export type StatusFilter = "all" | ExpenseStatus;
+export type CategoryFilter = "all" | ExpenseCategory;
+export type MonthFilter = "all" | `${number}`;
+
+export interface ExpenseMonthGroup {
+  key: string;
+  year: number;
+  month: number;
+  label: string;
+  expenses: Expense[];
+  total: number;
+  count: number;
+}
+
+export interface ExpenseFormState {
+  title: string;
+  amount: string;
+  category: ExpenseCategory;
+  note: string;
+}
+
+// Birthday wish page
+export interface BirthdayWishState {
+  message: string;
+  initialized: boolean;
+  selectedUser: BirthdayUser | null;
+  isDialogOpen: boolean;
+}
+
+export type BirthdayWishAction =
+  | { type: "setMessage"; payload: string }
+  | { type: "initializeMessage"; payload: string }
+  | { type: "openDialog"; payload: BirthdayUser }
+  | { type: "closeDialog" };
+
+// Attendance history page
+export interface AttendanceHistoryState {
+  search: string;
+  debouncedSearch: string;
+  page: number;
+  selectedUser: User | null;
+}
+
+export type AttendanceHistoryAction =
+  | { type: "setSearch"; payload: string }
+  | { type: "setDebouncedSearch"; payload: string }
+  | { type: "setPage"; payload: number }
+  | { type: "prevPage" }
+  | { type: "nextPage" }
+  | { type: "setSelectedUser"; payload: User | null };
+
+// Attendance page
+export interface AttendanceLocalState {
+  limit: number;
+  selectedUserId: string;
+  selectedDate: string;
+  searchName: string;
+  currentDuration: number;
+  nowTs: number;
+}
+
+export type AttendanceLocalAction =
+  | { type: "setLimit"; payload: number }
+  | { type: "setSelectedUserId"; payload: string }
+  | { type: "setSelectedDate"; payload: string }
+  | { type: "setSearchName"; payload: string }
+  | { type: "setCurrentDuration"; payload: number }
+  | { type: "setNowTs"; payload: number }
+  | { type: "resetFilters" };
+
+// Profile page
+export type GymProfileFormState = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  logo: string;
+  latitude: string;
+  longitude: string;
+  locationLabel: string;
+  googleMapsUrl: string;
+  description: string;
+  coverImage: string;
+  facebook: string;
+  instagram: string;
+  tiktok: string;
+  isActive: boolean;
+  isEditing: boolean;
+  uploadingImage: boolean;
+  uploadingGallery: boolean;
+  uploadError: string | null;
+  successMessage: string | null;
+  multiGyms: MultiGymItem[];
+  galleryImages: string[];
+};
+
+export type EditableGymProfileField = keyof Omit<
+  GymProfileFormState,
+  | "isEditing"
+  | "uploadingImage"
+  | "uploadingGallery"
+  | "uploadError"
+  | "successMessage"
+  | "multiGyms"
+  | "galleryImages"
+>;
+
+export type GymProfileAction =
+  | { type: "hydrate"; payload?: GymProfile }
+  | {
+      type: "set_field";
+      field: EditableGymProfileField;
+      value: string | boolean;
+    }
+  | { type: "set_editing"; value: boolean }
+  | { type: "set_uploading"; value: boolean }
+  | { type: "set_uploading_gallery"; value: boolean }
+  | { type: "set_error"; value: string | null }
+  | { type: "set_success"; value: string | null }
+  | { type: "set_branches"; value: MultiGymItem[] }
+  | { type: "set_gallery"; value: string[] }
+  | { type: "add_gallery_image"; value: string }
+  | { type: "remove_gallery_image"; index: number }
+  | { type: "reset"; payload?: GymProfile };
+
+// Payment requests page
+export type PaymentRequestStatusFilter = "" | "pending" | "approved" | "rejected";
+export type PaymentRequestStatusFilterAction = {
+  type: "set";
+  value: PaymentRequestStatusFilter;
+};
+
+// Shared dashboard notification grouping
+export type NotificationListItem = {
+  key: string;
+  subscriptionId: string;
+  customerId: string;
+  customerName: string;
+  customerAvatar?: string | null;
+  expiryItems: Array<{
+    notification: GymNotification;
+    type: NotificationType;
+    targetName: string | null;
+    daysLeft: number;
+  }>;
+  payment?: GymNotification;
+  relatedIds: string[];
+  isUnread: boolean;
+  offDayName?: string | null;
+  offDayDaysAdded?: number | null;
+  offDayAppliedAt?: string | null;
+};

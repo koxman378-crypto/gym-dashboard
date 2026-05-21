@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/src/components/ui/select";
 import type { DurationUnit, PromotionType } from "@/src/types/extended-types";
+import type { MultiGymItem } from "@/src/types/type";
 
 const lightSelectTriggerClassName =
   "border border-gray-200 bg-white text-foreground hover:border-gray-300 focus:border-gray-300 focus:ring-0";
@@ -47,6 +48,10 @@ export type GymFeeFormState = {
 interface GymFeeFormDialogProps {
   open: boolean;
   isEdit: boolean;
+  isOwner: boolean;
+  branches: MultiGymItem[];
+  selectedGymId: string;
+  onSelectedGymIdChange: (gymId: string) => void;
   formData: GymFeeFormState;
   onOpenChange: (open: boolean) => void;
   onChange: (data: GymFeeFormState) => void;
@@ -56,6 +61,10 @@ interface GymFeeFormDialogProps {
 export function GymFeeFormDialog({
   open,
   isEdit,
+  isOwner,
+  branches,
+  selectedGymId,
+  onSelectedGymIdChange,
   formData,
   onOpenChange,
   onChange,
@@ -73,6 +82,35 @@ export function GymFeeFormDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          {!isEdit && isOwner && branches.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-foreground">
+                Branch <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={selectedGymId}
+                onValueChange={onSelectedGymIdChange}
+              >
+                <SelectTrigger className={lightSelectTriggerClassName}>
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent className={lightSelectContentClassName}>
+                  <SelectItem value="none" className={lightSelectItemClassName}>
+                    Select branch
+                  </SelectItem>
+                  {branches.map((branch) => (
+                    <SelectItem
+                      key={branch._id ?? branch.name}
+                      value={branch._id ?? branch.name}
+                      className={lightSelectItemClassName}
+                    >
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-foreground">
               Name

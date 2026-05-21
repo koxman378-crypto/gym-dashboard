@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -21,8 +22,11 @@ import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 export default function OtherServicesPage() {
   const { t } = useLanguage();
-  const { isOwner, selectedGymId } = useOwnerBranchFilter();
+  const { isOwner, selectedGymId, branches } = useOwnerBranchFilter();
   const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
+  const [createGymId, setCreateGymId] = useState<string>(
+    selectedGymId ?? "none",
+  );
   const {
     isCreateDialogOpen,
     isEditDialogOpen,
@@ -55,6 +59,14 @@ export default function OtherServicesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const targetGymId =
+      isOwner && createGymId !== "none" ? createGymId : branchQuery;
+
+    if (!isEditDialogOpen && isOwner && branches.length > 0 && !targetGymId) {
+      alert("Please select a gym branch before creating a service.");
+      return;
+    }
+
     const payload = {
       ...formData,
       amountDays: Number(formData.amountDays || 0),
@@ -65,8 +77,9 @@ export default function OtherServicesPage() {
       await updateItem({ id: selectedItem._id, data: payload }).unwrap();
       closeEditDialog();
     } else {
-      await createItem({ data: payload, gymId: branchQuery }).unwrap();
+      await createItem({ data: payload, gymId: targetGymId }).unwrap();
       closeCreateDialog();
+      setCreateGymId(selectedGymId ?? "none");
     }
   };
 
@@ -106,7 +119,10 @@ export default function OtherServicesPage() {
           </p>
         </div>
         <Button
-          onClick={() => openCreateDialog()}
+          onClick={() => {
+            setCreateGymId(selectedGymId ?? "none");
+            openCreateDialog();
+          }}
           className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -127,11 +143,18 @@ export default function OtherServicesPage() {
       <OtherServiceFormDialog
         open={isCreateDialogOpen || isEditDialogOpen}
         isEdit={isEditDialogOpen}
+        isOwner={isOwner}
+        branches={branches}
+        selectedGymId={createGymId}
+        onSelectedGymIdChange={setCreateGymId}
         formData={formData}
         onOpenChange={(open) => {
           if (!open) {
             if (isEditDialogOpen) closeEditDialog();
-            else closeCreateDialog();
+            else {
+              closeCreateDialog();
+              setCreateGymId(selectedGymId ?? "none");
+            }
           }
         }}
         onChange={(data) => setFormData(data)}

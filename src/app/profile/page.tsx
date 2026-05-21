@@ -11,65 +11,16 @@ import {
   useUpdateGymProfileMutation,
 } from "@/src/store/services/gymProfileApi";
 import type { GymProfile, MultiGymItem } from "@/src/types/type";
+import type {
+  EditableGymProfileField,
+  GymProfileAction,
+  GymProfileFormState,
+} from "@/src/types/type";
 import { GymLogoUpload } from "@/src/components/profile/GymLogoUpload";
 import { GymProfileFormFields } from "@/src/components/profile/GymProfileFormFields";
 import { MultiGymCrudBox } from "@/src/components/profile/MultiGymCrudBox";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
-
-type GymProfileFormState = {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  logo: string;
-  latitude: string;
-  longitude: string;
-  locationLabel: string;
-  googleMapsUrl: string;
-  description: string;
-  coverImage: string;
-  facebook: string;
-  instagram: string;
-  tiktok: string;
-  isActive: boolean;
-  isEditing: boolean;
-  uploadingImage: boolean;
-  uploadingGallery: boolean;
-  uploadError: string | null;
-  successMessage: string | null;
-  multiGyms: MultiGymItem[];
-  galleryImages: string[];
-};
-
-type EditableGymProfileField = keyof Omit<
-  GymProfileFormState,
-  | "isEditing"
-  | "uploadingImage"
-  | "uploadingGallery"
-  | "uploadError"
-  | "successMessage"
-  | "multiGyms"
-  | "galleryImages"
->;
-
-type GymProfileAction =
-  | { type: "hydrate"; payload?: GymProfile }
-  | {
-      type: "set_field";
-      field: EditableGymProfileField;
-      value: string | boolean;
-    }
-  | { type: "set_editing"; value: boolean }
-  | { type: "set_uploading"; value: boolean }
-  | { type: "set_uploading_gallery"; value: boolean }
-  | { type: "set_error"; value: string | null }
-  | { type: "set_success"; value: string | null }
-  | { type: "set_branches"; value: MultiGymItem[] }
-  | { type: "set_gallery"; value: string[] }
-  | { type: "add_gallery_image"; value: string }
-  | { type: "remove_gallery_image"; index: number }
-  | { type: "reset"; payload?: GymProfile };
 
 const emptyFormState: GymProfileFormState = {
   name: "",
@@ -106,7 +57,7 @@ function getErrorState(error: unknown, fallbackMessage: string) {
   const nestedMessage = candidate?.data?.message;
   const message = Array.isArray(nestedMessage)
     ? nestedMessage.join(", ")
-    : nestedMessage ?? candidate?.message ?? fallbackMessage;
+    : (nestedMessage ?? candidate?.message ?? fallbackMessage);
 
   return {
     status: candidate?.status ?? candidate?.data?.status,
@@ -512,9 +463,7 @@ export default function GymProfilePage() {
   };
 
   const setField =
-    (
-      field: EditableGymProfileField,
-    ) =>
+    (field: EditableGymProfileField) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch({ type: "set_field", field, value: e.target.value });
       dispatch({ type: "set_editing", value: true });
@@ -623,7 +572,9 @@ export default function GymProfilePage() {
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-foreground">Branches</h3>
-            <span className="text-xs text-gray-500">Manage your gym branches</span>
+            <span className="text-xs text-gray-500">
+              Manage your gym branches
+            </span>
           </div>
           <MultiGymCrudBox
             branches={state.multiGyms}
@@ -636,7 +587,7 @@ export default function GymProfilePage() {
         </div>
 
         {/* Gallery Images */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        {/* <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-foreground">Gallery</h3>
@@ -695,7 +646,6 @@ export default function GymProfilePage() {
                   )}
                 </div>
               ))}
-              {/* Add more button inline */}
               {state.isEditing && (
                 <button
                   type="button"
@@ -709,7 +659,7 @@ export default function GymProfilePage() {
               )}
             </div>
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   );

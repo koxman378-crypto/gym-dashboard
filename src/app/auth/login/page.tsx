@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   const getLandingPath = (role?: Role) => {
     if (role === Role.CUSTOMER) return "/attendance";
-    if (role === Role.CASHIER) return "/subscriptions";
+    if (role === Role.CASHIER) return "/users";
     if (role === Role.TRAINER) return "/users";
     if (role === Role.OWNER) return "/users";
     return "/attendance";

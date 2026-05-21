@@ -1,7 +1,7 @@
 "use client";
 
 import type { ElementType } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   CircleDollarSign,
   Filter,
@@ -29,27 +29,13 @@ import {
   useGetAllStaffQuery,
 } from "@/src/store/services/usersApi";
 import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
-
-type StatusFilter = "all" | ExpenseStatus;
-type CategoryFilter = "all" | ExpenseCategory;
-type MonthFilter = "all" | `${number}`;
-
-type ExpenseMonthGroup = {
-  key: string;
-  year: number;
-  month: number;
-  label: string;
-  expenses: Expense[];
-  total: number;
-  count: number;
-};
-
-type ExpenseFormState = {
-  title: string;
-  amount: string;
-  category: ExpenseCategory;
-  note: string;
-};
+import type {
+  CategoryFilter,
+  ExpenseFormState,
+  ExpenseMonthGroup,
+  MonthFilter,
+  StatusFilter,
+} from "@/src/types/type";
 
 const MONTH_NAMES = [
   "January",
@@ -363,14 +349,29 @@ export default function ExpensesPage() {
     [selectedYear, selectedMonthFilter],
   );
   const canCreateExpense = user?.role === "owner" || user?.role === "cashier";
+  const handleStatusChange = (value: StatusFilter) => {
+    setStatusFilter(value);
+    setPage(1);
+  };
+  const handleCategoryChange = (value: CategoryFilter) => {
+    setCategoryFilter(value);
+    setPage(1);
+  };
+  const handleYearChange = (value: number) => {
+    setSelectedYear(value);
+    setPage(1);
+  };
+  const handleMonthChange = (value: MonthFilter) => {
+    setSelectedMonthFilter(value);
+    setPage(1);
+  };
+  const handleBranchChange = (value: string | null) => {
+    setSelectedGymId(value);
+    setPage(1);
+  };
 
-  const {
-    data: expensesResponse,
-    isLoading: expensesLoading,
-    isFetching: expensesFetching,
-    error: expensesError,
-  } = useGetExpensesQuery(
-    {
+  const listQueryArgs = useMemo(
+    () => ({
       gymId,
       status: statusFilter === "all" ? undefined : statusFilter,
       category: categoryFilter === "all" ? undefined : categoryFilter,
@@ -379,18 +380,39 @@ export default function ExpensesPage() {
       to: rangeBounds.to,
       page,
       limit: pageSize,
-    },
-    { skip: !user },
+    }),
+    [
+      gymId,
+      statusFilter,
+      categoryFilter,
+      isOwner,
+      user?._id,
+      rangeBounds.from,
+      rangeBounds.to,
+      page,
+      pageSize,
+    ],
   );
 
+  const summaryQueryArgs = useMemo(
+    () => ({ gymId, from: rangeBounds.from, to: rangeBounds.to }),
+    [gymId, rangeBounds.from, rangeBounds.to],
+  );
+
+  const staffQueryArgs = useMemo(() => ({ gymId }), [gymId]);
+
+  const {
+    data: expensesResponse,
+    isLoading: expensesLoading,
+    isFetching: expensesFetching,
+    error: expensesError,
+  } = useGetExpensesQuery(listQueryArgs, { skip: !user });
+
   const { data: summaryResponse, isLoading: financeLoading } =
-    useGetExpenseSummaryQuery(
-      { gymId, from: rangeBounds.from, to: rangeBounds.to },
-      { skip: !isOwner },
-    );
+    useGetExpenseSummaryQuery(summaryQueryArgs, { skip: !isOwner });
 
   const { data: staff = [] } = useGetAllStaffQuery(
-    { gymId },
+    staffQueryArgs,
     { skip: !canCreateExpense || !gymId },
   );
 
@@ -451,17 +473,6 @@ export default function ExpensesPage() {
   const totalPages = expensesResponse?.totalPages ?? 1;
   const historyRangeStart = totalExpensesCount > 0 ? (page - 1) * pageSize + 1 : 0;
   const historyRangeEnd = Math.min(page * pageSize, totalExpensesCount);
-
-  useEffect(() => {
-    setPage(1);
-  }, [statusFilter, categoryFilter, selectedYear, selectedMonthFilter, gymId]);
-
-  useEffect(() => {
-    const totalPages = expensesResponse?.totalPages ?? 1;
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [expensesResponse?.totalPages, page]);
 
   const handleExpenseSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -538,7 +549,7 @@ export default function ExpensesPage() {
                   className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-gray-300"
                   value={selectedMonthFilter}
                   onChange={(event) =>
-                    setSelectedMonthFilter(event.target.value as MonthFilter)
+                    handleMonthChange(event.target.value as MonthFilter)
                   }
                 >
                   {MONTH_FILTER_OPTIONS.map((option) => (
@@ -551,7 +562,7 @@ export default function ExpensesPage() {
                 <select
                   className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-gray-300"
                   value={selectedYear}
-                  onChange={(event) => setSelectedYear(Number(event.target.value))}
+                  onChange={(event) => handleYearChange(Number(event.target.value))}
                 >
                   {yearOptions.map((year) => (
                     <option key={year} value={year}>
@@ -564,7 +575,7 @@ export default function ExpensesPage() {
                   <OwnerBranchSelect
                     branches={branches}
                     selectedGymId={selectedGymId}
-                    onChange={setSelectedGymId}
+                    onChange={handleBranchChange}
                     variant="compact"
                     allLabel="All Branches"
                   />
@@ -802,7 +813,7 @@ export default function ExpensesPage() {
                 className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 outline-none transition focus:border-gray-300"
                 value={statusFilter}
                 onChange={(event) =>
-                  setStatusFilter(event.target.value as StatusFilter)
+                  handleStatusChange(event.target.value as StatusFilter)
                 }
               >
                 {STATUS_OPTIONS.map((option) => (
@@ -815,7 +826,7 @@ export default function ExpensesPage() {
                 className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 outline-none transition focus:border-gray-300"
                 value={categoryFilter}
                 onChange={(event) =>
-                  setCategoryFilter(event.target.value as CategoryFilter)
+                  handleCategoryChange(event.target.value as CategoryFilter)
                 }
               >
                 {CATEGORY_OPTIONS.map((option) => (

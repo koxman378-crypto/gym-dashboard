@@ -1,15 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Calendar,
-  CheckCheck,
-  DollarSign,
-  ExternalLink,
-  Package,
-  UserCheck,
-  Wallet,
-} from "lucide-react";
+import { CheckCheck, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +9,6 @@ import {
   DialogTitle,
 } from "@/src/components/ui/dialog";
 import { Button } from "@/src/components/ui/button";
-import { Badge } from "@/src/components/ui/badge";
 import {
   GymNotification,
   NotificationType,
@@ -25,6 +16,7 @@ import {
 } from "@/src/store/services/notificationsApi";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { cn } from "@/src/lib/utils";
+import { getDashboardNotificationConfig } from "./notificationConfig";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -47,42 +39,6 @@ function getDaysBadgeColor(daysLeft: number): string {
   return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
 }
 
-function getTypeLabel(
-  type: NotificationType,
-  name: string | null,
-  t: (k: string) => string,
-): string {
-  if (type === "gym_fee_end") return name || t("notifications.typeGymFee");
-  if (type === "trainer_end") return name || t("notifications.typeTrainer");
-  if (type === "service_end") return name || t("notifications.typeService");
-  if (type === "payment_overdue")
-    return name || t("notifications.typePaymentOverdue");
-  return name || t("notifications.typeSubscription");
-}
-
-function TypeIcon({
-  type,
-  className,
-}: {
-  type: NotificationType;
-  className?: string;
-}) {
-  const cls = cn("h-5 w-5", className);
-  if (type === "gym_fee_end") return <DollarSign className={cls} />;
-  if (type === "trainer_end") return <UserCheck className={cls} />;
-  if (type === "service_end") return <Package className={cls} />;
-  if (type === "payment_overdue") return <Wallet className={cls} />;
-  return <Calendar className={cls} />;
-}
-
-function typeIconBg(type: NotificationType): string {
-  if (type === "gym_fee_end") return "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400";
-  if (type === "trainer_end") return "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400";
-  if (type === "service_end") return "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400";
-  if (type === "payment_overdue") return "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400";
-  return "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400";
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -100,6 +56,9 @@ export function NotificationDetailDialog({
   const [markRead] = useMarkReadMutation();
 
   if (!notification) return null;
+
+  const config = getDashboardNotificationConfig(notification.type);
+  const Icon = config.icon;
 
   const handleMarkRead = async () => {
     if (!notification.isRead) {
@@ -127,17 +86,17 @@ export function NotificationDetailDialog({
               <div
                 className={cn(
                   "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
-                  typeIconBg(notification.type),
+                  config.iconBg,
                 )}
               >
-                <TypeIcon type={notification.type} />
+                <Icon className="h-5 w-5" />
               </div>
               <div>
                 <DialogTitle className="text-base font-semibold leading-tight">
                   {t("notifications.detailTitle")}
                 </DialogTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {getTypeLabel(notification.type, notification.targetName, t)}
+                  {config.getLabel(notification, t)}
                 </p>
               </div>
               {!notification.isRead && (
@@ -156,9 +115,7 @@ export function NotificationDetailDialog({
 
           {/* Item / type */}
           <Row label={t("notifications.item")}>
-            <span>
-              {getTypeLabel(notification.type, notification.targetName, t)}
-            </span>
+            <span>{config.getLabel(notification, t)}</span>
           </Row>
 
           {/* Days left / status */}
@@ -173,8 +130,8 @@ export function NotificationDetailDialog({
             </span>
           </Row>
 
-          {/* Remaining balance — payment_overdue only */}
-          {notification.type === "payment_overdue" && formattedRemaining && (
+          {/* Remaining balance — driven by config */}
+          {config.showRemainingAmount && formattedRemaining && (
             <Row label={t("notifications.remainingBalance")}>
               <span className="font-semibold text-orange-600 dark:text-orange-400">
                 {formattedRemaining}

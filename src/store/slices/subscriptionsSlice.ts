@@ -50,7 +50,7 @@ const defaultFormData: SubscriptionFormData = {
   gymId: null,
   startDate: new Date().toISOString().split("T")[0],
   status: "active",
-  paymentStatus: "pending",
+  paymentStatus: "paid",
   paidAmount: 0,
   trainerId: null,
   trainerFeeRowId: null,

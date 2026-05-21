@@ -220,11 +220,40 @@ export default function SubscriptionsPage() {
     });
   };
 
-  const resolvePaymentStatus = (grandTotal: number, paidAmount: number) => {
+  const resolvePaymentStatus = (
+    grandTotal: number,
+    paidAmount: number,
+  ): "paid" | "pending" | "partial" => {
     if (grandTotal <= 0) return "paid";
     if (paidAmount <= 0) return "pending";
     if (paidAmount >= grandTotal) return "paid";
     return "partial";
+  };
+
+  const normalizeSubmissionPayment = (
+    grandTotal: number,
+    paymentStatus: "paid" | "pending" | "partial",
+    paidAmountInput: number,
+  ): { paymentStatus: "paid" | "pending" | "partial"; paidAmount: number } => {
+    if (paymentStatus === "paid") {
+      return {
+        paymentStatus: "paid" as const,
+        paidAmount: grandTotal,
+      };
+    }
+
+    if (paymentStatus === "pending") {
+      return {
+        paymentStatus: "pending" as const,
+        paidAmount: 0,
+      };
+    }
+
+    const paidAmount = Math.max(0, paidAmountInput);
+    return {
+      paymentStatus: resolvePaymentStatus(grandTotal, paidAmount),
+      paidAmount,
+    };
   };
 
   // Fetch subscriptions with filters
@@ -438,13 +467,16 @@ export default function SubscriptionsPage() {
     }
 
     const grandTotal = gymPriceTotal + otherServiceTotal + trainerFeeTotal;
-    const remainingAmount = grandTotal - paidAmount;
+    const effectivePaidAmount =
+      formData?.paymentStatus === "paid" ? grandTotal : paidAmount;
+    const remainingAmount = grandTotal - effectivePaidAmount;
 
     return {
       gymPriceTotal,
       otherServiceTotal,
       trainerFeeTotal,
       grandTotal,
+      effectivePaidAmount,
       remainingAmount,
     };
   }, [
@@ -456,6 +488,7 @@ export default function SubscriptionsPage() {
     formData?.trainerDurationUnit,
     formData?.trainerPromotionType,
     formData?.trainerPromotionValue,
+    formData?.paymentStatus,
     formData?.paidAmount,
     gymFees,
     serviceItems,
@@ -476,8 +509,9 @@ export default function SubscriptionsPage() {
     }
 
     try {
-      const normalizedPaymentStatus = resolvePaymentStatus(
+      const normalizedPayment = normalizeSubmissionPayment(
         calculatedTotals.grandTotal,
+        formData.paymentStatus,
         Number(formData.paidAmount || 0),
       );
 
@@ -486,8 +520,8 @@ export default function SubscriptionsPage() {
         const updateDto: UpdateSubscriptionDto = {
           startDate: formData.startDate,
           status: formData.status,
-          paymentStatus: normalizedPaymentStatus,
-          paidAmount: formData.paidAmount,
+          paymentStatus: normalizedPayment.paymentStatus,
+          paidAmount: normalizedPayment.paidAmount,
           notes: formData.notes || undefined,
           proofImage: formData.proofImage || undefined,
           gymFee:
@@ -542,8 +576,8 @@ export default function SubscriptionsPage() {
         const dto: CreateSubscriptionDto = {
           customer: formData.customer,
           startDate: formData.startDate,
-          paymentStatus: normalizedPaymentStatus as any,
-          paidAmount: formData.paidAmount,
+          paymentStatus: normalizedPayment.paymentStatus,
+          paidAmount: normalizedPayment.paidAmount,
           notes: formData.notes ?? undefined,
           proofImage: formData.proofImage ?? undefined,
         };
@@ -1408,21 +1442,162 @@ export default function SubscriptionsPage() {
 
                           if (trainerFees.length === 1 && autoSelectedFee) {
                             return (
-                              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                  <div>
-                                    <p className="text-sm font-semibold text-emerald-900">
-                                      Fee auto-selected
-                                    </p>
-                                    <p className="text-xs text-emerald-700">
-                                      This trainer has one active fee item, so
-                                      the system selected it for you.
-                                    </p>
+                              <div className="space-y-4">
+                                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                      <p className="text-sm font-semibold text-emerald-900">
+                                        Fee auto-selected
+                                      </p>
+                                      <p className="text-xs text-emerald-700">
+                                        This trainer has one active fee item, so
+                                        the system selected it for you.
+                                      </p>
+                                    </div>
+                                    <span className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                                      {autoSelectedFee.amount.toLocaleString()}{" "}
+                                      MMK
+                                    </span>
                                   </div>
-                                  <span className="inline-flex items-center rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
-                                    {autoSelectedFee.amount.toLocaleString()}{" "}
-                                    MMK
-                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="trainerDurationAuto">
+                                      Duration *
+                                    </Label>
+                                    <Input
+                                      id="trainerDurationAuto"
+                                      type="number"
+                                      min={1}
+                                      value={formData.trainerDuration}
+                                      onChange={(e) =>
+                                        setFormData({
+                                          trainerDuration:
+                                            Number(e.target.value) || 1,
+                                        })
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label htmlFor="trainerDurationUnitAuto">
+                                      Duration Unit *
+                                    </Label>
+                                    <Select
+                                      value={formData.trainerDurationUnit}
+                                      onValueChange={(value: DurationUnit) =>
+                                        setFormData({
+                                          trainerDurationUnit: value,
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger
+                                        className={lightSelectTriggerClassName}
+                                      >
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent
+                                        className={lightSelectContentClassName}
+                                      >
+                                        <SelectItem
+                                          value="days"
+                                          className={lightSelectItemClassName}
+                                        >
+                                          Days
+                                        </SelectItem>
+                                        <SelectItem
+                                          value="months"
+                                          className={lightSelectItemClassName}
+                                        >
+                                          Months
+                                        </SelectItem>
+                                        <SelectItem
+                                          value="years"
+                                          className={lightSelectItemClassName}
+                                        >
+                                          Years
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="trainerPromotionTypeAuto">
+                                      Discount Type
+                                    </Label>
+                                    <Select
+                                      value={formData.trainerPromotionType}
+                                      onValueChange={(value) =>
+                                        setFormData({
+                                          trainerPromotionType: value as
+                                            | Exclude<PromotionType, null>
+                                            | "none",
+                                          trainerPromotionValue: "",
+                                        })
+                                      }
+                                    >
+                                      <SelectTrigger
+                                        className={lightSelectTriggerClassName}
+                                      >
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent
+                                        className={lightSelectContentClassName}
+                                      >
+                                        <SelectItem
+                                          value="none"
+                                          className={lightSelectItemClassName}
+                                        >
+                                          No Discount
+                                        </SelectItem>
+                                        <SelectItem
+                                          value="percentage"
+                                          className={lightSelectItemClassName}
+                                        >
+                                          Percentage (%)
+                                        </SelectItem>
+                                        <SelectItem
+                                          value="mmk"
+                                          className={lightSelectItemClassName}
+                                        >
+                                          Fixed Amount (MMK)
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <Label htmlFor="trainerPromotionValueAuto">
+                                      Discount Value
+                                    </Label>
+                                    <Input
+                                      id="trainerPromotionValueAuto"
+                                      type="number"
+                                      min={0}
+                                      disabled={
+                                        formData.trainerPromotionType ===
+                                        "none"
+                                      }
+                                      value={formData.trainerPromotionValue}
+                                      onChange={(e) =>
+                                        setFormData({
+                                          trainerPromotionValue:
+                                            e.target.value === ""
+                                              ? ""
+                                              : Number(e.target.value),
+                                        })
+                                      }
+                                      placeholder={
+                                        formData.trainerPromotionType ===
+                                        "percentage"
+                                          ? "10"
+                                          : "5000"
+                                      }
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -1722,7 +1897,11 @@ export default function SubscriptionsPage() {
                               type="number"
                               step="0.01"
                               min="0"
-                              value={formData.paidAmount || 0}
+                              value={
+                                formData.paymentStatus === "paid"
+                                  ? calculatedTotals.grandTotal
+                                  : formData.paidAmount || 0
+                              }
                               onChange={(e) =>
                                 setFormData({
                                   paidAmount: Number(e.target.value),
@@ -1917,19 +2096,19 @@ export default function SubscriptionsPage() {
                           </div>
 
                           {/* Paid Amount */}
-                          {formData.paidAmount > 0 && (
+                          {calculatedTotals.effectivePaidAmount > 0 && (
                             <div className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
                               <span className="text-sm font-medium text-muted-foreground">
                                 Paid Amount
                               </span>
                               <span className="text-sm font-bold text-foreground">
-                                {formData.paidAmount.toLocaleString()} MMK
+                                {calculatedTotals.effectivePaidAmount.toLocaleString()} MMK
                               </span>
                             </div>
                           )}
 
                           {/* Remaining Amount */}
-                          {formData.paidAmount > 0 &&
+                          {calculatedTotals.effectivePaidAmount > 0 &&
                             calculatedTotals.remainingAmount !== 0 && (
                               <div className="flex items-center justify-between rounded-lg border border-zinc-300 bg-zinc-100 px-3 py-2">
                                 <span className="text-sm font-medium text-zinc-700">
@@ -1947,7 +2126,7 @@ export default function SubscriptionsPage() {
                             )}
 
                           {/* Payment Status Indicator */}
-                          {formData.paidAmount > 0 && (
+                          {calculatedTotals.effectivePaidAmount > 0 && (
                             <div className="text-center pt-2">
                               {calculatedTotals.remainingAmount === 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full border border-zinc-300 bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-800">

@@ -16,13 +16,6 @@ import { useExpiryPresetsState } from "@/src/store/hooks/useExpiryPresetsState";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/src/components/ui/select";
 
 const lightSurfaceClassName =
   "border border-border bg-background text-foreground shadow-sm";

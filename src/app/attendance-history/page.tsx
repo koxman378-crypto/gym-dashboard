@@ -12,24 +12,14 @@ import { useGetManageableUsersQuery } from "@/src/store/services/usersApi";
 import { useAppSelector } from "@/src/store/hooks";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { UserAttendanceCalendar } from "@/src/components/attendance/UserAttendanceCalendar";
-import { Role, type User } from "@/src/types/type";
+import {
+  Role,
+  type AttendanceHistoryAction,
+  type AttendanceHistoryState,
+  type User,
+} from "@/src/types/type";
 
 const PAGE_LIMIT = 12;
-
-interface AttendanceHistoryState {
-  search: string;
-  debouncedSearch: string;
-  page: number;
-  selectedUser: User | null;
-}
-
-type AttendanceHistoryAction =
-  | { type: "setSearch"; payload: string }
-  | { type: "setDebouncedSearch"; payload: string }
-  | { type: "setPage"; payload: number }
-  | { type: "prevPage" }
-  | { type: "nextPage" }
-  | { type: "setSelectedUser"; payload: User | null };
 
 function attendanceHistoryReducer(
   state: AttendanceHistoryState,

@@ -20,6 +20,7 @@ import {
   useUpsertBirthdayWishMutation,
   useGetTodayBirthdaysQuery,
   useManualSendBirthdayWishMutation,
+  useToggleAutoSendMutation,
   type BirthdayUser,
 } from "@/src/store/services/birthdayWishApi";
 import { useLanguage } from "@/src/components/language/LanguageContext";
@@ -71,6 +72,8 @@ export default function BirthdayWishPage() {
     refetch,
   } = useGetTodayBirthdaysQuery(gymId);
   const [manualSend] = useManualSendBirthdayWishMutation();
+  const [toggleAutoSendMutation, { isLoading: isTogglingAutoSend }] =
+    useToggleAutoSendMutation();
 
   const [state, dispatch] = useReducer(birthdayWishReducer, {
     message: "",
@@ -86,6 +89,19 @@ export default function BirthdayWishPage() {
       dispatch({ type: "initializeMessage", payload: wish?.message ?? "" });
     }
   }, [initialized, wishLoading, wish?.message]);
+
+  const handleToggleAutoSend = async () => {
+    const next = !(wish?.autoSend ?? true);
+    try {
+      await toggleAutoSendMutation({
+        ...(gymId ? { gymId } : {}),
+        autoSend: next,
+      }).unwrap();
+      toast.success(next ? "Auto-send turned ON" : "Auto-send turned OFF");
+    } catch (err: any) {
+      toast.error(err?.data?.message ?? "Failed to toggle auto-send.");
+    }
+  };
 
   const handleSave = async () => {
     const trimmed = message.trim();
@@ -145,15 +161,37 @@ export default function BirthdayWishPage() {
 
         {/* Auto Message Editor */}
         <div className="bg-white rounded-xl border border-zinc-200 p-6 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-orange-500" />
-            <label className="block text-base font-semibold text-zinc-700">
-              Automatic Birthday Message
-            </label>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-orange-500" />
+              <label className="block text-base font-semibold text-zinc-700">
+                Automatic Birthday Message
+              </label>
+            </div>
+            {/* Auto-Send Toggle */}
+            <button
+              onClick={handleToggleAutoSend}
+              disabled={isTogglingAutoSend || wishLoading}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                (wish?.autoSend ?? true) ? "bg-orange-500" : "bg-zinc-300"
+              } ${isTogglingAutoSend ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
+              title={
+                (wish?.autoSend ?? true)
+                  ? "Auto-send is ON"
+                  : "Auto-send is OFF"
+              }
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  (wish?.autoSend ?? true) ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
           </div>
           <p className="text-sm text-zinc-500">
-            This message will be sent automatically at 8:00 AM to all users with
-            birthdays today (unless you send a custom message manually).
+            {(wish?.autoSend ?? true)
+              ? "Auto-send is ON — wishes will be sent at 8:00 AM automatically."
+              : "Auto-send is OFF — wishes will NOT be sent automatically. Use manual send instead."}
           </p>
           <Textarea
             rows={4}

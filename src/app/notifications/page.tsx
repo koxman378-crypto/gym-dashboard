@@ -43,6 +43,7 @@ import { cn } from "@/src/lib/utils";
 import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
 import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
 import { ConfirmAlertDialog } from "@/src/components/notifications/ConfirmAlertDialog";
+import type { NotificationListItem } from "@/src/types/type";
 import {
   Select,
   SelectContent,
@@ -50,26 +51,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/src/components/ui/select";
-
-type NotificationListItem = {
-  key: string;
-  subscriptionId: string;
-  customerId: string;
-  customerName: string;
-  customerAvatar?: string | null;
-  expiryItems: Array<{
-    notification: GymNotification;
-    type: NotificationType;
-    targetName: string | null;
-    daysLeft: number;
-  }>;
-  payment?: GymNotification;
-  relatedIds: string[];
-  isUnread: boolean;
-  offDayName?: string | null;
-  offDayDaysAdded?: number | null;
-  offDayAppliedAt?: string | null;
-};
 
 function AnimatedNotificationItem({
   children,
@@ -359,6 +340,36 @@ function CustomerAvatar({
   );
 }
 
+function getExpiryAccentColor(daysLeft: number) {
+  if (daysLeft === -1 || (daysLeft <= 3 && daysLeft >= 0))
+    return {
+      border: "border-orange-200",
+      bg: "bg-orange-50",
+      dot: "bg-orange-400",
+      icon: "text-orange-500",
+    };
+  if (daysLeft <= 0)
+    return {
+      border: "border-red-200",
+      bg: "bg-red-50",
+      dot: "bg-red-400",
+      icon: "text-red-500",
+    };
+  if (daysLeft <= 7)
+    return {
+      border: "border-yellow-200",
+      bg: "bg-yellow-50",
+      dot: "bg-yellow-400",
+      icon: "text-yellow-500",
+    };
+  return {
+    border: "border-blue-100",
+    bg: "bg-blue-50",
+    dot: "bg-blue-400",
+    icon: "text-blue-500",
+  };
+}
+
 function NotificationRow({
   item,
   onMarkRead,
@@ -386,137 +397,171 @@ function NotificationRow({
   const formattedRemaining =
     remainingAmount != null ? `${remainingAmount.toLocaleString()} MMK` : null;
 
+  // Determine the most urgent accent for the card left border
+  const worstDays =
+    expiryItems.length > 0
+      ? Math.min(...expiryItems.map((e) => e.daysLeft))
+      : -1;
+  const accent = getExpiryAccentColor(worstDays);
+
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-[#FCFCFC] shadow-sm transition-all hover:shadow">
-      <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
-        {/* Unread indicator strip */}
-        {isUnread && (
-          <div className="-mx-4 -mt-4 mb-1 flex items-center gap-2 border-b border-gray-100 bg-white px-4 py-2 sm:-mx-5 sm:px-5">
-            <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
-              Unread
-            </span>
-          </div>
-        )}
+    <div
+      className={cn(
+        "group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-200 hover:shadow-md",
+        isUnread ? "border-gray-200" : "border-gray-100",
+      )}
+    >
+      {/* Colored left accent bar */}
+      <div className="flex">
+        <div
+          className={cn(
+            "w-1 shrink-0 rounded-l-2xl",
+            isPaymentOnly ? "bg-orange-400" : accent.dot,
+          )}
+        />
 
-        <div className="flex min-w-0 flex-1 items-start gap-3 text-left">
-          <CustomerAvatar name={customerName} avatar={customerAvatar} />
-
-          <div className="min-w-0 flex-1">
-            {/* Customer name */}
-            <p className="text-sm font-semibold text-gray-800">
-              {customerName}
-            </p>
-
-            {/* Payment-only notification */}
-            {isPaymentOnly && payment && (
-              <>
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
-                    <Wallet className="h-3 w-3" />
-                    Payment Overdue
-                  </span>
-                  {formattedRemaining && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
-                      Left: {formattedRemaining}
+        <div className="min-w-0 flex-1 px-4 py-4 sm:px-5">
+          {/* Top row: avatar + name + unread badge + actions */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <CustomerAvatar name={customerName} avatar={customerAvatar} />
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-semibold text-gray-900">
+                    {customerName}
+                  </p>
+                  {isUnread && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-blue-600 uppercase">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                      New
                     </span>
                   )}
                 </div>
-                <p className="mt-2 text-xs text-gray-400">
-                  Remaining: {formattedRemaining ?? "-"}
-                </p>
-              </>
-            )}
-
-            {/* Expiry items (grouped) */}
-            {expiryItems.length > 0 && (
-              <>
-                <p className="mt-1 text-xs text-gray-500">
-                  {expiryItems.length}{" "}
-                  {expiryItems.length === 1 ? "item" : "items"} expiring
-                </p>
-
-                {typeof offDayDaysAdded === "number" && offDayDaysAdded > 0 && (
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                      Off-day +{offDayDaysAdded} day{offDayDaysAdded > 1 ? "s" : ""}
-                    </span>
-                    {offDayName ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500">
-                        {offDayName}
-                      </span>
-                    ) : null}
-                    {offDayAppliedAt ? (
-                      <span className="text-[11px] text-gray-400">
-                        {new Date(offDayAppliedAt).toLocaleDateString()}
-                      </span>
-                    ) : null}
-                  </div>
+                {/* Payment-only subtitle */}
+                {isPaymentOnly && (
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-orange-600">
+                    <Wallet className="h-3 w-3" />
+                    Payment Overdue
+                  </p>
                 )}
-
-                <div className="mt-2 space-y-2">
-                  {expiryItems.map((exp, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between rounded-lg border border-gray-100 bg-white px-3 py-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <TypeIcon type={exp.type} />
-                        <span className="text-xs font-medium text-gray-700">
-                          {typeLabel(exp.type, exp.targetName, t)}
-                        </span>
-                      </div>
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                          getDaysBadgeVariant(exp.daysLeft),
-                        )}
-                      >
-                        {getDaysSummary(exp.daysLeft, t)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Payment info if exists */}
-                {payment && formattedRemaining && (
-                  <div className="mt-2 flex items-center justify-between rounded-lg border border-orange-100 bg-orange-50 px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <Wallet className="h-4 w-4 text-orange-600" />
-                      <span className="text-xs font-medium text-orange-700">
-                        Payment Overdue
-                      </span>
-                    </div>
-                    <span className="text-xs font-semibold text-orange-800">
-                      {formattedRemaining} left
-                    </span>
-                  </div>
+                {/* Expiry subtitle */}
+                {expiryItems.length > 0 && (
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {expiryItems.length}{" "}
+                    {expiryItems.length === 1
+                      ? "subscription item"
+                      : "subscription items"}{" "}
+                    expiring
+                  </p>
                 )}
-              </>
-            )}
+              </div>
+            </div>
+
+            {/* Action buttons — top right */}
+            <div className="flex shrink-0 items-center gap-1.5">
+              {isUnread && (
+                <button
+                  type="button"
+                  className="flex cursor-pointer items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-500 transition hover:bg-gray-50 active:scale-95"
+                  onClick={() => onMarkRead(relatedIds)}
+                  title="Mark as read"
+                >
+                  <CheckCheck className="h-3 w-3" />
+                  <span className="hidden sm:inline">
+                    {t("notifications.markRead")}
+                  </span>
+                </button>
+              )}
+              <button
+                type="button"
+                className="flex cursor-pointer items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 active:scale-95"
+                onClick={() => onDelete(item)}
+                title="Delete"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-2">
-          {isUnread && (
-            <button
-              type="button"
-              className="flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 active:scale-95"
-              onClick={() => onMarkRead(relatedIds)}
-            >
-              <CheckCheck className="h-3.5 w-3.5" />
-              {t("notifications.markRead")}
-            </button>
+          {/* Payment-only body */}
+          {isPaymentOnly && payment && formattedRemaining && (
+            <div className="mt-3 flex items-center justify-between rounded-xl border border-orange-100 bg-orange-50 px-4 py-3">
+              <div className="flex items-center gap-2 text-orange-700">
+                <Wallet className="h-4 w-4" />
+                <span className="text-sm font-medium">Amount Remaining</span>
+              </div>
+              <span className="text-sm font-bold text-orange-800">
+                {formattedRemaining}
+              </span>
+            </div>
           )}
-          <button
-            type="button"
-            className="flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-500 transition hover:bg-gray-50 active:scale-95"
-            onClick={() => onDelete(item)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </button>
+
+          {/* Off-day banner */}
+          {typeof offDayDaysAdded === "number" && offDayDaysAdded > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
+                <Calendar className="h-3.5 w-3.5" />+{offDayDaysAdded} off-day
+                {offDayDaysAdded > 1 ? "s" : ""} added
+              </span>
+              {offDayName && (
+                <span className="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-[11px] text-emerald-600">
+                  {offDayName}
+                </span>
+              )}
+              {offDayAppliedAt && (
+                <span className="text-[11px] text-emerald-500">
+                  {new Date(offDayAppliedAt).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Expiry items grid */}
+          {expiryItems.length > 0 && (
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {expiryItems.map((exp, idx) => {
+                const a = getExpiryAccentColor(exp.daysLeft);
+                return (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "flex items-center justify-between rounded-xl border px-3 py-2.5",
+                      a.border,
+                      a.bg,
+                    )}
+                  >
+                    <div className={cn("flex items-center gap-2", a.icon)}>
+                      <TypeIcon type={exp.type} />
+                      <span className="text-xs font-medium text-gray-700">
+                        {typeLabel(exp.type, exp.targetName, t)}
+                      </span>
+                    </div>
+                    <span
+                      className={cn(
+                        "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        getDaysBadgeVariant(exp.daysLeft),
+                      )}
+                    >
+                      {getDaysSummary(exp.daysLeft, t)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Payment overdue row (when mixed with expiry) */}
+          {expiryItems.length > 0 && payment && formattedRemaining && (
+            <div className="mt-2 flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50 px-3 py-2.5">
+              <div className="flex items-center gap-2 text-orange-600">
+                <Wallet className="h-4 w-4" />
+                <span className="text-xs font-semibold">Payment Overdue</span>
+              </div>
+              <span className="text-xs font-bold text-orange-800">
+                {formattedRemaining} left
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -23,15 +23,10 @@ import { AttendanceMonthlyStats } from "@/src/components/attendance/AttendanceMo
 import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { Search } from "lucide-react";
-
-interface AttendanceLocalState {
-  limit: number;
-  selectedUserId: string;
-  selectedDate: string;
-  searchName: string;
-  currentDuration: number;
-  nowTs: number;
-}
+import type {
+  AttendanceLocalAction,
+  AttendanceLocalState,
+} from "@/src/types/type";
 
 function formatSelectedDate(date: string) {
   if (!date) return "";
@@ -44,15 +39,6 @@ function formatSelectedDate(date: string) {
     day: "numeric",
   });
 }
-
-type AttendanceLocalAction =
-  | { type: "setLimit"; payload: number }
-  | { type: "setSelectedUserId"; payload: string }
-  | { type: "setSelectedDate"; payload: string }
-  | { type: "setSearchName"; payload: string }
-  | { type: "setCurrentDuration"; payload: number }
-  | { type: "setNowTs"; payload: number }
-  | { type: "resetFilters" };
 
 function attendanceLocalReducer(
   state: AttendanceLocalState,

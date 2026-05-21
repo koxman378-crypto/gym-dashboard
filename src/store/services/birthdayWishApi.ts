@@ -10,6 +10,7 @@ export interface BirthdayWish {
   _id?: string;
   gymId: string;
   message: string;
+  autoSend: boolean;
   history: BirthdayWishHistoryEntry[];
   createdAt?: string;
   updatedAt?: string;
@@ -18,6 +19,11 @@ export interface BirthdayWish {
 export interface UpsertBirthdayWishDto {
   gymId?: string;
   message: string;
+}
+
+export interface ToggleAutoSendDto {
+  gymId?: string;
+  autoSend: boolean;
 }
 
 export interface BirthdayUser {
@@ -78,6 +84,15 @@ export const birthdayWishApi = api.injectEndpoints({
       }),
       invalidatesTags: ["BirthdayUser"],
     }),
+
+    toggleAutoSend: build.mutation<BirthdayWish, ToggleAutoSendDto>({
+      query: (body) => ({
+        url: `/birthday-wish/auto-send`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["BirthdayWish"],
+    }),
   }),
 });
 
@@ -86,4 +101,5 @@ export const {
   useUpsertBirthdayWishMutation,
   useGetTodayBirthdaysQuery,
   useManualSendBirthdayWishMutation,
+  useToggleAutoSendMutation,
 } = birthdayWishApi;
