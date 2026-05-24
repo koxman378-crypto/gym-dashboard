@@ -243,6 +243,37 @@ export function GymFeeFormDialog({
               />
             </div>
           </div>
+
+          {/* Total Amount Box - directly below promotion fields */}
+          <div className="flex items-center justify-end mt-2">
+            <span className="text-sm font-medium text-foreground mr-2">
+              Total:
+            </span>
+            <span className="text-lg font-bold text-primary">
+              {/* Calculate total after promotion */}
+              {(() => {
+                const amount =
+                  typeof formData.amount === "number" ? formData.amount : 0;
+                const promoValue =
+                  typeof formData.promotionValue === "number"
+                    ? formData.promotionValue
+                    : 0;
+                let total = amount;
+                if (
+                  formData.promotionType === "percentage" &&
+                  promoValue > 0 &&
+                  promoValue <= 100
+                ) {
+                  total = amount - (amount * promoValue) / 100;
+                } else if (formData.promotionType === "mmk" && promoValue > 0) {
+                  total = amount - promoValue;
+                }
+                if (total < 0) total = 0;
+                return total.toLocaleString();
+              })()}{" "}
+              MMK
+            </span>
+          </div>
           <div className="flex items-center justify-between rounded-lg border border-border bg-muted px-4 py-3">
             <div>
               <p className="text-sm font-medium text-foreground">Active</p>

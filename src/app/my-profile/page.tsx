@@ -223,15 +223,30 @@ export default function ProfilePage() {
                 {t("myProfile.subtitle")}
               </p>
             </div>
-            <Button
-              variant="destructive"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50 text-red-600 shadow-sm hover:bg-red-100"
-            >
-              <LogOut className="h-4 w-4" />
-              {isLoggingOut ? t("myProfile.loggingOut") : t("myProfile.logout")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(true)}
+                disabled={isEditing}
+                className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50"
+              >
+                Edit
+                {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6" /></svg>
+                {t("myProfile.edit") || "Edit"} */}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="flex items-center cursor-pointer gap-2 rounded-full border border-red-200 bg-red-50 text-red-600 shadow-sm hover:bg-red-100"
+              >
+                <LogOut className="h-4 w-4" />
+                {/* {isLoggingOut
+                  ? t("myProfile.loggingOut")
+                  : t("myProfile.logout")} */}
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -286,7 +301,9 @@ export default function ProfilePage() {
                 className="flex items-center gap-2 rounded-full bg-gray-900 text-white shadow-sm hover:bg-gray-800"
               >
                 <Save className="h-4 w-4" />
-                {isUpdating ? t("myProfile.saving") : t("myProfile.saveChanges")}
+                {isUpdating
+                  ? t("myProfile.saving")
+                  : t("myProfile.saveChanges")}
               </Button>
               <Button
                 variant="outline"

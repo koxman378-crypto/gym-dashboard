@@ -59,23 +59,23 @@ export default function GymPricesPage() {
     isActive: false,
   });
 
-  const { data: gymPriceGroups = [], isLoading} = useGetAllGymPriceGroupsQuery({});
+  const { data: gymPriceGroups = [], isLoading } = useGetAllGymPriceGroupsQuery(
+    {},
+  );
   const [createGroup] = useCreateGymPriceGroupMutation();
   const [updateGroup] = useUpdateGymPriceGroupMutation();
   const [deleteGroup] = useDeleteGymPriceGroupMutation();
   const [toggleGroup] = useToggleGymPriceGroupMutation();
   const [toggleItem] = useToggleGymPriceItemMutation();
 
-  const calculateFinalPrice = (
-    item: {
-      duration: number;
-      durationUnit: DurationUnit;
-      amount: number;
-      promotionType?: PromotionType;
-      promotionValue?: number | null;
-      isActive?: boolean;
-    },
-  ) => {
+  const calculateFinalPrice = (item: {
+    duration: number;
+    durationUnit: DurationUnit;
+    amount: number;
+    promotionType?: PromotionType;
+    promotionValue?: number | null;
+    isActive?: boolean;
+  }) => {
     return calculateGymFinalPrice(item);
   };
 
@@ -118,8 +118,7 @@ export default function GymPricesPage() {
       await createGroup(formData).unwrap();
       setIsCreateDialogOpen(false);
       resetForm();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleEdit = (group: GymPriceGroup) => {
@@ -158,16 +157,14 @@ export default function GymPricesPage() {
       await updateGroup({ id: selectedGroup._id, data: formData }).unwrap();
       setIsEditDialogOpen(false);
       resetForm();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this pricing group?")) return;
     try {
       await deleteGroup(id).unwrap();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleToggleGroup = async (group: GymPriceGroup) => {
@@ -177,10 +174,12 @@ export default function GymPricesPage() {
 
     // If trying to activate this group, check if another is already active
     if (!group.isActive) {
-      const activeGroup = gymPriceGroups.find((g) => g._id !== group._id && g.isActive);
+      const activeGroup = gymPriceGroups.find(
+        (g) => g._id !== group._id && g.isActive,
+      );
       if (activeGroup) {
         const confirmActivate = confirm(
-          `Only one pricing group can be active at a time.\n\nCurrently active: "${activeGroup.name}"\n\nDo you want to deactivate "${activeGroup.name}" and activate "${group.name}" instead?`
+          `Only one pricing group can be active at a time.\n\nCurrently active: "${activeGroup.name}"\n\nDo you want to deactivate "${activeGroup.name}" and activate "${group.name}" instead?`,
         );
         if (!confirmActivate) {
           return;
@@ -197,15 +196,13 @@ export default function GymPricesPage() {
 
     try {
       await toggleGroup(group._id).unwrap();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleToggleItem = async (groupId: string, itemId: string) => {
     try {
       await toggleItem({ groupId, itemId }).unwrap();
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const resetForm = () => {
@@ -231,7 +228,10 @@ export default function GymPricesPage() {
     if (a.isActive && !b.isActive) return -1;
     if (!a.isActive && b.isActive) return 1;
     // Then sort by creation date (newest first)
-    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    return (
+      new Date(b.createdAt || 0).getTime() -
+      new Date(a.createdAt || 0).getTime()
+    );
   });
 
   return (
@@ -244,9 +244,7 @@ export default function GymPricesPage() {
               <DollarSign className="h-7 w-7 text-indigo-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">
-                Gym Prices
-              </h1>
+              <h1 className="text-3xl font-bold text-white">Gym Prices</h1>
               <p className="text-sm text-slate-400">
                 Manage membership pricing and subscription plans
               </p>
@@ -320,20 +318,25 @@ export default function GymPricesPage() {
                         size="sm"
                         onClick={() => handleToggleGroup(group)}
                         disabled={!group._id}
-                        className={group.isActive 
-                          ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
-                          : "border-slate-600 hover:bg-slate-800 text-slate-400"
+                        className={
+                          group.isActive
+                            ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                            : "border-slate-600 hover:bg-slate-800 text-slate-400"
                         }
                       >
                         {group.isActive ? (
                           <>
                             <ToggleRight className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">Active</span>
+                            <span className="text-xs font-semibold">
+                              Active
+                            </span>
                           </>
                         ) : (
                           <>
                             <ToggleLeft className="h-4 w-4 mr-1.5" />
-                            <span className="text-xs font-semibold">Activate</span>
+                            <span className="text-xs font-semibold">
+                              Activate
+                            </span>
                           </>
                         )}
                       </Button>
@@ -388,13 +391,16 @@ export default function GymPricesPage() {
                       <tbody>
                         {group.prices.map((price, index) => {
                           const finalPrice = calculateFinalPrice(price);
-                          const hasPromotion = price.promotionType && price.promotionValue;
+                          const hasPromotion =
+                            price.promotionType && price.promotionValue;
 
                           return (
                             <tr
                               key={price._id}
                               className={`border-b border-slate-100 hover:bg-slate-800 transition-colors ${
-                                index === group.prices.length - 1 ? "border-b-0" : ""
+                                index === group.prices.length - 1
+                                  ? "border-b-0"
+                                  : ""
                               }`}
                             >
                               <td className="py-4 px-4">
@@ -406,14 +412,20 @@ export default function GymPricesPage() {
                               <td className="py-4 px-4">
                                 <div className="flex flex-col">
                                   <span className="text-xs text-slate-400">
-                                    {price.amount.toLocaleString()} MMK × {price.duration}
+                                    {price.amount.toLocaleString()} MMK ×{" "}
+                                    {price.duration}
                                   </span>
                                   <span
                                     className={`text-slate-300 ${
-                                      hasPromotion ? "line-through text-sm" : "font-semibold"
+                                      hasPromotion
+                                        ? "line-through text-sm"
+                                        : "font-semibold"
                                     }`}
                                   >
-                                    {(price.amount * price.duration).toLocaleString()} MMK
+                                    {(
+                                      price.amount * price.duration
+                                    ).toLocaleString()}{" "}
+                                    MMK
                                   </span>
                                 </div>
                               </td>
@@ -421,7 +433,9 @@ export default function GymPricesPage() {
                                 {hasPromotion ? (
                                   <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 text-xs font-semibold">
                                     -{price.promotionValue}
-                                    {price.promotionType === "percentage" ? "%" : " MMK"}
+                                    {price.promotionType === "percentage"
+                                      ? "%"
+                                      : " MMK"}
                                   </span>
                                 ) : (
                                   <span className="text-slate-400 text-sm">
@@ -449,21 +463,28 @@ export default function GymPricesPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleToggleItem(group._id, price._id)}
-                                  className={price.isActive
-                                    ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
-                                    : "border-slate-600 hover:bg-slate-700 text-slate-400"
+                                  onClick={() =>
+                                    handleToggleItem(group._id, price._id)
+                                  }
+                                  className={
+                                    price.isActive
+                                      ? "border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                                      : "border-slate-600 hover:bg-slate-700 text-slate-400"
                                   }
                                 >
                                   {price.isActive ? (
                                     <>
                                       <ToggleRight className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">Active</span>
+                                      <span className="text-xs font-semibold">
+                                        Active
+                                      </span>
                                     </>
                                   ) : (
                                     <>
                                       <ToggleLeft className="h-4 w-4 mr-1.5" />
-                                      <span className="text-xs font-semibold">Inactive</span>
+                                      <span className="text-xs font-semibold">
+                                        Inactive
+                                      </span>
                                     </>
                                   )}
                                 </Button>
@@ -529,7 +550,10 @@ export default function GymPricesPage() {
                   }
                   className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                 />
-                <Label htmlFor="isActive" className="text-sm font-medium cursor-pointer">
+                <Label
+                  htmlFor="isActive"
+                  className="text-sm font-medium cursor-pointer"
+                >
                   Set as active pricing group
                 </Label>
               </div>
@@ -593,7 +617,15 @@ export default function GymPricesPage() {
 
                       {/* Amount */}
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Amount per {price.durationUnit === 'months' ? 'Month' : price.durationUnit === 'days' ? 'Day' : 'Year'} (MMK) *</Label>
+                        <Label className="text-xs">
+                          Amount per{" "}
+                          {price.durationUnit === "months"
+                            ? "Month"
+                            : price.durationUnit === "days"
+                              ? "Day"
+                              : "Year"}{" "}
+                          (MMK) *
+                        </Label>
                         <Input
                           type="number"
                           value={price.amount}
@@ -619,7 +651,9 @@ export default function GymPricesPage() {
                               updatePriceRow(
                                 index,
                                 "promotionType",
-                                value === "none" ? null : (value as PromotionType),
+                                value === "none"
+                                  ? null
+                                  : (value as PromotionType),
                               )
                             }
                           >
@@ -631,7 +665,9 @@ export default function GymPricesPage() {
                               <SelectItem value="percentage">
                                 Percentage (%)
                               </SelectItem>
-                              <SelectItem value="mmk">Fixed Amount (MMK)</SelectItem>
+                              <SelectItem value="mmk">
+                                Fixed Amount (MMK)
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -653,6 +689,17 @@ export default function GymPricesPage() {
                           />
                         </div>
                       </div>
+                      {/* Total Amount Box - directly under promotion fields */}
+                      <div className="flex items-center justify-end mt-2">
+                        <div className="rounded-lg bg-gray-50 px-4 py-2 border border-gray-200">
+                          <span className="text-sm font-medium text-gray-700 mr-2">
+                            Total:
+                          </span>
+                          <span className="text-base font-bold text-gray-900">
+                            {calculateFinalPrice(price).toLocaleString()} MMK
+                          </span>
+                        </div>
+                      </div>
 
                       {/* Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-slate-700">
@@ -662,7 +709,11 @@ export default function GymPricesPage() {
                             id={`tier-active-${index}`}
                             checked={price.isActive}
                             onChange={(e) =>
-                              updatePriceRow(index, "isActive", e.target.checked)
+                              updatePriceRow(
+                                index,
+                                "isActive",
+                                e.target.checked,
+                              )
                             }
                             className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                           />
@@ -677,8 +728,11 @@ export default function GymPricesPage() {
                         <div className="flex items-center gap-3">
                           <div className="text-right">
                             <div className="text-[10px] text-slate-400 mb-0.5">
-                              {price.amount.toLocaleString()} × {price.duration} {price.durationUnit}
-                              {price.promotionType && price.promotionValue && ` - ${price.promotionValue}${price.promotionType === 'percentage' ? '%' : ' MMK'}`}
+                              {price.amount.toLocaleString()} × {price.duration}{" "}
+                              {price.durationUnit}
+                              {price.promotionType &&
+                                price.promotionValue &&
+                                ` - ${price.promotionValue}${price.promotionType === "percentage" ? "%" : " MMK"}`}
                             </div>
                             <div className="text-xs text-slate-400">
                               Total Price
@@ -702,7 +756,8 @@ export default function GymPricesPage() {
 
                   {formData.prices.length === 0 && (
                     <div className="text-center py-8 text-slate-400">
-                      No pricing tiers added yet. Click "Add Tier" to create one.
+                      No pricing tiers added yet. Click "Add Tier" to create
+                      one.
                     </div>
                   )}
                 </div>
@@ -734,4 +789,3 @@ export default function GymPricesPage() {
     </div>
   );
 }
-

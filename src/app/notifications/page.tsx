@@ -717,9 +717,9 @@ const PAGE_SIZE = 20;
 export default function NotificationsPage() {
   const { t } = useLanguage();
   const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<"payment" | "expiry" | "expenses">(
-    "payment",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "all" | "payment" | "expiry" | "birthday" | "expenses"
+  >("all");
   const [deleteTarget, setDeleteTarget] = useState<NotificationListItem | null>(
     null,
   );
@@ -731,10 +731,19 @@ export default function NotificationsPage() {
   const { data: countData } = useGetUnreadCountQuery(
     branchQuery ? { gymId: branchQuery } : undefined,
   );
+  // Determine group param for API
+  let groupParam: string | undefined = undefined;
+  if (activeTab === "payment") groupParam = "payment";
+  else if (activeTab === "expiry") groupParam = "expiry";
+  else if (activeTab === "birthday") groupParam = "birthday";
+  // 'all' and 'expenses' get all notifications or expenses
+
   const { data, isLoading } = useGetNotificationsQuery({
     page,
     limit: PAGE_SIZE,
-    group: activeTab === "expenses" ? undefined : activeTab,
+    group: (activeTab === "expenses" || activeTab === "all"
+      ? undefined
+      : groupParam) as "all" | "payment" | "expiry" | undefined,
     gymId: branchQuery,
   });
 
@@ -762,7 +771,17 @@ export default function NotificationsPage() {
     await rejectExpense({ id, reviewNote: reviewNote || undefined });
   };
 
-  const notifications: GymNotification[] = data?.data ?? [];
+  let notifications: GymNotification[] = Array.isArray(data?.data)
+    ? data.data
+    : [];
+  // Only filter for birthday tab
+  if (activeTab === "birthday") {
+    notifications = notifications.filter(
+      (n) => (n as any).type === "birthday_wish",
+    );
+  }
+  // For 'all', show all notification types (no filter)
+  // For 'expenses', handled separately below
   const listItems = buildNotificationListItems(notifications);
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 1;
@@ -771,6 +790,9 @@ export default function NotificationsPage() {
   const unreadCount = notificationUnreadCount + expenseUnreadCount;
   const paymentCount = activeTab === "payment" ? total : undefined;
   const expiryCount = activeTab === "expiry" ? total : undefined;
+  // Always show the count of birthday notifications for the badge
+  const birthdayCount =
+    data?.data?.filter((n: any) => n.type === "birthday_wish")?.length || 0;
 
   const handleMarkRead = async (ids: string[]) => {
     await markRead(ids);
@@ -855,6 +877,23 @@ export default function NotificationsPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
+          {/* All Tab */}
+          <button
+            type="button"
+            className={cn(
+              "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+              activeTab === "all"
+                ? "border-gray-300 bg-gray-100 text-gray-800"
+                : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+            )}
+            onClick={() => {
+              setActiveTab("all");
+              setPage(1);
+            }}
+          >
+            All
+          </button>
+          {/* Payment Overdue Tab */}
           <button
             type="button"
             className={cn(
@@ -871,6 +910,7 @@ export default function NotificationsPage() {
             Payment Overdue{" "}
             {typeof paymentCount === "number" ? `(${paymentCount})` : ""}
           </button>
+          {/* Subscription Ends Tab */}
           <button
             type="button"
             className={cn(
@@ -887,6 +927,24 @@ export default function NotificationsPage() {
             Subscription Ends{" "}
             {typeof expiryCount === "number" ? `(${expiryCount})` : ""}
           </button>
+          {/* Birthday Tab */}
+          <button
+            type="button"
+            className={cn(
+              "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+              activeTab === "birthday"
+                ? "border-gray-300 bg-gray-100 text-gray-800"
+                : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50",
+            )}
+            onClick={() => {
+              setActiveTab("birthday");
+              setPage(1);
+            }}
+          >
+            Birthday{" "}
+            {typeof birthdayCount === "number" ? `(${birthdayCount})` : ""}
+          </button>
+          {/* Expense Requests Tab (owner only) */}
           {isOwner && (
             <button
               type="button"
@@ -902,17 +960,13 @@ export default function NotificationsPage() {
               }}
             >
               Expense Requests{" "}
-              {activeTab === "expenses" && pendingExpenses.length > 0
-                ? `(${pendingExpenses.length})`
-                : pendingExpenses.length > 0
-                  ? `(${pendingExpenses.length})`
-                  : ""}
+              {pendingExpenses.length > 0 ? `(${pendingExpenses.length})` : ""}
             </button>
           )}
         </div>
       </div>
 
-      {activeTab === "expenses" ? (
+      {activeTab === "expenses" || activeTab === "all" ? (
         expensesLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -928,25 +982,46 @@ export default function NotificationsPage() {
               </div>
             ))}
           </div>
-        ) : pendingExpenses.length === 0 ? (
-          <div className="rounded-xl border border-gray-100 bg-[#FCFCFC] px-6 py-14 text-center shadow-sm">
-            <ReceiptText className="mx-auto mb-3 h-8 w-8 text-gray-300" />
-            <p className="text-sm font-medium text-gray-400">
-              No pending expense requests right now.
-            </p>
-          </div>
         ) : (
-          <div className="space-y-2">
-            {pendingExpenses.map((expense, index) => (
-              <AnimatedNotificationItem key={expense._id} index={index}>
-                <PendingExpenseRow
-                  expense={expense}
-                  onApprove={handleApproveExpense}
-                  onReject={handleRejectExpense}
-                />
-              </AnimatedNotificationItem>
-            ))}
-          </div>
+          <>
+            {pendingExpenses.length > 0 && (
+              <div className="space-y-2 mb-6">
+                {pendingExpenses.map((expense, index) => (
+                  <AnimatedNotificationItem key={expense._id} index={index}>
+                    <PendingExpenseRow
+                      expense={expense}
+                      onApprove={handleApproveExpense}
+                      onReject={handleRejectExpense}
+                    />
+                  </AnimatedNotificationItem>
+                ))}
+              </div>
+            )}
+            {/* Show notifications list below expenses in 'all', or only notifications in 'expenses' if needed */}
+            {activeTab === "all" &&
+              (listItems.length === 0 ? (
+                <div className="rounded-xl border border-gray-100 bg-[#FCFCFC] px-6 py-14 text-center shadow-sm">
+                  <Bell className="mx-auto mb-3 h-8 w-8 text-gray-300" />
+                  <p className="text-sm font-medium text-gray-400">
+                    No notifications right now.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {listItems.map((item, index) => (
+                    <AnimatedNotificationItem key={item.key} index={index}>
+                      <NotificationRow
+                        item={item}
+                        onMarkRead={handleMarkRead}
+                        onDelete={setDeleteTarget}
+                        t={t}
+                      />
+                    </AnimatedNotificationItem>
+                  ))}
+                </div>
+              ))}
+            {/* If expenses tab only, do not show notifications */}
+          </>
         )
       ) : isLoading ? (
         <div className="space-y-3">

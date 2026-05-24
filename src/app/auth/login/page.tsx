@@ -106,7 +106,7 @@ export default function LoginPage() {
             <div className="mb-4 flex justify-center">
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white shadow-lg shadow-emerald-900/50">
                 <Image
-                  src="/gym-logo.png"
+                  src="/GMS.jpg"
                   alt="Gym logo"
                   width={64}
                   height={64}
