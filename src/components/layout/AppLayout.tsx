@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { getBranchInfoFromCookie } from "@/src/lib/utils";
 import { useEffect, useState } from "react";
 import {
   SidebarProvider,
@@ -360,6 +361,11 @@ function normalizeExternalUrl(url: string) {
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  // Get branch info from cookie (user's assigned branch)
+  const [branchInfo, setBranchInfo] = useState<any | null>(null);
+  useEffect(() => {
+    setBranchInfo(getBranchInfoFromCookie());
+  }, []);
   const { t } = useLanguage();
   // All hooks must be called before any conditional returns
   const pathname = usePathname();
@@ -386,6 +392,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [selectedGymId, setSelectedGymId] = useState<string | null>(null);
   const isOwner = user?.role === Role.OWNER;
   const branches = gymProfile?.multiGyms ?? [];
+
+  // Example: Use branchInfo for location-based logic
+  // branchInfo?.latitude, branchInfo?.longitude, etc.
 
   // Auth pages that shouldn't show the sidebar
   const authPages = ["/login", "/register", "/forgot-password", "/auth"];

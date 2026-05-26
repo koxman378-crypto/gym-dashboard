@@ -35,6 +35,8 @@ export const gymProfileApi = api.injectEndpoints({
               name: item?.name,
               description: item?.description ?? null,
               isActive: item?.isActive ?? true,
+              latitude: item?.latitude ?? null,
+              longitude: item?.longitude ?? null,
             }))
           : [],
         isActive: response?.isActive ?? true,

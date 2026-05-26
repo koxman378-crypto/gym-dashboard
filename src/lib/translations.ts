@@ -34,7 +34,10 @@ const translations = {
       en: "Users & Subscriptions",
       mm: "အသုံးပြုသူများ & အသင်းဝင်",
     },
-    groupFinancial: { en: "Financial Management", mm: "ဘဏ္ဍာရေး စီမံခန့်ခွဲမှု" },
+    groupFinancial: {
+      en: "Financial Management",
+      mm: "ဘဏ္ဍာရေး စီမံခန့်ခွဲမှု",
+    },
     groupSettings: {
       en: "Settings & Customization",
       mm: "ဆက်တင်များ & စိတ်ကြိုက်ပြင်ဆင်မှု",
@@ -198,11 +201,11 @@ const translations = {
     title: { en: "Attendance History", mm: "တက်ရောက်မှု မှတ်တမ်းများ" },
     subtitle: {
       en: "View attendance calendar for each member",
-      mm: "အဖွဲ့ဝင်တစ်ဦးချင်းစီ၏ တက်ရောက်မှု ပြက္ခဒိန် ကြည့်ရှုပါ",
+      mm: "အဖွဲ့ဝင်တစ်ဦးချင်းစီ၏ ကစားချိန်များကို ကြည့်ရှုပါ",
     },
     selectUser: {
       en: "Select a member to view their attendance calendar",
-      mm: "တက်ရောက်မှု ပြက္ခဒိန် ကြည့်ရန် အဖွဲ့ဝင်တစ်ဦးကို ရွေးချယ်ပါ",
+      mm: "ကစားချိန် ပြက္ခဒိန် ကြည့်ရန် အဖွဲ့ဝင်တစ်ဦးကို ရွေးချယ်ပါ",
     },
     noMembers: { en: "No members found", mm: "အဖွဲ့ဝင် မတွေ့ပါ" },
     checkIn: { en: "Check-in", mm: "ဝင်ရောက်ချိန်" },

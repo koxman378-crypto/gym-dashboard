@@ -44,7 +44,9 @@ export function GymFeeList({
   onToggle,
 }: GymFeeListProps) {
   // Filter state: 'all', 'days', 'months', 'years'
-  const [filter, setFilter] = useState<'all' | 'days' | 'months' | 'years'>('all');
+  const [filter, setFilter] = useState<"all" | "days" | "months" | "years">(
+    "all",
+  );
   const { listRef, state, dispatch, handleScroll } =
     useAnimatedListState<GymFeeRecord>(fees.length);
   const {
@@ -55,7 +57,8 @@ export function GymFeeList({
   } = state;
 
   // Filtered fees
-  const filteredFees = filter === 'all' ? fees : fees.filter(fee => fee.durationUnit === filter);
+  const filteredFees =
+    filter === "all" ? fees : fees.filter((fee) => fee.durationUnit === filter);
 
   if (isLoading) {
     return (
@@ -94,26 +97,26 @@ export function GymFeeList({
       <div className="mb-4 flex flex-wrap gap-2 items-center">
         <span className="font-medium text-sm mr-2">Filter:</span>
         <button
-          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === 'all' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'}`}
-          onClick={() => setFilter('all')}
+          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === "all" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"}`}
+          onClick={() => setFilter("all")}
         >
           All
         </button>
         <button
-          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === 'days' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'}`}
-          onClick={() => setFilter('days')}
+          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === "days" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"}`}
+          onClick={() => setFilter("days")}
         >
           Days
         </button>
         <button
-          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === 'months' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'}`}
-          onClick={() => setFilter('months')}
+          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === "months" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"}`}
+          onClick={() => setFilter("months")}
         >
           Months
         </button>
         <button
-          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === 'years' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'}`}
-          onClick={() => setFilter('years')}
+          className={`px-3 py-1 rounded-full border text-sm transition-all ${filter === "years" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"}`}
+          onClick={() => setFilter("years")}
         >
           Years
         </button>
@@ -128,7 +131,9 @@ export function GymFeeList({
         >
           {filteredFees.length === 0 ? (
             <div className="rounded-xl border border-gray-100 bg-[#FCFCFC] px-6 py-14 text-center shadow-sm">
-              <p className="text-sm font-medium text-gray-400">No gym fees found for this filter</p>
+              <p className="text-sm font-medium text-gray-400">
+                No gym fees found for this filter
+              </p>
             </div>
           ) : (
             filteredFees.map((fee, index) => (
@@ -185,7 +190,7 @@ export function GymFeeList({
                             total = Math.max(amount - promoValue, 0);
                           }
                           return total.toLocaleString();
-                        })()} {" "}
+                        })()}{" "}
                         MMK
                       </div>
                       <span

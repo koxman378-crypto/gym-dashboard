@@ -6,6 +6,7 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import type { MultiGymItem } from "@/src/types/type";
+import { number } from "motion/react";
 
 const LIGHT_INPUT_CN =
   "mt-1 border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 hover:border-gray-300 focus-visible:border-gray-300 focus-visible:ring-0 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-400 disabled:hover:border-gray-200";
@@ -19,15 +20,43 @@ export function MultiGymCrudBox({
   disabled: boolean;
   onChange: (branches: MultiGymItem[]) => void;
 }) {
-  const updateBranch = (
-    index: number,
-    patch: Partial<MultiGymItem>,
-  ) => {
-    onChange(
-      branches.map((branch, branchIndex) =>
-        branchIndex === index ? { ...branch, ...patch } : branch,
-      ),
+  const [errors, setErrors] = React.useState<
+    Record<number, { lat?: string; long?: string }>
+  >({});
+
+  const validateLatLong = (index: number, lat: any, long: any) => {
+    const newErrors: { lat?: string; long?: string } = {};
+    const parsedLat = Number(lat);
+    const parsedLong = Number(long);
+    if (lat === null || lat === "" || isNaN(parsedLat)) {
+      newErrors.lat = "Latitude is required and must be a number";
+    } else if (parsedLat < -90 || parsedLat > 90) {
+      newErrors.lat = "Latitude must be between -90 and 90";
+    }
+    if (long === null || long === "" || isNaN(parsedLong)) {
+      newErrors.long = "Longitude is required and must be a number";
+    } else if (parsedLong < -180 || parsedLong > 180) {
+      newErrors.long = "Longitude must be between -180 and 180";
+    }
+    setErrors((prev) => ({ ...prev, [index]: newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const updateBranch = (index: number, patch: Partial<MultiGymItem>) => {
+    const nextBranches = branches.map((branch, branchIndex) =>
+      branchIndex === index ? { ...branch, ...patch } : branch,
     );
+    onChange(nextBranches);
+    // Validate on every change
+    const lat =
+      patch.latitude !== undefined
+        ? patch.latitude
+        : nextBranches[index].latitude;
+    const long =
+      patch.longitude !== undefined
+        ? patch.longitude
+        : nextBranches[index].longitude;
+    validateLatLong(index, lat, long);
   };
 
   const addBranch = () => {
@@ -37,12 +66,28 @@ export function MultiGymCrudBox({
         name: "",
         description: "",
         isActive: true,
+        latitude: null,
+        longitude: null,
       },
     ]);
+    setErrors((prev) => ({
+      ...prev,
+      [branches.length]: {
+        lat: "Latitude is required",
+        long: "Longitude is required",
+      },
+    }));
   };
 
+  // NOTE: Do NOT convert to number/null here. The parent (profile page) should map branches before submit:
+  // const branchesToSave = state.multiGyms.map(b => ({ ...b, latitude: b.latitude === "" ? null : Number(b.latitude), longitude: b.longitude === "" ? null : Number(b.longitude) }));
   const removeBranch = (index: number) => {
     onChange(branches.filter((_, branchIndex) => branchIndex !== index));
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[index];
+      return newErrors;
+    });
   };
 
   return (
@@ -104,6 +149,73 @@ export function MultiGymCrudBox({
                     className={LIGHT_INPUT_CN}
                     disabled={disabled}
                   />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Latitude
+                  </Label>
+                  <Input
+                    type="number"
+                    value={branch.latitude ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      updateBranch(index, {
+                        latitude: val === "" ? null : Number(val),
+                      });
+                    }}
+                    placeholder={
+                      branch.latitude !== null && branch.latitude !== undefined
+                        ? String(branch.latitude)
+                        : ""
+                    }
+                    className={LIGHT_INPUT_CN}
+                    disabled={disabled}
+                  />
+                  {/* {typeof branch.latitude === "number" &&
+                    !isNaN(branch.latitude) && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Current: {branch.latitude}
+                      </div>
+                    )}
+                  {errors[index]?.lat && (
+                    <div className="text-xs text-red-600 mt-1">
+                      {errors[index].lat}
+                    </div>
+                  )} */}
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Longitude
+                  </Label>
+                  <Input
+                    type="number"
+                    value={branch.longitude ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      updateBranch(index, {
+                        longitude: val === "" ? null : Number(val),
+                      });
+                    }}
+                    placeholder={
+                      branch.longitude !== null &&
+                      branch.longitude !== undefined
+                        ? String(branch.longitude)
+                        : ""
+                    }
+                    className={LIGHT_INPUT_CN}
+                    disabled={disabled}
+                  />
+                  {/* {typeof branch.longitude === "number" &&
+                    !isNaN(branch.longitude) && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Current: {branch.longitude}
+                      </div>
+                    )}
+                  {errors[index]?.long && (
+                    <div className="text-xs text-red-600 mt-1">
+                      {errors[index].long}
+                    </div>
+                  )} */}
                 </div>
               </div>
 

@@ -33,7 +33,8 @@ export type DashboardNotificationConfig = {
 const DEFAULT_CONFIG: DashboardNotificationConfig = {
   icon: Bell,
   iconBg: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
-  getLabel: (n, t) => n.targetName ?? t("notifications.typeSubscription"),
+  getLabel: (n, t) =>
+    n.targetName ?? t("notifications.typeSubscription"),
 };
 
 export const DASHBOARD_NOTIFICATION_CONFIG: Record<
@@ -43,27 +44,31 @@ export const DASHBOARD_NOTIFICATION_CONFIG: Record<
   subscription_end: {
     icon: Calendar,
     iconBg: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
-    getLabel: (n, t) => n.targetName ?? t("notifications.typeSubscription"),
+    getLabel: (n, t) =>
+      n.targetName ?? t("notifications.typeSubscription"),
   },
 
   gym_fee_end: {
     icon: DollarSign,
     iconBg:
       "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400",
-    getLabel: (n, t) => n.targetName ?? t("notifications.typeGymFee"),
+    getLabel: (n, t) =>
+      n.gymFeeName ?? n.targetName ?? t("notifications.typeGymFee"),
   },
 
   trainer_end: {
     icon: UserCheck,
     iconBg:
       "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400",
-    getLabel: (n, t) => n.targetName ?? t("notifications.typeTrainer"),
+    getLabel: (n, t) =>
+      n.trainerName ?? n.targetName ?? t("notifications.typeTrainer"),
   },
 
   service_end: {
     icon: Package,
     iconBg: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
-    getLabel: (n, t) => n.targetName ?? t("notifications.typeService"),
+    getLabel: (n, t) =>
+      n.targetName ?? t("notifications.typeService"),
   },
 
   payment_overdue: {
@@ -78,7 +83,8 @@ export const DASHBOARD_NOTIFICATION_CONFIG: Record<
     icon: RefreshCcw,
     iconBg:
       "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400",
-    getLabel: (n, t) => n.targetName ?? t("notifications.typeSubscription"),
+    getLabel: (n, t) =>
+      n.targetName ?? t("notifications.typeSubscription"),
   },
 
   payment_approved: {

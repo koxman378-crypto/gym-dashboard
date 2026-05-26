@@ -18,11 +18,13 @@ import { OtherServiceList } from "@/src/components/custom-fees/other-services/Ot
 import { useOtherServicesState } from "@/src/store/hooks/useOtherServicesState";
 import { useLanguage } from "@/src/components/language/LanguageContext";
 import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
+import { OwnerBranchSelect } from "@/src/components/layout/OwnerBranchSelect";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
 
 export default function OtherServicesPage() {
   const { t } = useLanguage();
-  const { isOwner, selectedGymId, branches } = useOwnerBranchFilter();
+  const { isOwner, selectedGymId, setSelectedGymId, branches } =
+    useOwnerBranchFilter();
   const branchQuery = isOwner ? (selectedGymId ?? undefined) : undefined;
   const [createGymId, setCreateGymId] = useState<string>(
     selectedGymId ?? "none",
@@ -118,16 +120,27 @@ export default function OtherServicesPage() {
             {t("otherServices.subtitle")}
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setCreateGymId(selectedGymId ?? "none");
-            openCreateDialog();
-          }}
-          className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          {t("otherServices.addService")}
-        </Button>
+        <div className="flex items-center gap-3">
+          {isOwner && branches.length > 0 ? (
+            <OwnerBranchSelect
+              branches={branches}
+              selectedGymId={selectedGymId}
+              onChange={setSelectedGymId}
+              variant="compact"
+              allLabel="All Branches"
+            />
+          ) : null}
+          <Button
+            onClick={() => {
+              setCreateGymId(selectedGymId ?? "none");
+              openCreateDialog();
+            }}
+            className={`cursor-pointer px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            {t("otherServices.addService")}
+          </Button>
+        </div>
       </div>
 
       <div>

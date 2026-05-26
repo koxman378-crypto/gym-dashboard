@@ -126,6 +126,9 @@ export default function SubscriptionsPage() {
   const customerIdParam = searchParams.get("customerId") ?? null;
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerComboOpen, setCustomerComboOpen] = useState(false);
+  const [gymFeeDurationFilter, setGymFeeDurationFilter] = useState<
+    "all" | DurationUnit
+  >("all");
   const customerComboRef = useRef<HTMLDivElement>(null);
   const proofImageInputRef = useRef<HTMLInputElement>(null);
   const [uploadingProofImage, setUploadingProofImage] = useState(false);
@@ -313,6 +316,11 @@ export default function SubscriptionsPage() {
       skip: !isAuthenticated || !accessToken || !isCreateDialogOpen,
     },
   );
+
+  const filteredGymFees = useMemo(() => {
+    if (gymFeeDurationFilter === "all") return gymFees;
+    return gymFees.filter((fee) => fee.durationUnit === gymFeeDurationFilter);
+  }, [gymFeeDurationFilter, gymFees]);
 
   // Fetch active service items
   const { data: serviceItems = [] } = useGetAllOtherServiceItemsQuery(
@@ -525,9 +533,7 @@ export default function SubscriptionsPage() {
           notes: formData.notes || undefined,
           proofImage: formData.proofImage || undefined,
           gymFee:
-            selectedGymFeeId && selectedGymFeeId !== "none"
-              ? { feeId: selectedGymFeeId }
-              : null,
+            selectedGymFeeId ? { feeId: selectedGymFeeId } : null,
           services: Object.entries(selectedServices).map(
             ([serviceId, values]) => ({
               serviceId,
@@ -583,7 +589,7 @@ export default function SubscriptionsPage() {
         };
 
         // Add gym fee selection if any
-        if (selectedGymFeeId && selectedGymFeeId !== "none") {
+        if (selectedGymFeeId) {
           dto.gymFee = {
             feeId: selectedGymFeeId,
           };
@@ -1050,8 +1056,34 @@ export default function SubscriptionsPage() {
                           <Label>
                             Gym Fee {isEditMode ? "(Editable)" : ""}
                           </Label>
+                          <div className="flex flex-wrap gap-2">
+                            {(
+                              [
+                                { value: "all", label: "All" },
+                                { value: "days", label: "Day" },
+                                { value: "months", label: "Month" },
+                                { value: "years", label: "Year" },
+                              ] as const
+                            ).map((option) => {
+                              const active = gymFeeDurationFilter === option.value;
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => setGymFeeDurationFilter(option.value)}
+                                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                                    active
+                                      ? "border-zinc-900 bg-zinc-900 text-white"
+                                      : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100"
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              );
+                            })}
+                          </div>
                           <Select
-                            value={selectedGymFeeId}
+                            value={selectedGymFeeId || undefined}
                             onValueChange={setSelectedGymFeeId}
                           >
                             <SelectTrigger
@@ -1062,13 +1094,7 @@ export default function SubscriptionsPage() {
                             <SelectContent
                               className={lightSelectContentClassName}
                             >
-                              <SelectItem
-                                value="none"
-                                className={lightSelectItemClassName}
-                              >
-                                No Gym Fee
-                              </SelectItem>
-                              {gymFees.map((fee) => (
+                              {filteredGymFees.map((fee) => (
                                 <SelectItem
                                   key={fee._id}
                                   value={fee._id}
@@ -1099,7 +1125,13 @@ export default function SubscriptionsPage() {
                               ))}
                             </SelectContent>
                           </Select>
-                          {selectedGymFeeId && selectedGymFeeId !== "none" && (
+                          {filteredGymFees.length === 0 ? (
+                            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm text-muted-foreground">
+                              No gym packages found for the selected duration
+                              filter.
+                            </div>
+                          ) : null}
+                          {selectedGymFeeId && (
                             <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm text-muted-foreground">
                               Selected fee will run for the configured duration
                               and promotion in the backend.

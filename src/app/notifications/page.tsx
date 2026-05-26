@@ -188,7 +188,7 @@ function expandExpiryItems(notification: GymNotification): Array<{
     items.push({
       notification,
       type: "gym_fee_end",
-      targetName: "Gym Fee",
+      targetName: notification.gymFeeName ?? "Gym Fee",
       daysLeft: notification.gymFeeDaysLeft,
     });
   }
@@ -197,7 +197,7 @@ function expandExpiryItems(notification: GymNotification): Array<{
     items.push({
       notification,
       type: "trainer_end",
-      targetName: "Trainer",
+      targetName: notification.trainerName ?? "Trainer",
       daysLeft: notification.trainerDaysLeft,
     });
   }
@@ -516,32 +516,45 @@ function NotificationRow({
             </div>
           )}
 
-          {/* Expiry items grid */}
+          {/* Expiry items redesigned: white/gray, label-value pairs */}
           {expiryItems.length > 0 && (
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="mt-3 flex flex-col gap-2 bg-gray-50 rounded-xl p-3 border border-gray-100">
               {expiryItems.map((exp, idx) => {
-                const a = getExpiryAccentColor(exp.daysLeft);
+                let label = "";
+                let value = exp.targetName;
+                if (exp.type === "gym_fee_end") {
+                  label = "Gym package";
+                  value =
+                    exp.notification.gymFeeName ||
+                    exp.notification.targetName ||
+                    exp.targetName;
+                } else if (exp.type === "trainer_end") {
+                  label = "Trainer";
+                  value =
+                    exp.notification.trainerName ||
+                    exp.notification.targetName ||
+                    exp.targetName;
+                } else if (exp.type === "service_end") {
+                  label = "Service";
+                  value = exp.targetName;
+                } else if (exp.type === "subscription_end") {
+                  label = "Subscription";
+                  value = exp.targetName;
+                } else {
+                  label = "Item";
+                }
                 return (
                   <div
                     key={idx}
-                    className={cn(
-                      "flex items-center justify-between rounded-xl border px-3 py-2.5",
-                      a.border,
-                      a.bg,
-                    )}
+                    className="flex flex-col sm:flex-row sm:items-center sm:gap-2"
                   >
-                    <div className={cn("flex items-center gap-2", a.icon)}>
-                      <TypeIcon type={exp.type} />
-                      <span className="text-xs font-medium text-gray-700">
-                        {typeLabel(exp.type, exp.targetName, t)}
-                      </span>
-                    </div>
-                    <span
-                      className={cn(
-                        "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                        getDaysBadgeVariant(exp.daysLeft),
-                      )}
-                    >
+                    <span className="text-xs font-semibold text-gray-500 min-w-[110px]">
+                      {label}:
+                    </span>
+                    <span className="text-xs font-medium text-gray-900">
+                      {value}
+                    </span>
+                    <span className="ml-auto text-xs font-semibold text-gray-600 mt-1 sm:mt-0">
                       {getDaysSummary(exp.daysLeft, t)}
                     </span>
                   </div>
@@ -623,38 +636,45 @@ function PendingExpenseRow({
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500">
             {getCategoryIcon(expense.category)}
           </div>
-
           <div className="min-w-0 flex-1">
-            {/* Title */}
-            <p className="text-sm font-semibold text-gray-800">
-              {expense.title}
-            </p>
-
-            {/* Category & Submitter */}
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500 capitalize">
-                {getCategoryIcon(expense.category)}
-                {expense.category}
-              </span>
-              <span className="text-[11px] text-gray-400">
-                by {submittedBy}
-              </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
+              <div className="flex items-center text-sm">
+                <span className="text-gray-500 mr-1">Expense name :</span>
+                <span className="font-bold text-black/60 text-[16px]">
+                  {expense.title}
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className="text-gray-500 mr-1">Group :</span>
+                <span className="font-bold text-black/60 capitalize text-[16px]">
+                  {expense.category}
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className="text-gray-500 mr-1">Total :</span>
+                <span className="font-bold text-green-600 italic text-[16px]">
+                  {Number(expense.amount).toLocaleString()} MMK
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className="text-gray-500 mr-1">Submitted by :</span>
+                <span className="font-bold text-black/60 text-[16px]">
+                  {submittedBy}
+                </span>
+              </div>
+              {expense.note && (
+                <div className="flex flex-col col-span-2 mt-2">
+                  <span className="font-semibold text-gray-500 mb-1">
+                    Note:
+                  </span>
+                  <div className="rounded-lg h-20 border border-gray-100 bg-gray-100 px-4 py-2 text-sm text-gray-700 whitespace-pre-line">
+                    {expense.note}
+                  </div>
+                </div>
+              )}
             </div>
-
-            {/* Amount */}
-            <p className="mt-2 text-base font-bold text-gray-900">
-              {Number(expense.amount).toLocaleString()} MMK
-            </p>
-
-            {/* Note */}
-            {expense.note && (
-              <p className="mt-1.5 text-xs text-gray-400 line-clamp-2">
-                {expense.note}
-              </p>
-            )}
           </div>
         </div>
-
         {/* Actions */}
         {showReject ? (
           <div className="space-y-2">

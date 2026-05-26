@@ -240,6 +240,26 @@ export default function GymProfilePage() {
   };
 
   const handleSave = async () => {
+    // Final validation for all branches' lat/long before submit
+    const invalidBranch = state.multiGyms.find(
+      (b) =>
+        b.latitude === null ||
+        b.longitude === null ||
+        isNaN(Number(b.latitude)) ||
+        isNaN(Number(b.longitude)) ||
+        Number(b.latitude) < -90 ||
+        Number(b.latitude) > 90 ||
+        Number(b.longitude) < -180 ||
+        Number(b.longitude) > 180,
+    );
+    if (invalidBranch) {
+      dispatch({
+        type: "set_error",
+        value:
+          "All branches must have valid latitude (-90 to 90) and longitude (-180 to 180).",
+      });
+      return;
+    }
     try {
       dispatch({ type: "set_error", value: null });
 
@@ -317,6 +337,10 @@ export default function GymProfilePage() {
               ? { description: branch.description.trim() }
               : {}),
             isActive: branch.isActive ?? true,
+            latitude:
+              branch.latitude == null ? null : Number(branch.latitude),
+            longitude:
+              branch.longitude == null ? null : Number(branch.longitude),
           }))
           .filter((branch) => branch.name.length > 0),
         ...(state.logo ? { logo: state.logo } : {}),

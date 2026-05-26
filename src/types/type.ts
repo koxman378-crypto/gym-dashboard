@@ -195,6 +195,8 @@ export interface MultiGymItem {
   _id?: string;
   name: string;
   description?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   isActive?: boolean;
 }
 
@@ -380,7 +382,11 @@ export type GymProfileAction =
   | { type: "reset"; payload?: GymProfile };
 
 // Payment requests page
-export type PaymentRequestStatusFilter = "" | "pending" | "approved" | "rejected";
+export type PaymentRequestStatusFilter =
+  | ""
+  | "pending"
+  | "approved"
+  | "rejected";
 export type PaymentRequestStatusFilterAction = {
   type: "set";
   value: PaymentRequestStatusFilter;

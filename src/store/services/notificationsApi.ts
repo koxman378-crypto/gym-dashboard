@@ -27,7 +27,9 @@ export interface GymNotification {
   daysLeft: number;
   subscriptionDaysLeft?: number | null;
   gymFeeDaysLeft?: number | null;
+  gymFeeName?: string | null;
   trainerDaysLeft?: number | null;
+  trainerName?: string | null;
   serviceDaysLeft?: ServiceDaysLeftItem[];
   offDayName?: string | null;
   offDayDaysAdded?: number | null;
