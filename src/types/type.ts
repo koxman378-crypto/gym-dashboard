@@ -411,4 +411,5 @@ export type NotificationListItem = {
   offDayName?: string | null;
   offDayDaysAdded?: number | null;
   offDayAppliedAt?: string | null;
+  createdAt?: string;
 };

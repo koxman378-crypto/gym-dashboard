@@ -89,10 +89,9 @@ export default function OtherServicesPage() {
     openEditDialog(item);
   };
 
+  // Only pass delete function, let OtherServiceList handle dialog
   const handleDelete = async (item: OtherServiceItem) => {
-    if (confirm(`Delete ${item.name}?`)) {
-      await deleteItem(item._id).unwrap();
-    }
+    await deleteItem(item._id).unwrap();
   };
 
   const handleToggle = async (item: OtherServiceItem) => {

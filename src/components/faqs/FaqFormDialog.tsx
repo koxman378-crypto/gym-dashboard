@@ -15,11 +15,11 @@ import { Button } from "@/src/components/ui/button";
 import type { FaqFormState } from "@/src/store/slices/faqsSlice";
 
 const lightDialogContentClassName =
-  "border border-gray-200 bg-background text-foreground shadow-2xl ring-ring/20";
+  "border border-gray-200 bg-white text-foreground shadow-2xl ring-gray-200/60";
 const lightInputClassName =
-  "border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0";
+  "border-gray-200 bg-white text-foreground placeholder:text-muted-foreground hover:border-gray-300 focus-visible:outline-none focus-visible:ring-gray-200/60";
 const lightButtonClassName =
-  "border border-border cursor-pointer bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
+  "border border-gray-200 cursor-pointer bg-white text-foreground hover:bg-gray-50 hover:text-foreground shadow-sm";
 
 interface FaqFormDialogProps {
   open: boolean;
@@ -81,7 +81,7 @@ export function FaqFormDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 border-t border-gray-200 bg-[#F5F5F5] pt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

@@ -22,12 +22,12 @@ import type { CreateOtherServiceDto } from "@/src/types/extended-types";
 import type { MultiGymItem } from "@/src/types/type";
 
 const lightInputClassName =
-  "border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20";
+  "border-gray-200 bg-white text-foreground placeholder:text-muted-foreground hover:border-gray-300 focus-visible:border-gray-300 focus-visible:ring-gray-200/60";
 const lightDialogContentClassName =
-  "border border-border bg-background text-foreground shadow-2xl ring-ring/20";
-const lightDialogFooterClassName = "border-border bg-muted";
+  "border border-gray-200 bg-white text-foreground shadow-2xl ring-gray-200/60";
+const lightDialogFooterClassName = "border-t border-gray-200 bg-[#F5F5F5]";
 const lightButtonClassName =
-  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
+  "border border-gray-200 bg-white text-foreground hover:bg-gray-50 hover:text-foreground shadow-sm";
 
 interface OtherServiceFormDialogProps {
   open: boolean;
@@ -78,12 +78,18 @@ export function OtherServiceFormDialog({
                 <SelectTrigger className={lightInputClassName}>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Select branch</SelectItem>
+                <SelectContent className="border border-gray-200 bg-white shadow-lg">
+                  <SelectItem
+                    value="none"
+                    className="cursor-pointer focus:bg-gray-50"
+                  >
+                    Select branch
+                  </SelectItem>
                   {branches.map((branch) => (
                     <SelectItem
                       key={branch._id ?? branch.name}
                       value={branch._id ?? branch.name}
+                      className="cursor-pointer focus:bg-gray-50"
                     >
                       {branch.name}
                     </SelectItem>

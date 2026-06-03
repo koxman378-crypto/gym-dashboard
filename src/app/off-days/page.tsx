@@ -174,7 +174,7 @@ export default function OffDaysPage() {
           setOpen(v);
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md border border-[whitesmoke] bg-white text-foreground shadow-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarOff className="w-5 h-5" />
@@ -194,13 +194,13 @@ export default function OffDaysPage() {
                   setForm((f) => ({ ...f, name: e.target.value }))
                 }
                 placeholder="e.g. သင်္ကြန်, တန်ဆောင်တိုင်း"
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md mt-2 border border-[whitesmoke] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-zinc-700">
-                {t("offDays.daysCount")} <span className="text-red-500">*</span>
+                {t("offDays.daysCount")}
               </label>
               <input
                 type="number"
@@ -217,7 +217,7 @@ export default function OffDaysPage() {
                     setForm((f) => ({ ...f, daysCount: "1" }));
                   }
                 }}
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md mt-2 border border-[whitesmoke] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <p className="text-xs text-zinc-400">
                 All active subscriptions will be extended by this many days.
@@ -235,7 +235,7 @@ export default function OffDaysPage() {
                 }
                 placeholder="Optional note..."
                 rows={3}
-                className="w-full rounded-md border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full rounded-md border mt-2 border-[whitesmoke] bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
           </div>
@@ -248,6 +248,7 @@ export default function OffDaysPage() {
                 setOpen(false);
               }}
               disabled={isCreating}
+              className="border border-[whitesmoke] bg-white text-foreground hover:bg-[whitesmoke] shadow-sm cursor-pointer"
             >
               Cancel
             </Button>
@@ -259,6 +260,7 @@ export default function OffDaysPage() {
                 !form.daysCount ||
                 parseInt(form.daysCount) < 1
               }
+              className="border border-[whitesmoke] bg-white text-foreground hover:bg-[whitesmoke] shadow-sm cursor-pointer"
             >
               {isCreating ? "Adding..." : t("offDays.addOffDay")}
             </Button>

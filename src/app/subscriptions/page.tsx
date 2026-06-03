@@ -532,8 +532,7 @@ export default function SubscriptionsPage() {
           paidAmount: normalizedPayment.paidAmount,
           notes: formData.notes || undefined,
           proofImage: formData.proofImage || undefined,
-          gymFee:
-            selectedGymFeeId ? { feeId: selectedGymFeeId } : null,
+          gymFee: selectedGymFeeId ? { feeId: selectedGymFeeId } : null,
           services: Object.entries(selectedServices).map(
             ([serviceId, values]) => ({
               serviceId,
@@ -661,16 +660,11 @@ export default function SubscriptionsPage() {
       typeof subscription.customer === "object"
         ? subscription.customer?.name
         : "this customer";
-    if (
-      confirm(
-        `Cancel subscription for ${customerName}? This will mark the subscription as cancelled.`,
-      )
-    ) {
-      try {
-        await cancelSubscription(subscription._id).unwrap();
-      } catch (error) {
-        alert("Failed to cancel subscription. Please try again.");
-      }
+    try {
+      await cancelSubscription(subscription._id).unwrap();
+    } catch (error) {
+      // Optionally, show a toast or custom alert here instead of browser alert
+      // e.g., showToast("Failed to cancel subscription. Please try again.");
     }
   };
 
@@ -679,16 +673,11 @@ export default function SubscriptionsPage() {
       typeof subscription.customer === "object"
         ? subscription.customer?.name
         : "this customer";
-    if (
-      confirm(
-        `Permanently delete subscription for ${customerName}? This action cannot be undone.`,
-      )
-    ) {
-      try {
-        await deleteSubscription(subscription._id).unwrap();
-      } catch (error) {
-        alert("Failed to delete subscription. Please try again.");
-      }
+    try {
+      await deleteSubscription(subscription._id).unwrap();
+    } catch (error) {
+      // Optionally, show a toast or custom alert here instead of browser alert
+      // e.g., showToast("Failed to delete subscription. Please try again.");
     }
   };
 
@@ -1065,12 +1054,15 @@ export default function SubscriptionsPage() {
                                 { value: "years", label: "Year" },
                               ] as const
                             ).map((option) => {
-                              const active = gymFeeDurationFilter === option.value;
+                              const active =
+                                gymFeeDurationFilter === option.value;
                               return (
                                 <button
                                   key={option.value}
                                   type="button"
-                                  onClick={() => setGymFeeDurationFilter(option.value)}
+                                  onClick={() =>
+                                    setGymFeeDurationFilter(option.value)
+                                  }
                                   className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                                     active
                                       ? "border-zinc-900 bg-zinc-900 text-white"
@@ -1610,8 +1602,7 @@ export default function SubscriptionsPage() {
                                       type="number"
                                       min={0}
                                       disabled={
-                                        formData.trainerPromotionType ===
-                                        "none"
+                                        formData.trainerPromotionType === "none"
                                       }
                                       value={formData.trainerPromotionValue}
                                       onChange={(e) =>
@@ -2134,7 +2125,8 @@ export default function SubscriptionsPage() {
                                 Paid Amount
                               </span>
                               <span className="text-sm font-bold text-foreground">
-                                {calculatedTotals.effectivePaidAmount.toLocaleString()} MMK
+                                {calculatedTotals.effectivePaidAmount.toLocaleString()}{" "}
+                                MMK
                               </span>
                             </div>
                           )}

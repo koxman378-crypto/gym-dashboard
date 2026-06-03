@@ -76,11 +76,12 @@ export default function FaqsPage() {
   };
 
   const handleDelete = async (faq: Faq) => {
-    if (!faq._id || !confirm(`Delete this FAQ?\n\n"${faq.question}"`)) return;
+    if (!faq._id) return;
     try {
       await deleteFaq(faq._id).unwrap();
     } catch (error: any) {
-      alert(error?.data?.message || "Failed to delete FAQ");
+      // Optionally, show a toast or custom alert here instead of browser alert
+      // e.g., showToast(error?.data?.message || "Failed to delete FAQ");
     }
   };
 

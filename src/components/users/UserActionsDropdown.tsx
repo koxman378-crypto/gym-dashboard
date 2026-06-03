@@ -160,8 +160,8 @@ export function UserActionsDropdown({
         onOpenChange={setDeleteOpen}
         title="Delete User"
         description={`Are you sure you want to permanently delete "${user.name}"? This action cannot be undone.`}
-        onConfirm={() => {
-          if (onDelete) onDelete(user._id);
+        onConfirm={async () => {
+          if (onDelete) await onDelete(user._id);
           setDeleteOpen(false);
         }}
       />

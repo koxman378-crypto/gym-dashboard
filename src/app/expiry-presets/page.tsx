@@ -86,11 +86,12 @@ export default function ExpiryPresetsPage() {
   };
 
   const handleDelete = async (preset: ExpiryPreset) => {
-    if (!preset._id || !confirm(`Delete "${preset.label}"?`)) return;
+    if (!preset._id) return;
     try {
       await deletePreset(preset._id).unwrap();
     } catch (error: any) {
-      alert(error?.data?.message || "Failed to delete expiry preset");
+      // Optionally, show a toast or custom alert here instead of browser alert
+      // e.g., showToast(error?.data?.message || "Failed to delete expiry preset");
     }
   };
 

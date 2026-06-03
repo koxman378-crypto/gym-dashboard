@@ -128,8 +128,8 @@ export function FaqList({
                 onClick={() => setSelectedIndex(index)}
                 className={` rounded-xl border p-4 transition-colors duration-150 ${
                   selectedIndex === index
-                    ? "border-gray-300 bg-gray-100"
-                    : "border-gray-200 bg-[#F5F5F5]"
+                    ? "border-gray-300 bg-gray-50"
+                    : "border-gray-200 bg-white"
                 }`}
               >
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -159,7 +159,7 @@ export function FaqList({
                         e.stopPropagation();
                         onEdit(faq);
                       }}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-700 transition-all duration-150 hover:bg-gray-100 active:scale-95"
+                      className="flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 transition-all duration-150 hover:bg-gray-50 active:scale-95"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Edit
@@ -174,7 +174,7 @@ export function FaqList({
                       className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-all duration-150 active:scale-95 ${
                         faq.isActive
                           ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
-                          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                          : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                       }`}
                     >
                       <Check className="h-3.5 w-3.5" />
@@ -187,7 +187,7 @@ export function FaqList({
                         e.stopPropagation();
                         setPendingDelete(faq);
                       }}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-600 transition-all duration-150 hover:bg-red-100 active:scale-95"
+                      className="flex cursor-pointer items-center gap-1.5 rounded-full border border-red-200 bg-white px-3 py-1.5 text-sm text-red-600 transition-all duration-150 hover:bg-red-50 active:scale-95"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Delete
@@ -223,9 +223,9 @@ export function FaqList({
             ? `Are you sure you want to delete the FAQ "${pendingDelete.question}"? This action cannot be undone.`
             : "Are you sure you want to delete this FAQ? This action cannot be undone."
         }
-        onConfirm={() => {
+        onConfirm={async () => {
           if (pendingDelete) {
-            onDelete(pendingDelete);
+            await onDelete(pendingDelete);
             setPendingDelete(null);
           }
         }}

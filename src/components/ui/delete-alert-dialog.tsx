@@ -47,7 +47,9 @@ export function DeleteAlertDialog({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             className="absolute inset-0 bg-black/20"
-            onClick={() => { if (!isLoading) onOpenChange(false); }}
+            onClick={() => {
+              if (!isLoading) onOpenChange(false);
+            }}
           />
 
           {/* Dialog */}
@@ -56,8 +58,13 @@ export function DeleteAlertDialog({
             initial={{ scale: 0.96, opacity: 0, y: 6 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 6 }}
-            transition={{ type: "spring", stiffness: 380, damping: 30, duration: 0.2 }}
-            className="relative z-10 mx-4 w-full max-w-sm rounded-2xl border border-gray-200 bg-white shadow-lg"
+            transition={{
+              type: "spring",
+              stiffness: 380,
+              damping: 30,
+              duration: 0.2,
+            }}
+            className="relative z-10 mx-4 w-full max-w-xl rounded-2xl border border-gray-200 bg-white shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
@@ -70,7 +77,9 @@ export function DeleteAlertDialog({
 
               {/* Text */}
               <div className="text-center">
-                <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+                <h2 className="text-base font-semibold text-gray-900">
+                  {title}
+                </h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-gray-500">
                   {description}
                 </p>

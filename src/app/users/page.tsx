@@ -209,7 +209,12 @@ export default function UsersPage() {
       } else {
         createdUser = await createStaff(normalizedData).unwrap();
       }
-      if (data.role === Role.TRAINER && trainerFee && trainerFee > 0 && createdUser._id) {
+      if (
+        data.role === Role.TRAINER &&
+        trainerFee &&
+        trainerFee > 0 &&
+        createdUser._id
+      ) {
         await addTrainerFeeItem({
           trainerId: createdUser._id,
           feeData: { amount: trainerFee, isActive: true },
@@ -241,19 +246,16 @@ export default function UsersPage() {
 
   const handleDeleteUser = async (userId: string) => {
     if (!userId) {
-      alert(
-        "Cannot delete user: User ID is missing. Please refresh the page and try again.",
-      );
+      // Optionally, show a toast or custom alert here instead of browser alert
+      // e.g., showToast("Cannot delete user: User ID is missing. Please refresh the page and try again.");
       return;
     }
-
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        await deleteUser(userId).unwrap();
-      } catch (error) {
-        const { message } = getErrorState(error);
-        alert(`Failed to delete user: ${message}`);
-      }
+    try {
+      await deleteUser(userId).unwrap();
+    } catch (error) {
+      const { message } = getErrorState(error);
+      // Optionally, show a toast or custom alert here instead of browser alert
+      // e.g., showToast(`Failed to delete user: ${message}`);
     }
   };
 
@@ -316,7 +318,9 @@ export default function UsersPage() {
         editFormData.salaryAmount !== undefined
       ) {
         const newSalary =
-          typeof editFormData.salaryAmount === "number" ? editFormData.salaryAmount : undefined;
+          typeof editFormData.salaryAmount === "number"
+            ? editFormData.salaryAmount
+            : undefined;
         if (newSalary !== (selectedUser.salaryAmount ?? undefined)) {
           await updateUser({
             id: selectedUser._id,
@@ -326,9 +330,14 @@ export default function UsersPage() {
       }
 
       // Trainer fee update
-      if (selectedUser.role === Role.TRAINER && editFormData.trainerFee !== undefined) {
+      if (
+        selectedUser.role === Role.TRAINER &&
+        editFormData.trainerFee !== undefined
+      ) {
         const newFee =
-          typeof editFormData.trainerFee === "number" ? editFormData.trainerFee : undefined;
+          typeof editFormData.trainerFee === "number"
+            ? editFormData.trainerFee
+            : undefined;
         if (newFee !== undefined && newFee > 0) {
           const existingFee =
             selectedUser.trainerFees?.find((f) => f.isActive) ??

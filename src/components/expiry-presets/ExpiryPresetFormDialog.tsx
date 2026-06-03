@@ -14,11 +14,11 @@ import { Button } from "@/src/components/ui/button";
 import type { ExpiryPresetFormState } from "@/src/store/slices/expiryPresetsSlice";
 
 const lightDialogContentClassName =
-  "border border-border bg-background text-foreground shadow-2xl ring-ring/20";
+  "border border-[whitesmoke] bg-white text-foreground shadow-2xl ring-ring/20";
 const lightInputClassName =
-  "border-border bg-background text-foreground placeholder:text-muted-foreground hover:border-ring focus-visible:border-ring focus-visible:ring-ring/20";
+  "border-[whitesmoke] bg-white text-foreground placeholder:text-muted-foreground hover:border-[whitesmoke] focus-visible:border-[whitesmoke] focus-visible:ring-ring/20";
 const lightButtonClassName =
-  "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
+  "border border-[whitesmoke] bg-white text-foreground hover:bg-[whitesmoke] hover:text-foreground shadow-sm";
 
 interface ExpiryPresetFormDialogProps {
   open: boolean;

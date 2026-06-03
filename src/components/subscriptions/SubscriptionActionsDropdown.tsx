@@ -98,8 +98,8 @@ export function SubscriptionActionsDropdown({
         onOpenChange={setDeleteOpen}
         title="Delete Subscription"
         description={`Permanently delete subscription for ${customerName}? This action cannot be undone.`}
-        onConfirm={() => {
-          if (onDelete) onDelete(subscription);
+        onConfirm={async () => {
+          if (onDelete) await onDelete(subscription);
           setDeleteOpen(false);
         }}
       />

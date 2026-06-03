@@ -1,7 +1,7 @@
 "use client";
 
 import type { ElementType } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CircleDollarSign,
   Filter,
@@ -25,10 +25,15 @@ import {
   type ExpenseCategory,
   type ExpenseStatus,
 } from "@/src/store/services/expensesApi";
-import {
-  useGetAllStaffQuery,
-} from "@/src/store/services/usersApi";
+import { useGetAllStaffQuery } from "@/src/store/services/usersApi";
 import { DataTablePagination } from "@/src/components/data-table/data-table-pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/src/components/ui/select";
 import type {
   CategoryFilter,
   ExpenseFormState,
@@ -320,7 +325,8 @@ function ExpenseCard({
 
 export default function ExpensesPage() {
   const { t, lang } = useLanguage();
-  const { isOwner, selectedGymId, branches, setSelectedGymId } = useOwnerBranchFilter();
+  const { isOwner, selectedGymId, branches, setSelectedGymId } =
+    useOwnerBranchFilter();
   const user = useAppSelector((state) => state.auth.user);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
@@ -336,6 +342,7 @@ export default function ExpensesPage() {
     category: "maintenance",
     note: "",
   });
+  const [createGymId, setCreateGymId] = useState<string>("none");
 
   const gymId = isOwner
     ? (selectedGymId ?? user?.gymId ?? undefined)
@@ -399,7 +406,30 @@ export default function ExpensesPage() {
     [gymId, rangeBounds.from, rangeBounds.to],
   );
 
-  const staffQueryArgs = useMemo(() => ({ gymId }), [gymId]);
+  const createFormGymId = useMemo(() => {
+    if (!isOwner) return user?.gymId ?? undefined;
+    if (branches.length === 0) return user?.gymId ?? undefined;
+    if (createGymId === "none") return undefined;
+    return createGymId;
+  }, [isOwner, branches.length, createGymId, user?.gymId]);
+
+  const staffQueryArgs = useMemo(
+    () => ({ gymId: createFormGymId }),
+    [createFormGymId],
+  );
+
+  useEffect(() => {
+    if (!isOwner || branches.length === 0) return;
+    if (selectedGymId) {
+      setCreateGymId(selectedGymId);
+      return;
+    }
+    if (branches.length === 1 && branches[0]._id) {
+      setCreateGymId(String(branches[0]._id));
+      return;
+    }
+    setCreateGymId("none");
+  }, [isOwner, branches, selectedGymId]);
 
   const {
     data: expensesResponse,
@@ -411,10 +441,9 @@ export default function ExpensesPage() {
   const { data: summaryResponse, isLoading: financeLoading } =
     useGetExpenseSummaryQuery(summaryQueryArgs, { skip: !isOwner });
 
-  const { data: staff = [] } = useGetAllStaffQuery(
-    staffQueryArgs,
-    { skip: !canCreateExpense || !gymId },
-  );
+  const { data: staff = [] } = useGetAllStaffQuery(staffQueryArgs, {
+    skip: !canCreateExpense || !createFormGymId,
+  });
 
   const [createExpense, { isLoading: isCreatingExpense }] =
     useCreateExpenseMutation();
@@ -471,7 +500,8 @@ export default function ExpensesPage() {
   const groupLabel = getPeriodLabel(selectedYear, selectedMonthFilter, lang);
   const totalExpensesCount = expensesResponse?.total ?? 0;
   const totalPages = expensesResponse?.totalPages ?? 1;
-  const historyRangeStart = totalExpensesCount > 0 ? (page - 1) * pageSize + 1 : 0;
+  const historyRangeStart =
+    totalExpensesCount > 0 ? (page - 1) * pageSize + 1 : 0;
   const historyRangeEnd = Math.min(page * pageSize, totalExpensesCount);
 
   const handleExpenseSubmit = async (event: React.FormEvent) => {
@@ -495,13 +525,18 @@ export default function ExpensesPage() {
       return;
     }
 
+    if (isOwner && branches.length > 0 && !createFormGymId) {
+      window.alert(t("expenses.selectBranch"));
+      return;
+    }
+
     try {
       await createExpense({
         title,
         amount,
         category: formState.category,
         note: formState.note.trim() || undefined,
-        gymId,
+        gymId: createFormGymId ?? gymId,
       }).unwrap();
 
       setFormState({
@@ -533,9 +568,7 @@ export default function ExpensesPage() {
               </div>
               <div className="space-y-2">
                 <h1 className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
-                  {isOwner
-                    ? "Branch expense finance"
-                    : "My expense requests"}
+                  {isOwner ? "Branch expense finance" : "My expense requests"}
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">
                   {isOwner
@@ -562,7 +595,9 @@ export default function ExpensesPage() {
                 <select
                   className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-gray-300"
                   value={selectedYear}
-                  onChange={(event) => handleYearChange(Number(event.target.value))}
+                  onChange={(event) =>
+                    handleYearChange(Number(event.target.value))
+                  }
                 >
                   {yearOptions.map((year) => (
                     <option key={year} value={year}>
@@ -638,6 +673,36 @@ export default function ExpensesPage() {
               onSubmit={handleExpenseSubmit}
               className="grid gap-5 md:grid-cols-2 xl:grid-cols-3"
             >
+              {isOwner && branches.length > 0 ? (
+                <div className="space-y-2 md:col-span-2 xl:col-span-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    {t("expenses.branch")}
+                  </label>
+                  <Select value={createGymId} onValueChange={setCreateGymId}>
+                    <SelectTrigger className="h-12 w-full rounded-2xl border border-gray-100 bg-[#f5f5f5] px-4 mt-2 text-sm shadow-none focus:ring-black/5">
+                      <SelectValue placeholder={t("expenses.selectBranch")} />
+                    </SelectTrigger>
+                    <SelectContent className="border border-gray-200 bg-white shadow-lg">
+                      <SelectItem
+                        value="none"
+                        className="cursor-pointer focus:bg-gray-100"
+                      >
+                        {t("expenses.selectBranch")}
+                      </SelectItem>
+                      {branches.map((branch) => (
+                        <SelectItem
+                          key={branch._id}
+                          value={String(branch._id)}
+                          className="cursor-pointer focus:bg-gray-100"
+                        >
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : null}
+
               <div className="space-y-2 xl:col-span-2">
                 <label className="text-sm font-medium text-gray-700">
                   Title
@@ -683,15 +748,15 @@ export default function ExpensesPage() {
                   Amount (MMK)
                 </label>
                 {formState.category === "salary" ? (
-                    <div className="rounded-2xl border border-gray-100 bg-[#f5f5f5] px-4 py-3.5 text-sm text-gray-700">
-                      {formatMoney(salaryTotal)} from {staff.length} active staff
-                    </div>
-                  ) : (
-                    <input
-                      type="number"
-                      min={1}
-                      className="w-full rounded-2xl border border-gray-100 bg-[#f5f5f5] px-4 py-3.5 text-sm outline-none transition focus:border-gray-300"
-                      value={formState.amount}
+                  <div className="rounded-2xl border border-gray-100 bg-[#f5f5f5] px-4 py-3.5 text-sm text-gray-700">
+                    {formatMoney(salaryTotal)} from {staff.length} active staff
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    min={1}
+                    className="w-full rounded-2xl border border-gray-100 bg-[#f5f5f5] px-4 py-3.5 text-sm outline-none transition focus:border-gray-300"
+                    value={formState.amount}
                     onChange={(event) =>
                       setFormState((current) => ({
                         ...current,
@@ -742,7 +807,7 @@ export default function ExpensesPage() {
               tone={netTone}
             />
             <InfoCard
-              label={t("expenses.totalThisMonth")}
+              label={t("expenses.totalThisMonthExpenses")}
               value={formatMoney(summary.approved)}
               icon={CircleDollarSign}
               tone="success"
@@ -795,13 +860,21 @@ export default function ExpensesPage() {
                 />
                 <MiniMetric
                   label="Status"
-                  value={t(STATUS_OPTIONS.find((option) => option.value === statusFilter)?.labelKey ?? "expenses.allExpenses")}
+                  value={t(
+                    STATUS_OPTIONS.find(
+                      (option) => option.value === statusFilter,
+                    )?.labelKey ?? "expenses.allExpenses",
+                  )}
                   caption={
                     categoryFilter === "all"
                       ? expensesFetching
                         ? "Refreshing"
                         : "Live results"
-                      : t(CATEGORY_OPTIONS.find((option) => option.value === categoryFilter)?.labelKey ?? "expenses.category")
+                      : t(
+                          CATEGORY_OPTIONS.find(
+                            (option) => option.value === categoryFilter,
+                          )?.labelKey ?? "expenses.category",
+                        )
                   }
                   tone="soft"
                 />
@@ -1033,7 +1106,9 @@ function HeroStat({
             </p>
           </div>
         </div>
-        <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${iconTone}`}>
+        <div
+          className={`flex h-11 w-11 items-center justify-center rounded-2xl ${iconTone}`}
+        >
           <Icon className="h-5 w-5" />
         </div>
       </div>
@@ -1079,7 +1154,9 @@ function InfoCard({
           </p>
           <p className={`mt-2 text-2xl font-black ${valueTone}`}>{value}</p>
         </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${iconTone}`}>
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-2xl ${iconTone}`}
+        >
           <Icon className="h-4.5 w-4.5" />
         </div>
       </div>
@@ -1111,9 +1188,7 @@ function MiniMetric({
         {label}
       </p>
       <p className="mt-2 text-base font-bold text-gray-900">{value}</p>
-      {caption ? (
-        <p className="mt-1 text-xs text-gray-500">{caption}</p>
-      ) : null}
+      {caption ? <p className="mt-1 text-xs text-gray-500">{caption}</p> : null}
     </div>
   );
 }
