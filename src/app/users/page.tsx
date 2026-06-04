@@ -415,7 +415,7 @@ export default function UsersPage() {
                     setSelectedGymId(gymId);
                     setUserPage(1);
                   }}
-                  className="min-w-45"
+                  className="min-w-40"
                 />
               )}
 

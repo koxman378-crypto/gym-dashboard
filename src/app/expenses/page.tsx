@@ -577,30 +577,30 @@ export default function ExpensesPage() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3 cursor-pointer">
                 <select
-                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-gray-300"
+                  className="rounded-full border cursor-pointer border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-gray-300"
                   value={selectedMonthFilter}
                   onChange={(event) =>
                     handleMonthChange(event.target.value as MonthFilter)
                   }
                 >
                   {MONTH_FILTER_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option key={option.value} value={option.value} className="cursor-pointer">
                       {option.label}
                     </option>
                   ))}
                 </select>
 
                 <select
-                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-gray-300"
+                  className="rounded-full border cursor-pointer border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 outline-none transition focus:border-gray-300"
                   value={selectedYear}
                   onChange={(event) =>
                     handleYearChange(Number(event.target.value))
                   }
                 >
                   {yearOptions.map((year) => (
-                    <option key={year} value={year}>
+                    <option key={year} value={year} className="cursor-pointer">
                       {year}
                     </option>
                   ))}
@@ -725,7 +725,7 @@ export default function ExpensesPage() {
                   Category
                 </label>
                 <select
-                  className="w-full rounded-2xl border border-gray-100 bg-[#f5f5f5] px-4 py-3.5 text-sm outline-none transition focus:border-gray-300"
+                  className="w-full cursor-pointer rounded-2xl border border-gray-100 bg-[#f5f5f5] px-4 py-3.5 text-sm outline-none transition focus:border-gray-300"
                   value={formState.category}
                   onChange={(event) =>
                     setFormState((current) => ({
@@ -734,12 +734,16 @@ export default function ExpensesPage() {
                     }))
                   }
                 >
-                  <option value="maintenance">Maintenance</option>
-                  <option value="utilities">Utilities</option>
-                  <option value="equipment">Equipment</option>
-                  <option value="salary">Salary</option>
-                  <option value="rent">Rent</option>
-                  <option value="other">Other</option>
+                  <option value="maintenance" className="cursor-pointer">
+                    Maintenance
+                  </option>
+                  <option value="utilities" className="cursor-pointer">
+                    Utilities
+                  </option>
+                  <option value="equipment" className="cursor-pointer">Equipment</option>
+                  <option value="salary" className="cursor-pointer">Salary</option>
+                  <option value="rent" className="cursor-pointer">Rent</option>
+                  <option value="other" className="cursor-pointer">Other</option>
                 </select>
               </div>
 
@@ -789,7 +793,7 @@ export default function ExpensesPage() {
                 <button
                   type="submit"
                   disabled={isCreatingExpense}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isCreatingExpense ? "Submitting..." : "Submit expense"}
                 </button>
@@ -890,7 +894,7 @@ export default function ExpensesPage() {
                 }
               >
                 {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={option.value} className="cursor-pointer">
                     {t(option.labelKey)}
                   </option>
                 ))}
@@ -903,7 +907,7 @@ export default function ExpensesPage() {
                 }
               >
                 {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={option.value} className="cursor-pointer">
                     {t(option.labelKey)}
                   </option>
                 ))}

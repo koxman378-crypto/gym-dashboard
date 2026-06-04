@@ -196,7 +196,7 @@ export function UserCreateDialog({
   };
 
   return (
-    <div className="flex items-center gap-4 mb-4">
+    <div className="flex items-center gap-4">
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>
           <Button

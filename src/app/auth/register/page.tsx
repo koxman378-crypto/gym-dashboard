@@ -18,7 +18,7 @@ export default function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/users");
+      router.push("/auth/login");
     }
   }, [isAuthenticated, router]);
 
@@ -86,8 +86,8 @@ export default function RegisterPage() {
         ...dataToSend,
         ...(age && { age: Number(age) }),
       }).unwrap();
-      // Redirect to users page after successful registration
-      router.push("/users");
+      // Redirect to login page after successful registration
+      router.push("/auth/login");
     } catch (err: any) {}
   };
 
@@ -228,7 +228,7 @@ export default function RegisterPage() {
                   id="age"
                   name="age"
                   type="number"
-                placeholder="0000"
+                  placeholder="0000"
                   value={formData.age}
                   onChange={handleChange}
                   className={`bg-background/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:bg-background/15 transition-colors ${validationErrors.age ? "border-red-500" : ""}`}

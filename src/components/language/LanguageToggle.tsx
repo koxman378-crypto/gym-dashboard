@@ -13,7 +13,7 @@ export function LanguageToggle({ compact = false }: LanguageToggleProps) {
     {
       value: "en",
       label: "English",
-      img: "/en-1.png",
+      img: "/usa.png",
     },
     {
       value: "mm",

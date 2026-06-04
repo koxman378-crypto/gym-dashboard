@@ -42,7 +42,7 @@ export function OwnerBranchSelect({
       <SelectTrigger
         className={cn(
           variant === "page"
-            ? "h-12 w-50 border -mt-4 border-zinc-200 bg-white text-sm shadow-sm transition-colors hover:bg-zinc-50 focus:ring-black/5 focus-visible:ring-black/5"
+            ? "h-12 w-40 border cursor-pointer border-zinc-200 bg-white text-sm shadow-sm transition-colors hover:bg-zinc-50 focus:ring-black/5 focus-visible:ring-black/5"
             : "h-9 cursor-pointer border border-zinc-200 bg-white text-sm shadow-sm transition-colors hover:bg-zinc-50 focus:ring-0 focus-visible:ring-0",
         )}
       >

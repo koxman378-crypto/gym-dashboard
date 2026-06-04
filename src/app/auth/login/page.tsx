@@ -27,6 +27,13 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
+      // If a trainer or customer somehow reached dashboard, block access
+      if (user.role === Role.TRAINER || user.role === Role.CUSTOMER) {
+        window.alert("You are not permitted to access this dashboard.");
+        router.push("/auth/login");
+        return;
+      }
+
       router.push(getLandingPath(user.role));
     }
   }, [isAuthenticated, user, router]);
@@ -69,6 +76,17 @@ export default function LoginPage() {
 
     try {
       const response = await login(formData).unwrap();
+
+      // Block trainer/customer accounts from accessing dashboard
+      if (
+        response?.user?.role === Role.TRAINER ||
+        response?.user?.role === Role.CUSTOMER
+      ) {
+        window.alert("You are not permitted to access this dashboard.");
+        // keep them on login page
+        return;
+      }
+
       router.push(getLandingPath(response.user.role));
     } catch (err: any) {}
   };

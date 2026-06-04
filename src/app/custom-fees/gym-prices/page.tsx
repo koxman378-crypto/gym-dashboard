@@ -23,6 +23,7 @@ import { useLanguage } from "@/src/components/language/LanguageContext";
 import { useOwnerBranchFilter } from "@/src/components/layout/OwnerBranchFilterContext";
 import { OwnerBranchSelect } from "@/src/components/layout/OwnerBranchSelect";
 import { PageLoadingState } from "@/src/components/ui/page-loading-state";
+import RequireRole from "@/src/components/auth/RequireRole";
 
 const lightButtonClassName =
   "border border-border bg-background text-foreground hover:bg-muted hover:text-foreground shadow-sm";
@@ -148,24 +149,25 @@ export default function GymPricesPage() {
   };
 
   return (
-    <div
-      className="min-h-screen p-6 text-foreground"
-      style={{ backgroundColor: "#FCFCFC" }}
-    >
-      <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
+    <RequireRole allowedRoles={["owner"]}>
+      <div
+        className="min-h-screen p-6 text-foreground"
+        style={{ backgroundColor: "#FCFCFC" }}
+      >
+        <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
         <div>
           <h1 className="text-3xl font-bold">{t("gymPrices.title")}</h1>
           <p className="mt-1 text-muted-foreground">
             {t("gymPrices.subtitle")}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 h-12">
           {isOwner && branches.length > 0 ? (
             <OwnerBranchSelect
               branches={branches}
               selectedGymId={selectedGymId}
               onChange={setSelectedGymId}
-              variant="compact"
+              variant="page"
               allLabel="All Branches"
             />
           ) : null}
@@ -174,9 +176,9 @@ export default function GymPricesPage() {
               setCreateGymId(selectedGymId ?? "none");
               openCreateDialog();
             }}
-            className={`cursor-pointer gap-2 px-6 py-6 text-base font-semibold ${lightButtonClassName}`}
+            className={`h-12 flex items-center gap-2 px-5 text-base font-semibold ${lightButtonClassName}`}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="mr-2 h-4 w-4" />
             {t("gymPrices.addFee")}
           </Button>
         </div>
@@ -212,6 +214,7 @@ export default function GymPricesPage() {
         onChange={(data) => setFormData(data)}
         onSubmit={isEditDialogOpen ? handleUpdate : handleCreate}
       />
-    </div>
+      </div>
+    </RequireRole>
   );
 }
