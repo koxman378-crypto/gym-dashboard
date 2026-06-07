@@ -40,7 +40,7 @@ const translations = {
     },
     groupSettings: {
       en: "Settings & Customization",
-      mm: "ဆက်တင်များ & စိတ်ကြိုက်ပြင်ဆင်မှု",
+      mm: "ဆက်တင် & စိတ်ကြိုက်ပြင်ဆင်မှု",
     },
     // sidebar group labels (old)
     groupOverview: { en: "Overview", mm: "အနှစ်ချုပ်" },

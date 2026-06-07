@@ -183,6 +183,7 @@ export default function SubscriptionsPage() {
     const nextGymId = value === "none" ? null : value;
     setFormData({
       gymId: nextGymId,
+      customer: "",
       trainerId: null,
       trainerFeeRowId: null,
       trainerDuration: 1,
@@ -291,23 +292,23 @@ export default function SubscriptionsPage() {
     totalPages: subscriptionsData?.totalPages ?? 1,
   };
 
-  // Fetch customers for dropdown
+  // When creating, use the branch chosen inside the dialog; otherwise use the header branch filter.
+  const createGymId = isCreateDialogOpen
+    ? formData.gymId || branchQuery
+    : branchQuery;
+
+  // Fetch customers for the create/edit subscription dropdown.
   const {
     data: customersData_,
     isLoading: isLoadingCustomers,
     error: customersError,
   } = useGetAllCustomersQuery(
-    { limit: 100, gymId: branchQuery },
+    { limit: 100, gymId: createGymId },
     {
       skip: !isAuthenticated || !accessToken,
     },
   );
   const customers = customersData_?.data ?? [];
-
-  // When creating, use formData.gymId; otherwise use the header branch filter
-  const createGymId = isCreateDialogOpen
-    ? formData.gymId || branchQuery
-    : branchQuery;
 
   // Fetch active gym fees
   const { data: gymFees = [] } = useGetAllGymFeeRecordsQuery(

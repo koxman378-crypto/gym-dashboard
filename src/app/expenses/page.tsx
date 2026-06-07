@@ -586,7 +586,7 @@ export default function ExpensesPage() {
                   }
                 >
                   {MONTH_FILTER_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value} className="cursor-pointer">
+                    <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
@@ -740,10 +740,10 @@ export default function ExpensesPage() {
                   <option value="utilities" className="cursor-pointer">
                     Utilities
                   </option>
-                  <option value="equipment" className="cursor-pointer">Equipment</option>
-                  <option value="salary" className="cursor-pointer">Salary</option>
-                  <option value="rent" className="cursor-pointer">Rent</option>
-                  <option value="other" className="cursor-pointer">Other</option>
+                  <option value="equipment">Equipment</option>
+                  <option value="salary">Salary</option>
+                  <option value="rent">Rent</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 
@@ -894,7 +894,7 @@ export default function ExpensesPage() {
                 }
               >
                 {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value} className="cursor-pointer">
+                  <option key={option.value} value={option.value}>
                     {t(option.labelKey)}
                   </option>
                 ))}
@@ -907,7 +907,7 @@ export default function ExpensesPage() {
                 }
               >
                 {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value} className="cursor-pointer">
+                  <option key={option.value} value={option.value}>
                     {t(option.labelKey)}
                   </option>
                 ))}

@@ -55,7 +55,7 @@ export function GymLogoUpload({
             disabled={isLocked}
             className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
-            <Camera className="h-4 w-4" />
+            <Camera className="h-4 w-4 cursor-pointer" />
           </button>
           <input
             ref={fileInputRef}

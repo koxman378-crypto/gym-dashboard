@@ -337,8 +337,7 @@ export default function GymProfilePage() {
               ? { description: branch.description.trim() }
               : {}),
             isActive: branch.isActive ?? true,
-            latitude:
-              branch.latitude == null ? null : Number(branch.latitude),
+            latitude: branch.latitude == null ? null : Number(branch.latitude),
             longitude:
               branch.longitude == null ? null : Number(branch.longitude),
           }))
@@ -515,7 +514,7 @@ export default function GymProfilePage() {
               <Button
                 onClick={state.isEditing ? handleSave : handleStartEditing}
                 disabled={state.uploadingImage || isUpdating}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm shadow-sm ${
+                className={`flex items-center cursor-pointer gap-2 rounded-full px-4 py-2 text-sm shadow-sm ${
                   state.isEditing
                     ? "bg-gray-900 text-white hover:bg-gray-800"
                     : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
@@ -536,7 +535,7 @@ export default function GymProfilePage() {
               <Button
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 shadow-sm hover:bg-red-100"
+                className="flex items-center cursor-pointer gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 shadow-sm hover:bg-red-100"
               >
                 <LogOut className="h-4 w-4" />
                 {isLoggingOut

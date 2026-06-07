@@ -141,10 +141,10 @@ export function UserEditDialog({
                   className={lightInputClassName}
                 />
               </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-age" className="text-foreground">
-                Age
-              </Label>
+              <div className="space-y-2">
+                <Label htmlFor="edit-age" className="text-foreground">
+                  Age
+                </Label>
                 <Input
                   id="edit-age"
                   type="number"
@@ -319,7 +319,7 @@ export function UserEditDialog({
                 className={lightInputClassName}
               />
             </div>
-
+            {/* 
             {selectedUser.role === Role.CUSTOMER && (
               <div className="space-y-2">
                 <Label htmlFor="edit-trainer" className="text-foreground">
@@ -353,8 +353,8 @@ export function UserEditDialog({
                   </SelectContent>
                 </Select>
               </div>
-            )}
-
+            )} */}
+            {/* 
             {selectedUser.role === Role.CUSTOMER && (
               <div className="space-y-3 border-t border-border pt-4">
                 <h4 className="text-sm font-medium text-foreground">
@@ -392,7 +392,7 @@ export function UserEditDialog({
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
 
             <DialogFooter className={lightDialogFooterClassName}>
               <DialogClose asChild>

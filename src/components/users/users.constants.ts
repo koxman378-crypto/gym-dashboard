@@ -7,7 +7,7 @@ export const lightInputClassName =
 export const lightSelectTriggerClassName =
   "border-zinc-200 bg-white text-foreground shadow-none hover:border-zinc-300 focus:border-zinc-300 focus:ring-2 focus:ring-black/5";
 export const lightSelectContentClassName =
-  "bg-white border border-gray-200 shadow-none ring-0";
+  "bg-white border cursor-pointer border-gray-200 shadow-none ring-0";
 export const lightSelectItemClassName = "text-foreground hover:bg-zinc-100";
 export const lightDialogContentClassName =
   "max-w-2xl max-h-[90vh] overflow-y-auto border border-zinc-200 bg-white text-card-foreground shadow-xl";

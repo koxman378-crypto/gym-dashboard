@@ -537,7 +537,7 @@ export function UserCreateDialog({
             )}
 
             {/* Body Measurements */}
-            <div className="space-y-3 border-t border-border pt-4">
+            {/* <div className="space-y-3 border-t border-border pt-4">
               <h4 className="text-sm font-medium text-foreground">
                 Body Measurements (Optional)
               </h4>
@@ -579,7 +579,7 @@ export function UserCreateDialog({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             <DialogFooter className={lightDialogFooterClassName}>
               <Button

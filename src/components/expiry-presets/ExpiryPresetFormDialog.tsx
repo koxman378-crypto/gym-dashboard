@@ -18,7 +18,7 @@ const lightDialogContentClassName =
 const lightInputClassName =
   "border-[whitesmoke] bg-white text-foreground placeholder:text-muted-foreground hover:border-[whitesmoke] focus-visible:border-[whitesmoke] focus-visible:ring-ring/20";
 const lightButtonClassName =
-  "border border-[whitesmoke] bg-white text-foreground hover:bg-[whitesmoke] hover:text-foreground shadow-sm";
+  "border border-[whitesmoke] cursor-pointer bg-white text-foreground hover:bg-[whitesmoke] hover:text-foreground shadow-sm";
 
 interface ExpiryPresetFormDialogProps {
   open: boolean;
@@ -103,7 +103,7 @@ export function ExpiryPresetFormDialog({
               formData.days === "" ||
               Number(formData.days) < 1
             }
-            className="bg-slate-900 text-white hover:bg-slate-800"
+            className="bg-slate-900 text-white cursor-pointer hover:bg-slate-800"
           >
             {isLoading ? "Saving..." : isEdit ? "Update" : "Create"}
           </Button>

@@ -69,15 +69,12 @@ export function UserSearchFilters({
         </div>
         <Select value={filterRole} onValueChange={onFilterRoleChange}>
           <SelectTrigger
-            className={`w-45 transition-colors ${lightSelectTriggerClassName}`}
+            className={`w-45 transition-colors cursor-pointer ${lightSelectTriggerClassName}`}
           >
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
           <SelectContent className={lightSelectContentClassName}>
-            <SelectItem
-              value="all"
-              className={`cursor-pointer ${lightSelectItemClassName}`}
-            >
+            <SelectItem value="all" className={lightSelectItemClassName}>
               All Roles
             </SelectItem>
             <SelectItem
@@ -103,12 +100,6 @@ export function UserSearchFilters({
                   className={`cursor-pointer ${lightSelectItemClassName}`}
                 >
                   Cashier
-                </SelectItem>
-                <SelectItem
-                  value={Role.OWNER}
-                  className={`cursor-pointer ${lightSelectItemClassName}`}
-                >
-                  Owner
                 </SelectItem>
               </>
             )}

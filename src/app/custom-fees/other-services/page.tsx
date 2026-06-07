@@ -115,65 +115,65 @@ export default function OtherServicesPage() {
         style={{ backgroundColor: "#FCFCFC" }}
       >
         <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-[#F5F5F5] p-6 shadow-sm">
+          <div>
+            <h1 className="text-3xl font-bold">{t("otherServices.title")}</h1>
+            <p className="mt-1 text-muted-foreground">
+              {t("otherServices.subtitle")}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 h-12">
+            {isOwner && branches.length > 0 ? (
+              <OwnerBranchSelect
+                branches={branches}
+                selectedGymId={selectedGymId}
+                onChange={setSelectedGymId}
+                variant="page"
+                allLabel="All Branches"
+              />
+            ) : null}
+            <Button
+              onClick={() => {
+                setCreateGymId(selectedGymId ?? "none");
+                openCreateDialog();
+              }}
+              className={`h-12 flex items-center cursor-pointer px-5 text-base font-semibold ${lightButtonClassName}`}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {t("otherServices.addService")}
+            </Button>
+          </div>
+        </div>
+
         <div>
-          <h1 className="text-3xl font-bold">{t("otherServices.title")}</h1>
-          <p className="mt-1 text-muted-foreground">
-            {t("otherServices.subtitle")}
-          </p>
+          <OtherServiceList
+            items={serviceItems}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggle={handleToggle}
+          />
         </div>
-        <div className="flex items-center gap-3 h-12">
-          {isOwner && branches.length > 0 ? (
-            <OwnerBranchSelect
-              branches={branches}
-              selectedGymId={selectedGymId}
-              onChange={setSelectedGymId}
-              variant="page"
-              allLabel="All Branches"
-            />
-          ) : null}
-          <Button
-            onClick={() => {
-              setCreateGymId(selectedGymId ?? "none");
-              openCreateDialog();
-            }}
-            className={`h-12 flex items-center px-5 text-base font-semibold ${lightButtonClassName}`}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {t("otherServices.addService")}
-          </Button>
-        </div>
-      </div>
 
-      <div>
-        <OtherServiceList
-          items={serviceItems}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onToggle={handleToggle}
-        />
-      </div>
-
-      <OtherServiceFormDialog
-        open={isCreateDialogOpen || isEditDialogOpen}
-        isEdit={isEditDialogOpen}
-        isOwner={isOwner}
-        branches={branches}
-        selectedGymId={createGymId}
-        onSelectedGymIdChange={setCreateGymId}
-        formData={formData}
-        onOpenChange={(open) => {
-          if (!open) {
-            if (isEditDialogOpen) closeEditDialog();
-            else {
-              closeCreateDialog();
-              setCreateGymId(selectedGymId ?? "none");
+        <OtherServiceFormDialog
+          open={isCreateDialogOpen || isEditDialogOpen}
+          isEdit={isEditDialogOpen}
+          isOwner={isOwner}
+          branches={branches}
+          selectedGymId={createGymId}
+          onSelectedGymIdChange={setCreateGymId}
+          formData={formData}
+          onOpenChange={(open) => {
+            if (!open) {
+              if (isEditDialogOpen) closeEditDialog();
+              else {
+                closeCreateDialog();
+                setCreateGymId(selectedGymId ?? "none");
+              }
             }
-          }
-        }}
-        onChange={(data) => setFormData(data)}
-        onSubmit={handleSubmit}
-      />
+          }}
+          onChange={(data) => setFormData(data)}
+          onSubmit={handleSubmit}
+        />
       </div>
     </RequireRole>
   );
